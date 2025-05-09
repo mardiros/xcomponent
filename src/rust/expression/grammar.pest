@@ -1,0 +1,15 @@
+WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
+
+expression = { term ~ (operator ~ term)* }
+
+term = _{ component | ident | string | integer }
+
+
+ident = { (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+operator = { "+" | "-" | "*" | "/" }
+component = { "<" ~ (!"/>" ~ ANY)* ~ "/>" }
+
+integer = @{ (ASCII_DIGIT | "_")+ }
+string = @{ "\"" ~ (escape_sequence | !("\"" | "\\") ~ ANY)* ~ "\"" }
+
+escape_sequence = { "\\" ~ ( "\"" | "\\" | "n" | "t" | "r" ) }

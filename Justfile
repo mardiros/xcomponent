@@ -1,5 +1,8 @@
 default_testsuite:='tests'
 
+export RUST_LOG := "xcore=info"
+export RUST_BACKTRACE := "1"
+
 develop:
     uv run maturin develop
 
@@ -21,7 +24,7 @@ test: unittest
 unittest testsuite=default_testsuite: develop
     uv run pytest -sxv {{testsuite}}
 
-lf:
+lf: develop
     uv run pytest --lf -vvv
 
 fmt:

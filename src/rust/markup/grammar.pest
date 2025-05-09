@@ -1,0 +1,34 @@
+WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
+
+document      = _{ SOI ~ (fragment | element) ~ EOI }
+node      = _{ doctype | element | expression | fragment | comment | text }
+
+element   = _{ self_closing_element | normal_element }
+
+
+normal_element = {
+    open_tag ~ node* ~ close_tag
+}
+
+
+self_closing_element = { "<" ~ ident ~ (WHITESPACE* ~ attribute)* ~ WHITESPACE* ~ "/>" }
+open_tag             = { "<" ~ ident ~ (WHITESPACE* ~ attribute)* ~ WHITESPACE* ~ ">" }
+close_tag = @{ "</" ~ ident ~ ">" }
+
+fragment = { open_fragment ~ node* ~ close_fragment }
+open_fragment = { "<>" }
+close_fragment = { "</>" }
+
+doctype = @{ "<!DOCTYPE" ~ (!">" ~ ANY)* ~ ">" }
+attribute = { attr_name ~ "=" ~ attr_value }
+comment   = { "<!--" ~ (!"-->" ~ ANY)* ~ "-->" }
+expression = { "{" ~ (!"}" ~ ANY)* ~ "}" }
+
+ident = @{ ASCII_ALPHANUMERIC ~ (ASCII_ALPHANUMERIC | "_" )* }
+attr_name = @{ (ASCII_ALPHANUMERIC | "_")+ }
+attr_value = @{ string_literal_quote | string_literal_doublequote | expression }
+
+string_literal_doublequote = _{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+string_literal_quote = _{ "'" ~ (!"'" ~ ANY)* ~ "'" }
+
+text = @{ (!("<" | "{") ~ ANY)+ }

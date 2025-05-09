@@ -1,25 +1,25 @@
 [package]
-name = "xcomponent"
+name = "xcore"
 version = "0.0.1"
 authors = ["Guillaume Gauvrit <guillaume@gauvr.it>"]
 edition = "2021"
-description = "JSX-like for python using maturin/pyo3 based on rsml."
+description = "JSX-like for python using maturin/pyo3 and pest."
 license = "MIT"
 readme = "README.md"
 
 [dependencies]
-pyo3 = { version = "0.22.5", features = ["extension-module"] }
-rstml = "0.12.1"
-quote = "1"
-proc-macro2 = "1.0.95"
-syn = "2.0.101"
+pyo3 = { version = "0.24.2", features = ["extension-module"] }
+pest = "2.8.0"
+pest_derive = "2.8.0"
+lazy_static = "1.5.0"
+log = "0.4.27"
+env_logger = "0.11.8"
+html-escape = "0.2.13"
 
 [lib]
-name = "xcomponent"
+name = "xcore"
 crate-type = ["staticlib"]
+path = "src/rust/lib.rs"
 
 [package.metadata.maturin]
 bindings = "pyo3"
-
-[tool.maturin]
-features = ["pyo3/extension-module"]

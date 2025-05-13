@@ -28,28 +28,29 @@ fn parse_expression_token(pair: Pair<Rule>) -> Option<ExpressionToken> {
             Some(ExpressionToken::Expression(children))
         }
         Rule::ident => {
-            debug!("Pushing ident");
             let content = pair.as_str();
+            debug!("Pushing ident {}", content);
             Some(ExpressionToken::Ident(content.to_string()))
         }
         Rule::operator => {
-            debug!("Pushing operator");
             let op = pair.as_str();
+            debug!("Pushing operator {}", op);
             Some(ExpressionToken::Operator(op.parse().unwrap()))
         }
         Rule::integer => {
-            debug!("Pushing integer");
             let value: usize = pair.as_str().parse().unwrap();
+            debug!("Pushing integer {}", value);
             Some(ExpressionToken::Integer(value))
         }
         Rule::string => {
-            debug!("Pushing string");
-            let op = pair.as_str().trim_matches('"');
-            Some(ExpressionToken::String(op.to_string()))
+            let value = pair.as_str().trim_matches('"');
+            debug!("Pushing string {}", value);
+            Some(ExpressionToken::String(value.to_string()))
         }
         Rule::component => {
             debug!("Pushing component");
             let raw = pair.as_str();
+            debug!("Pushing component {}", raw);
             let res = parse_markup(raw);
             if let Ok(n) = res {
                 Some(ExpressionToken::XNode(n))

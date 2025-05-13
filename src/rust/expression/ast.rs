@@ -80,6 +80,7 @@ pub fn eval_ast<'py>(
 ) -> Result<Literal, String> {
     // error!("!!!!!!!!!!!!!!!!!!!!!!!!!!");
     // error!("AST {:?}", ast);
+    // error!("params {:?}", params);
 
     match ast {
         AST::Literal(lit) => Ok(lit.clone()),
@@ -147,8 +148,9 @@ pub fn eval_expression<'py>(
 ) -> Result<Literal, String> {
     info!("Evaluating expression {}...", &expression[..min(expression.len(), 24)]);
     debug!("{}", expression);
-    let tokens = parse_expression(expression)?;
+    debug!("params: {}", params);
     let params_ast = cast_params(params).map_err(|e| format!("{}", e))?;
+    let tokens = parse_expression(expression)?;
     let ast = parse(tokens.as_slice()).unwrap();
     eval_ast(py, &ast, catalog, &params_ast)
 }

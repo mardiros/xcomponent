@@ -1,11 +1,11 @@
 WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
 
-expression = { term ~ (operator ~ term)* }
+expression = { term ~ (WHITESPACE* ~ operator ~ WHITESPACE* ~ term)* }
 
 term = _{ component | ident | string | integer }
 
 
-ident = { (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 operator = { "+" | "-" | "*" | "/" }
 component = { "<" ~ (!"/>" ~ ANY)* ~ "/>" }
 

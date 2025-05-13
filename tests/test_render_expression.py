@@ -13,5 +13,18 @@ def AddManyInt(a: int, b: int, c: int) -> str:
     return """<>{a + b + c}</>"""
 
 
+@catalog.component()
+def AddStr(a: str, b: str) -> str:
+    return """<>{a + b}</>"""
+
+
 def test_add_int():
     assert AddInt(1, 2) == "3"
+
+
+def test_add_many_int():
+    assert AddManyInt(1, 2, 3) == "6"
+
+
+def test_add_str():
+    assert AddStr("1", "2") == "12"

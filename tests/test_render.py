@@ -1,5 +1,4 @@
-from xcomponent.service.catalog import Catalog
-from xcomponent.xcore import XNode
+from xcomponent import Catalog, XNode
 
 catalog = Catalog()
 

@@ -4,7 +4,11 @@ use pyo3::{prelude::*, types::PyDict};
 
 use crate::{
     catalog::XCatalog,
-    expression::ast::{eval_expression, Literal},
+    expression::{
+        ast::{eval_expression, Literal},
+        parser::parse_expression,
+        tokens::ExpressionToken,
+    },
 };
 
 pub trait ToHtml {
@@ -120,8 +124,22 @@ impl ToHtml for XElement {
                 let node_attrs = PyDict::new(py);
 
                 for (name, attrnode) in self.attrs() {
-                    node_attrs
-                        .set_item(name, catalog.render_node(py, &attrnode, PyDict::new(py))?)?;
+                    let attrparams = PyDict::new(py);
+                    if let XNode::Expression(ref expression) = attrnode {
+                        let attrtokens = parse_expression(expression.expression());
+                        for tok in attrtokens.unwrap() {
+                            match tok {
+                                ExpressionToken::Ident(ref name) => {
+                                    attrparams.set_item(
+                                        name.to_string(),
+                                        params.get_item(name.to_string())?,
+                                    )?;
+                                }
+                                _ => (),
+                            }
+                        }
+                    }
+                    node_attrs.set_item(name, catalog.render_node(py, &attrnode, attrparams)?)?;
                 }
                 if self.children().len() > 0 {
                     let mut childchildren = String::new();
@@ -299,9 +317,7 @@ impl ToHtml for XExpression {
         match res {
             Literal::Int(i) => Ok(format!("{}", i)),
             Literal::Str(s) => Ok(format!("{}", s)),
-            Literal::XNode(n) => {
-                catalog.render_node(py, &n, params)
-            }
+            Literal::XNode(n) => catalog.render_node(py, &n, params),
         }
     }
 }

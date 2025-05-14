@@ -23,6 +23,11 @@ def NestedOperation(aa: str, bb: str) -> str:
     return """<AddStr a={aa} b={bb} />"""
 
 
+@catalog.component()
+def NestedExpression(aa: str, bb: str) -> str:
+    return """<>{<AddStr a={aa} b={bb} />}</>"""
+
+
 def test_add_int():
     assert AddInt(1, 2) == "3"
 
@@ -35,6 +40,9 @@ def test_add_str():
     assert AddStr("1", "2") == "12"
 
 
-
 def test_nested_operation():
     assert NestedOperation("1", "2") == "12"
+
+
+def test_nested_expression():
+    assert NestedExpression("1", "2") == "12"

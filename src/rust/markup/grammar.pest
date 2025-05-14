@@ -22,7 +22,7 @@ close_fragment = { "</>" }
 doctype = @{ "<!DOCTYPE" ~ (!">" ~ ANY)* ~ ">" }
 attribute = { attr_name ~ "=" ~ attr_value }
 comment   = { "<!--" ~ (!"-->" ~ ANY)* ~ "-->" }
-expression = { "{" ~ (!"}" ~ ANY)* ~ "}" }
+expression = { "{" ~ (expression | (!"}" ~ ANY))* ~ "}" }
 
 ident = @{ ASCII_ALPHANUMERIC ~ (ASCII_ALPHANUMERIC | "_" )* }
 attr_name = @{ (ASCII_ALPHANUMERIC | "_")+ }

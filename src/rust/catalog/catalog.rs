@@ -1,11 +1,31 @@
 use std::collections::HashMap;
 
-use pyo3::{prelude::*, types::PyDict};
+use pyo3::{
+    prelude::*,
+    types::{PyAny, PyDict, PyTuple},
+};
 
 use crate::markup::{
     parser::parse_markup,
     tokens::{ToHtml, XNode},
 };
+
+#[pyclass]
+pub struct PyCallable {
+    callable: Py<PyAny>,
+}
+
+#[pymethods]
+impl PyCallable {
+    #[new]
+    fn new(callable: Py<PyAny>) -> Self {
+        PyCallable { callable }
+    }
+
+    fn call<'py>(&self, py: Python<'py>, args: Py<PyTuple>) -> PyResult<Bound<'py, PyAny>> {
+        self.callable.bind(py).call(args, None)
+    }
+}
 
 #[pyclass]
 #[derive(Debug)]
@@ -34,7 +54,8 @@ impl XTemplate {
 
 #[pyclass]
 pub struct XCatalog {
-    catalog: HashMap<String, Py<XTemplate>>,
+    components: HashMap<String, Py<XTemplate>>,
+    functions: HashMap<String, Py<PyCallable>>,
 }
 
 #[pymethods]
@@ -42,11 +63,12 @@ impl XCatalog {
     #[new]
     pub fn new() -> Self {
         XCatalog {
-            catalog: HashMap::new(),
+            components: HashMap::new(),
+            functions: HashMap::new(),
         }
     }
 
-    pub fn register<'py>(
+    pub fn add_component<'py>(
         &mut self,
         py: Python<'py>,
         name: &str,
@@ -59,12 +81,38 @@ impl XCatalog {
         info!("Registering node {}", name);
         debug!("{:?}", template);
         let py_template = Py::new(py, template)?;
-        self.catalog.insert(name.to_owned(), py_template);
+        self.components.insert(name.to_owned(), py_template);
+        Ok(())
+    }
+
+    fn add_function<'py>(
+        &mut self,
+        py: Python<'py>,
+        name: String,
+        function: Py<PyAny>,
+    ) -> PyResult<()> {
+        info!("Registering function {}", name);
+        debug!("{:?}", function);
+        let func = PyCallable::new(function);
+        let py_func = Py::new(py, func)?;
+        self.functions.insert(name, py_func);
         Ok(())
     }
 
     pub fn get<'py>(&'py self, py: Python<'py>, name: &'py str) -> Option<&Bound<'py, XTemplate>> {
-        self.catalog.get(name).map(|node| node.bind(py))
+        self.components.get(name).map(|node| node.bind(py))
+    }
+    pub fn call<'py>(
+        &self,
+        py: Python<'py>,
+        name: &str,
+        args: &Bound<'py, PyTuple>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let func = self
+            .functions
+            .get(name)
+            .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyKeyError, _>("Function not found"))?;
+        func.bind(py).call_method1("call", (args,))
     }
 
     pub fn render_node<'py>(

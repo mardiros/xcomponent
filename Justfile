@@ -1,6 +1,6 @@
 default_testsuite:='tests'
 
-export RUST_LOG := "xcore=info"
+export RUST_LOG := "xcore=debug"
 export RUST_BACKTRACE := "1"
 
 develop:

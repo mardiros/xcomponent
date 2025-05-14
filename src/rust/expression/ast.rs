@@ -1,8 +1,8 @@
 use std::cmp::min;
 
-use pyo3::exceptions::PyTypeError;
+use pyo3::exceptions::{PySyntaxError, PyTypeError};
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyInt, PyString};
+use pyo3::types::{PyDict, PyInt, PyString, PyTuple};
 
 use crate::catalog::XCatalog;
 use crate::markup::tokens::XNode;
@@ -19,6 +19,21 @@ pub enum Literal {
     XNode(XNode),
 }
 
+impl Literal {
+    fn downcast<'py>(value: Bound<'py, PyAny>) -> Result<Self, PyErr> {
+        if let Ok(v) = value.downcast::<PyString>() {
+            return Ok(Literal::Str(v.to_string()));
+        } else if let Ok(v) = value.downcast::<PyInt>() {
+            return Ok(Literal::Int(v.extract::<usize>()?));
+        } else if let Ok(v) = value.extract::<XNode>() {
+            return Ok(Literal::XNode(v));
+        } else {
+            let err: PyErr = PyTypeError::new_err(format!("Can't parse parameter {:?}", value));
+            return Err(err);
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum AST {
     Variable(String),
@@ -28,37 +43,52 @@ pub enum AST {
         op: Operator,
         right: Box<AST>,
     },
+    FuncCall {
+        name: String,
+        args: Vec<AST>,
+    },
 }
 
-pub fn parse(tokens: &[ExpressionToken]) -> Option<AST> {
-    let mut iter = tokens.iter();
-    let tok = iter.next()?;
-    let mut left = match tok {
+fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
+    let ast = match tok {
         ExpressionToken::String(s) => AST::Literal(Literal::Str(s.to_string())),
         ExpressionToken::Integer(n) => AST::Literal(Literal::Int(n.clone())),
         ExpressionToken::Ident(ident) => AST::Variable(ident.to_string()),
         ExpressionToken::XNode(n) => AST::Literal(Literal::XNode(n.clone())),
-        _ => {
-            error!("Left token is ignored: {:?}", tok);
-            return None;
-        }
+        ExpressionToken::FuncCall(func) => AST::FuncCall {
+            name: func.ident().to_string(),
+            args: func
+                .params()
+                .iter()
+                .map(|x| parse(std::slice::from_ref(x)))
+                .collect::<Result<Vec<_>, _>>()?,
+        },
+        _ => return Err(PySyntaxError::new_err(format!("Syntax error near {}", tok))),
     };
+    Ok(ast)
+}
+
+pub fn parse(tokens: &[ExpressionToken]) -> Result<AST, PyErr> {
+    let mut iter = tokens.iter();
+    let tok = iter
+        .next()
+        .ok_or(PySyntaxError::new_err("expected at least one token"))?;
+    let mut left = token_to_ast(tok)?;
 
     while let Some(op_token) = iter.next() {
         let op = match op_token {
             ExpressionToken::Operator(op) => op.clone(),
-            _ => return None,
-        };
-
-        let right = match iter.next()? {
-            ExpressionToken::String(s) => AST::Literal(Literal::Str(s.to_string())),
-            ExpressionToken::Integer(n) => AST::Literal(Literal::Int(n.clone())),
-            ExpressionToken::Ident(ident) => AST::Variable(ident.to_string()),
             _ => {
-                error!("Right token is ignored: {:?}", tok);
-                return None;
+                return Err(PySyntaxError::new_err(format!(
+                    "Operator expected, got {}",
+                    op_token,
+                )))
             }
         };
+        let right = token_to_ast(
+            iter.next()
+                .ok_or(PySyntaxError::new_err("token expected"))?,
+        )?;
 
         left = AST::Binary {
             left: Box::new(left),
@@ -67,7 +97,7 @@ pub fn parse(tokens: &[ExpressionToken]) -> Option<AST> {
         };
     }
 
-    Some(left)
+    Ok(left)
 }
 
 use std::collections::HashMap;
@@ -77,7 +107,7 @@ pub fn eval_ast<'py>(
     ast: &'py AST,
     catalog: &XCatalog,
     params: &HashMap<String, Literal>,
-) -> Result<Literal, String> {
+) -> Result<Literal, PyErr> {
     // error!("!!!!!!!!!!!!!!!!!!!!!!!!!!");
     // error!("AST {:?}", ast);
     // error!("params {:?}", params);
@@ -95,7 +125,9 @@ pub fn eval_ast<'py>(
                 (Literal::Int(a), Literal::Int(b), Operator::Mul) => Ok(Literal::Int(a * b)),
                 (Literal::Int(a), Literal::Int(b), Operator::Div) => {
                     if b == 0 {
-                        Err("division by zero".to_string())
+                        Err(PyErr::new::<pyo3::exceptions::PyZeroDivisionError, _>(
+                            "Division by zero",
+                        ))
                     } else {
                         Ok(Literal::Int(a / b))
                     }
@@ -103,7 +135,9 @@ pub fn eval_ast<'py>(
 
                 (Literal::Str(a), Literal::Str(b), Operator::Add) => Ok(Literal::Str(a + &b)),
 
-                _ => Err("unsupported operand types".to_string()),
+                _ => Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
+                    "Not implement",
+                )),
             }
         }
 
@@ -113,10 +147,21 @@ pub fn eval_ast<'py>(
             Some(Literal::XNode(node)) => {
                 let resp = catalog.render_node(py, node, PyDict::new(py));
                 resp.map(|markup| Literal::Str(markup))
-                    .map_err(|err| format!("Cant render {}: {}", node, err))
             }
-            None => Err(format!("Undefined variable: {}", name)),
+            None => Err(PyErr::new::<pyo3::exceptions::PyUnboundLocalError, _>(
+                format!("Undefined: {}", name),
+            )),
         },
+
+        AST::FuncCall { name, args } => {
+            let lit_args = args
+                .iter()
+                .map(|arg| eval_ast(py, arg, catalog, params))
+                .collect::<Result<Vec<_>, _>>()?;
+            let py_args = PyTuple::new(py, lit_args)?;
+            let res = catalog.call(py, name, &py_args)?;
+            Literal::downcast(res)
+        }
     }
 }
 
@@ -125,18 +170,9 @@ fn cast_params<'py>(params: Bound<'py, PyDict>) -> Result<HashMap<String, Litera
 
     for (key, value) in params.iter() {
         let key_str = key.downcast::<PyString>()?.to_string();
-        if let Ok(val_str) = value.downcast::<PyString>() {
-            result.insert(key_str, Literal::Str(val_str.to_string()));
-        } else if let Ok(val_int) = value.downcast::<PyInt>() {
-            result.insert(key_str, Literal::Int(val_int.extract::<usize>()?));
-        } else if let Ok(val_xnode) = value.extract::<XNode>() {
-            result.insert(key_str, Literal::XNode(val_xnode));
-        } else {
-            let err: PyErr = PyTypeError::new_err(format!("Can't parse parameter {:?}", value));
-            return Err(err);
-        }
+        let val = Literal::downcast(value)?;
+        result.insert(key_str, val);
     }
-
     Ok(result)
 }
 
@@ -145,12 +181,16 @@ pub fn eval_expression<'py>(
     expression: &str,
     catalog: &XCatalog,
     params: Bound<'py, PyDict>,
-) -> Result<Literal, String> {
-    info!("Evaluating expression {}...", &expression[..min(expression.len(), 24)]);
-    debug!("{}", expression);
-    debug!("params: {}", params);
-    let params_ast = cast_params(params).map_err(|e| format!("{}", e))?;
+) -> Result<Literal, PyErr> {
+    info!(
+        "Evaluating expression {}...",
+        &expression[..min(expression.len(), 24)]
+    );
+    error!("{}", expression);
+    error!("params: {}", params);
+    let params_ast = cast_params(params)?;
     let tokens = parse_expression(expression)?;
-    let ast = parse(tokens.as_slice()).unwrap();
+    error!("tokens: {:?}", tokens);
+    let ast = parse(tokens.as_slice())?;
     eval_ast(py, &ast, catalog, &params_ast)
 }

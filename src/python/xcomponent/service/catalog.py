@@ -49,7 +49,7 @@ class Catalog:
                 parameters[name] = Any
 
         template = params(**kwargs)
-        self._catalog.register(component_name, template, parameters)
+        self._catalog.add_component(component_name, template, parameters)
 
     def component(self, name: str = "") -> Callable[[Component], Component]:
         """
@@ -57,7 +57,7 @@ class Catalog:
         """
         component_name = name
 
-        def decorator(fn):
+        def decorator(fn: Callable[..., str]):
             @wraps(fn)
             def render(*args, **kwargs):
                 template = self._catalog.get(component_name or fn.__name__)
@@ -75,5 +75,19 @@ class Catalog:
 
             self.register_template(component_name or fn.__name__, fn)
             return render
+
+        return decorator
+
+    def function(self, name: str | Callable[..., Any] = "") -> Callable[..., Any]:
+        """
+        Decorator to register a template with its schema parameters
+        """
+        if isinstance(name, Callable):
+            self._catalog.add_function(name.__name__, name)
+            return name
+
+        def decorator(fn: Callable[..., str]):
+            self._catalog.add_function(name or fn.__name__, fn)
+            return fn
 
         return decorator

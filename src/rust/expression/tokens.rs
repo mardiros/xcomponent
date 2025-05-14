@@ -52,6 +52,36 @@ impl fmt::Display for Operator {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct FunctionCall {
+    ident: String,
+    params: Vec<ExpressionToken>,
+}
+
+impl FunctionCall {
+    pub fn new(ident: String, params: Vec<ExpressionToken>) -> Self {
+        FunctionCall { ident, params }
+    }
+    pub fn ident(&self) -> &str {
+        return self.ident.as_str();
+    }
+    pub fn params(&self) -> &Vec<ExpressionToken> {
+        return self.params.as_ref();
+    }
+}
+
+impl fmt::Display for FunctionCall {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let params = (self
+            .params
+            .iter()
+            .map(|p| format!("{}", p))
+            .collect::<Vec<_>>())
+        .join(",");
+        write!(f, "{}({})", self.ident, params)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum ExpressionToken {
     Expression(Vec<ExpressionToken>),
     Ident(String),
@@ -59,6 +89,7 @@ pub enum ExpressionToken {
     String(String),
     Integer(usize),
     XNode(XNode),
+    FuncCall(FunctionCall),
 }
 
 impl std::fmt::Display for ExpressionToken {
@@ -80,6 +111,7 @@ impl std::fmt::Display for ExpressionToken {
             }
             ExpressionToken::Integer(value) => write!(f, "{}", value),
             ExpressionToken::XNode(n) => write!(f, "{}", n),
+            ExpressionToken::FuncCall(func) => write!(f, "{}", func),
         }
     }
 }

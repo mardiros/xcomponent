@@ -1,8 +1,10 @@
 use pest::iterators::{Pair, Pairs};
 use pest::Parser;
 use pest_derive::Parser;
+use pyo3::exceptions::PySyntaxError;
+use pyo3::PyErr;
 
-use crate::expression::tokens::ExpressionToken;
+use crate::expression::tokens::{ExpressionToken, FunctionCall};
 use crate::markup::parser::parse_markup;
 
 #[derive(Parser)]
@@ -13,6 +15,7 @@ fn parse_expression_tokens(pairs: Pairs<Rule>) -> Vec<ExpressionToken> {
     let mut result = Vec::new();
 
     for pair in pairs {
+        error!("{:?}", pair);
         if let Some(node) = parse_expression_token(pair) {
             result.push(node);
         }
@@ -26,6 +29,14 @@ fn parse_expression_token(pair: Pair<Rule>) -> Option<ExpressionToken> {
             let inner = pair.into_inner();
             let children = parse_expression_tokens(inner);
             Some(ExpressionToken::Expression(children))
+        }
+        Rule::function_call => {
+            let mut inner = pair.into_inner();
+            let ident = inner.next()?.as_str().to_string();
+            error!("params ---");
+            let params = parse_expression_tokens(inner);
+            debug!("Pushing function call {}({:?})", ident, params);
+            Some(ExpressionToken::FuncCall(FunctionCall::new(ident, params)))
         }
         Rule::ident => {
             let content = pair.as_str();
@@ -66,8 +77,9 @@ fn parse_expression_token(pair: Pair<Rule>) -> Option<ExpressionToken> {
     }
 }
 
-pub(crate) fn parse_expression(raw: &str) -> Result<Vec<ExpressionToken>, String> {
-    let mut pairs = ExpressionParser::parse(Rule::expression, raw).map_err(|x| format!("{}", x))?;
+pub(crate) fn parse_expression(raw: &str) -> Result<Vec<ExpressionToken>, PyErr> {
+    let mut pairs = ExpressionParser::parse(Rule::expression, raw)
+        .map_err(|e| PySyntaxError::new_err(format!("{}", e)))?;
 
     if let Some(pair) = pairs.next() {
         let tokens = pair

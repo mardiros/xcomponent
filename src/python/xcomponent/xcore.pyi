@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Any
-from typing_extensions import Mapping
+from collections.abc import Mapping, Callable
 
 class NodeType(Enum):
     Element = "Element"
@@ -70,9 +70,10 @@ class XTemplate:
 
 class XCatalog:
     def __init__(self) -> None: ...
-    def register(
+    def add_component(
         self, name: str, template: str, params: Mapping[str, type | Any]
     ) -> None: ...
+    def add_function(self, name: str, fn: Callable[..., Any]) -> None: ...
     def get(self, name: str) -> XTemplate: ...
     def render_node(
         self,

@@ -116,8 +116,7 @@ pub fn parse_markup(raw: &str) -> PyResult<XNode> {
     info!("Parsing markup {}...", &raw[..min(raw.len(), 24)]);
     debug!("{}", raw);
     let mut pairs = XParser::parse(Rule::document, raw).map_err(|e| {
-        error!("Invalid Markup: {}", e);
-        return pyo3::exceptions::PyValueError::new_err(e.to_string());
+        return pyo3::exceptions::PyValueError::new_err(format!("Invalid Markup: {}", e));
     })?;
 
     let pair = pairs
@@ -128,7 +127,6 @@ pub fn parse_markup(raw: &str) -> PyResult<XNode> {
         debug!("Token parsed {:?}", token);
         Ok(token)
     } else {
-        error!("Token does not contains anything");
         Err(pyo3::exceptions::PyValueError::new_err(
             "Expected one node, use <></> to represent an empty node",
         ))

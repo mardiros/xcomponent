@@ -186,11 +186,8 @@ pub fn eval_expression<'py>(
         "Evaluating expression {}...",
         &expression[..min(expression.len(), 24)]
     );
-    error!("{}", expression);
-    error!("params: {}", params);
     let params_ast = cast_params(params)?;
     let tokens = parse_expression(expression)?;
-    error!("tokens: {:?}", tokens);
     let ast = parse(tokens.as_slice())?;
     eval_ast(py, &ast, catalog, &params_ast)
 }

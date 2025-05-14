@@ -1,6 +1,6 @@
 default_testsuite:='tests'
 
-export RUST_LOG := "xcore=debug"
+export RUST_LOG := "xcore=warn"
 export RUST_BACKTRACE := "1"
 
 develop:
@@ -28,6 +28,7 @@ lf: develop
     uv run pytest --lf -vvv
 
 fmt:
+    cargo fmt
     uv run ruff check --fix .
     uv run ruff format src tests
 

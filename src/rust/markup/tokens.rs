@@ -138,8 +138,15 @@ impl ToHtml for XElement {
                                 _ => (),
                             }
                         }
+                        let expr =
+                            eval_expression(py, expression.expression(), &catalog, attrparams)?;
+                        node_attrs.set_item(name, expr)?;
+                    } else {
+                        node_attrs.set_item(
+                            name,
+                            Literal::Str(catalog.render_node(py, &attrnode, attrparams)?),
+                        )?;
                     }
-                    node_attrs.set_item(name, catalog.render_node(py, &attrnode, attrparams)?)?;
                 }
                 if self.children().len() > 0 {
                     let mut childchildren = String::new();
@@ -302,6 +309,16 @@ impl XExpression {
     fn __match_args__() -> (&'static str,) {
         ("expression",)
     }
+
+    fn to_literal<'py>(
+        &self,
+        py: Python<'py>,
+        catalog: &XCatalog,
+        params: Bound<'py, PyDict>,
+    ) -> PyResult<Literal> {
+        eval_expression(py, self.expression(), catalog, params.clone())
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+    }
 }
 
 impl ToHtml for XExpression {
@@ -311,8 +328,9 @@ impl ToHtml for XExpression {
         catalog: &XCatalog,
         params: Bound<'py, PyDict>,
     ) -> PyResult<String> {
-        let res = eval_expression(py, self.expression(), catalog, params.clone())
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+        info!("Evaluating expression {}", self.expression());
+        debug!("{:?}", params.clone());
+        let res = self.to_literal(py, catalog, params.clone())?;
 
         match res {
             Literal::Int(i) => Ok(format!("{}", i)),

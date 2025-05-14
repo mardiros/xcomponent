@@ -1,7 +1,7 @@
 use pest::iterators::{Pair, Pairs};
 use pest::Parser;
 use pest_derive::Parser;
-use pyo3::exceptions::PySyntaxError;
+use pyo3::exceptions::{PySyntaxError, PyValueError};
 use pyo3::PyErr;
 
 use crate::expression::tokens::{ExpressionToken, FunctionCall};
@@ -15,7 +15,6 @@ fn parse_expression_tokens(pairs: Pairs<Rule>) -> Vec<ExpressionToken> {
     let mut result = Vec::new();
 
     for pair in pairs {
-        error!("{:?}", pair);
         if let Some(node) = parse_expression_token(pair) {
             result.push(node);
         }
@@ -33,7 +32,6 @@ fn parse_expression_token(pair: Pair<Rule>) -> Option<ExpressionToken> {
         Rule::function_call => {
             let mut inner = pair.into_inner();
             let ident = inner.next()?.as_str().to_string();
-            error!("params ---");
             let params = parse_expression_tokens(inner);
             debug!("Pushing function call {}({:?})", ident, params);
             Some(ExpressionToken::FuncCall(FunctionCall::new(ident, params)))
@@ -89,6 +87,9 @@ pub(crate) fn parse_expression(raw: &str) -> Result<Vec<ExpressionToken>, PyErr>
 
         Ok(tokens)
     } else {
-        Ok(Vec::new())
+        Err(PyValueError::new_err(format!(
+            "Invalid expression: {}",
+            raw
+        )))
     }
 }

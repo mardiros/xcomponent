@@ -136,11 +136,14 @@ def test_sub(component: str, expected: str):
     "component,expected",
     [
         pytest.param(MulOp(8, 2), "16", id="mul int"),
-        pytest.param(MulOp(4, 5), "20", id="mul int-2"),
+        pytest.param(MulOp(4, 5), "20", id="mul int"),
         pytest.param(MulOp(True, 2), "2", id="mul bool and int"),
         pytest.param(MulOp(True, False), "0", id="mul true-false"),
         pytest.param(MulOp(False, False), "0", id="mul false-false"),
         pytest.param(MulOp(True, True), "1", id="mul true-true"),
+        pytest.param(MulOp("*", 5), "*****", id="mul int-str"),
+        pytest.param(MulOp("+-", 3), "+-+-+-", id="mul int-str"),
+        pytest.param(MulOp("+", -13), "", id="mul int-str"),
     ],
 )
 def test_mul(component: str, expected: str):

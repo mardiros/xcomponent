@@ -151,6 +151,12 @@ fn eval_mul(l: Literal, r: Literal) -> PyResult<Literal> {
         (Literal::Int(a), Literal::Bool(b)) => Ok(Literal::Int(a * b as isize)),
         (Literal::Bool(a), Literal::Int(b)) => Ok(Literal::Int(a as isize * b)),
         (Literal::Bool(a), Literal::Bool(b)) => Ok(Literal::Int(a as isize * b as isize)),
+        (Literal::Str(a), Literal::Int(b)) => Ok(Literal::Str(if b > 0 {
+            a.repeat(b as usize)
+        } else {
+            "".to_string()
+        })),
+        (Literal::Str(a), Literal::Bool(b)) => Ok(Literal::Str(a.repeat(b as usize))),
         _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
             "Invalid types for multiplication",
         )),

@@ -66,26 +66,67 @@ pub enum AST {
         name: String,
         args: Vec<AST>,
     },
+    IfStatement {
+        condition: Box<AST>,
+        then_branch: Box<AST>,
+        else_branch: Option<Box<AST>>,
+    },
 }
 
 fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
     let ast = match tok {
-        ExpressionToken::String(s) => AST::Literal(Literal::Str(s.to_string())),
-        ExpressionToken::Boolean(b) => AST::Literal(Literal::Bool(b.clone())),
-        ExpressionToken::Integer(n) => AST::Literal(Literal::Int(n.clone())),
-        ExpressionToken::Ident(ident) => AST::Variable(ident.to_string()),
-        ExpressionToken::XNode(n) => AST::Literal(Literal::XNode(n.clone())),
-        ExpressionToken::FuncCall(func) => AST::FuncCall {
+        ExpressionToken::BinaryExpression(ex) => match ex.len() {
+            0 => Err(PySyntaxError::new_err(format!(
+                "Syntax error, expected statement"
+            ))),
+            1 => token_to_ast(ex.first().unwrap()),
+            2 => Err(PySyntaxError::new_err(format!("Syntax error near {}", tok))),
+            _ => {
+                let mut iter = ex.into_iter();
+                let leftwrapper = iter.next().unwrap();
+                let left = Box::new(token_to_ast(leftwrapper)?);
+                let opwrap = iter.next().unwrap();
+                let op = match opwrap {
+                    ExpressionToken::Operator(op) => op.clone(),
+                    _ => {
+                        return Err(PySyntaxError::new_err(format!(
+                            "Syntax error, operator expected not {}",
+                            opwrap
+                        )))
+                    }
+                };
+                let right = Box::new(parse(iter.as_slice())?);
+                Ok(AST::Binary { left, op, right })
+            }
+        },
+        ExpressionToken::String(s) => Ok(AST::Literal(Literal::Str(s.to_string()))),
+        ExpressionToken::Boolean(b) => Ok(AST::Literal(Literal::Bool(b.clone()))),
+        ExpressionToken::Integer(n) => Ok(AST::Literal(Literal::Int(n.clone()))),
+        ExpressionToken::Ident(ident) => Ok(AST::Variable(ident.to_string())),
+        ExpressionToken::XNode(n) => Ok(AST::Literal(Literal::XNode(n.clone()))),
+        ExpressionToken::FuncCall(func) => Ok(AST::FuncCall {
             name: func.ident().to_string(),
             args: func
                 .params()
                 .iter()
                 .map(|x| parse(std::slice::from_ref(x)))
                 .collect::<Result<Vec<_>, _>>()?,
-        },
-        _ => return Err(PySyntaxError::new_err(format!("Syntax error near {}", tok))),
+        }),
+        ExpressionToken::IfExpression {
+            condition,
+            then_branch,
+            else_branch,
+        } => Ok(AST::IfStatement {
+            condition: token_to_ast(condition).map(|x| Box::new(x))?,
+            then_branch: token_to_ast(then_branch).map(|x| Box::new(x))?,
+            else_branch: match else_branch {
+                Some(token) => Some(token_to_ast(token).map(|x| Box::new(x))?),
+                None => None,
+            },
+        }),
+        _ => Err(PySyntaxError::new_err(format!("Syntax error near {}", tok))),
     };
-    Ok(ast)
+    ast
 }
 
 pub fn parse(tokens: &[ExpressionToken]) -> Result<AST, PyErr> {
@@ -223,10 +264,8 @@ pub fn eval_ast<'py>(
     catalog: &XCatalog,
     params: &HashMap<String, Literal>,
 ) -> Result<Literal, PyErr> {
-    // error!("!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    // error!("AST {:?}", ast);
-    // error!("params {:?}", params);
-
+    // error!(":::::::");
+    // error!("{:?}", ast);
     match ast {
         AST::Literal(lit) => Ok(lit.clone()),
 
@@ -266,6 +305,23 @@ pub fn eval_ast<'py>(
             let res = catalog.call(py, name, &py_args)?;
             Literal::downcast(res)
         }
+
+        AST::IfStatement {
+            condition,
+            then_branch,
+            else_branch,
+        } => {
+            let is_then = eval_ast(py, condition, catalog, params)?;
+            if is_then.is_truthy() {
+                eval_ast(py, then_branch, catalog, params)
+            } else {
+                if let Some(else_) = else_branch {
+                    eval_ast(py, else_, catalog, params)
+                } else {
+                    Ok(Literal::Str("".to_string()))
+                }
+            }
+        }
     }
 }
 
@@ -291,7 +347,7 @@ pub fn eval_expression<'py>(
         &expression[..min(expression.len(), 24)]
     );
     let params_ast = cast_params(params)?;
-    let tokens = parse_expression(expression)?;
-    let ast = parse(tokens.as_slice())?;
+    let token = parse_expression(expression)?;
+    let ast = parse(&[token])?;
     eval_ast(py, &ast, catalog, &params_ast)
 }

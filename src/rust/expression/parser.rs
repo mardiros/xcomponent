@@ -24,10 +24,33 @@ fn parse_expression_tokens(pairs: Pairs<Rule>) -> Vec<ExpressionToken> {
 
 fn parse_expression_token(pair: Pair<Rule>) -> Option<ExpressionToken> {
     match pair.as_rule() {
-        Rule::expression => {
+        Rule::expression => parse_expression_token(pair.into_inner().next()?),
+        Rule::binary_expression => {
             let inner = pair.into_inner();
             let children = parse_expression_tokens(inner);
-            Some(ExpressionToken::Expression(children))
+            Some(ExpressionToken::BinaryExpression(children))
+        }
+        Rule::if_expression => {
+            let mut inner = pair.into_inner();
+
+            let condition_pair = inner.next()?; // expression
+            let then_pair = inner.next()?; // block
+
+            let condition = Box::new(parse_expression_token(condition_pair)?);
+            let then_branch = Box::new(parse_expression_token(then_pair.into_inner().next()?)?);
+
+            let else_branch = if let Some(else_block) = inner.next() {
+                let else_expr = parse_expression_token(else_block.into_inner().next()?)?;
+                Some(Box::new(else_expr))
+            } else {
+                None
+            };
+
+            Some(ExpressionToken::IfExpression {
+                condition,
+                then_branch,
+                else_branch,
+            })
         }
         Rule::function_call => {
             let mut inner = pair.into_inner();
@@ -80,21 +103,34 @@ fn parse_expression_token(pair: Pair<Rule>) -> Option<ExpressionToken> {
     }
 }
 
-pub(crate) fn parse_expression(raw: &str) -> Result<Vec<ExpressionToken>, PyErr> {
-    let mut pairs = ExpressionParser::parse(Rule::expression, raw)
+pub(crate) fn parse_expression(raw: &str) -> Result<ExpressionToken, PyErr> {
+    let mut pairs = ExpressionParser::parse(Rule::expression, raw.trim())
         .map_err(|e| PySyntaxError::new_err(format!("{}", e)))?;
 
-    if let Some(pair) = pairs.next() {
-        let tokens = pair
-            .into_inner()
-            .filter_map(parse_expression_token)
-            .collect();
-
-        Ok(tokens)
-    } else {
-        Err(PyValueError::new_err(format!(
-            "Invalid expression: {}",
-            raw
-        )))
+    if let Some(init) = pairs.next() {
+        if let Some(exp) = parse_expression_token(init) {
+            return Ok(exp);
+        }
     }
+
+    Err(PyValueError::new_err(format!(
+        "Invalid expression: {}",
+        raw
+    )))
+
+    // if let Some(pair) = pairs.next().unwrap().into_inner().next() {
+    //     let tokens = if pair.as_rule() == Rule::binary_expression {
+    //         let inner = pair.into_inner();
+    //         parse_expression_tokens(inner)
+    //     } else {
+    //         error!(">>>>>>>>>>>>>>>>>>");
+    //     };
+
+    //     Ok(tokens)
+    // } else {
+    //     Err(PyValueError::new_err(format!(
+    //         "Invalid expression: {}",
+    //         raw
+    //     )))
+    // }
 }

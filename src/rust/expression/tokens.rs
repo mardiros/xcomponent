@@ -90,7 +90,7 @@ impl fmt::Display for FunctionCall {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExpressionToken {
-    Expression(Vec<ExpressionToken>),
+    BinaryExpression(Vec<ExpressionToken>),
     Ident(String),
     Operator(Operator),
     String(String),
@@ -98,12 +98,17 @@ pub enum ExpressionToken {
     Boolean(bool),
     XNode(XNode),
     FuncCall(FunctionCall),
+    IfExpression {
+        condition: Box<ExpressionToken>,
+        then_branch: Box<ExpressionToken>,
+        else_branch: Option<Box<ExpressionToken>>,
+    },
 }
 
 impl std::fmt::Display for ExpressionToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ExpressionToken::Expression(children) => {
+            ExpressionToken::BinaryExpression(children) => {
                 write!(
                     f,
                     "{}",
@@ -121,6 +126,20 @@ impl std::fmt::Display for ExpressionToken {
             ExpressionToken::Boolean(value) => write!(f, "{}", value),
             ExpressionToken::XNode(n) => write!(f, "{}", n),
             ExpressionToken::FuncCall(func) => write!(f, "{}", func),
+            ExpressionToken::IfExpression {
+                condition,
+                then_branch,
+                else_branch,
+            } => match else_branch {
+                None => write!(f, "if {} {{ {} }}", condition, then_branch),
+                Some(else_branch) => {
+                    write!(
+                        f,
+                        "if {} {{ {} }} else {{ {} }}",
+                        condition, then_branch, else_branch
+                    )
+                }
+            },
         }
     }
 }

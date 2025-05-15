@@ -1,4 +1,4 @@
-default_testsuite:='tests'
+default_testsuite:='tests/unittests'
 
 export RUST_LOG := "xcore=warn"
 export RUST_BACKTRACE := "1"
@@ -25,7 +25,7 @@ unittest testsuite=default_testsuite: develop
     uv run pytest -sxv {{testsuite}}
 
 lf: develop
-    uv run pytest --lf -vvv
+    uv run pytest --lf -svvv
 
 fmt:
     cargo fmt

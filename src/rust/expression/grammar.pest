@@ -1,19 +1,30 @@
-WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
+expression = { if_expression | binary_expression }
 
-expression = { term ~ (WHITESPACE* ~ operator ~ WHITESPACE* ~ term)* }
+binary_expression = { term ~ (WHITESPACE* ~ operator ~ WHITESPACE* ~ term)* }
 
-term = _{ component | function_call | ident | string | integer | boolean }
+term = _{ if_expression | component | function_call | ident | string | integer | boolean }
 
 component = { "<" ~ (!"/>" ~ ANY)* ~ "/>" }
 
 function_call = { ident ~ WHITESPACE* ~ "(" ~ WHITESPACE* ~ argument_list? ~ WHITESPACE* ~ ")" }
 argument_list = _{ term ~ (WHITESPACE* ~ "," ~ WHITESPACE* ~ term)* }
 
-ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
-operator = { "+" | "-" | "*" | "/" | "and" | "or" }
 
+operator = { "+" | "-" | "*" | "/" | "and" | "or" }
 boolean = { "true" | "false" }
 integer = @{ (ASCII_DIGIT | "_")+ }
 string = @{ "\"" ~ (escape_sequence | !("\"" | "\\") ~ ANY)* ~ "\"" }
+keyword = { "if" | "else" | operator | boolean | "{" | "}" }
 
+ident = { !keyword ~ ident_raw }
+ident_raw = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+
+
+WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
 escape_sequence = { "\\" ~ ( "\"" | "\\" | "n" | "t" | "r" ) }
+
+if_expression = {
+    "if" ~ WHITESPACE* ~ binary_expression ~ WHITESPACE* ~ block ~ (WHITESPACE* ~ "else" ~ WHITESPACE* ~ block )?
+}
+
+block = { "{" ~ WHITESPACE* ~ expression ~ WHITESPACE* ~ "}" }

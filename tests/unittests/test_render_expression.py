@@ -1,4 +1,3 @@
-from decimal import DivisionByZero
 from typing import Any
 import pytest
 
@@ -52,6 +51,16 @@ def OrOp(a: int | bool | str, b: int | bool | str) -> str:
 @catalog.component()
 def AddMany(a: int | bool | str, b: int | bool | str, c: int | bool | str) -> str:
     return """<>{a + b + c}</>"""
+
+
+@catalog.component()
+def IfStmt(a: bool, b: str) -> str:
+    return """<p>{if a { b }}</p>"""
+
+
+@catalog.component()
+def IfElseStmt(a: bool, b: str, c: str) -> str:
+    return """<p>{ if a { b } else { c } }</p>"""
 
 
 @catalog.component()
@@ -255,3 +264,16 @@ def test_nested(component: str, expected: str):
 @pytest.mark.parametrize("func", [FuncCall, FuncCall2, FuncCall3])
 def test_call(func: Component):
     assert func("1", "2") == "2"
+
+
+@pytest.mark.parametrize(
+    "result,expected",
+    [
+        pytest.param(IfStmt(True, "Yes"), "<p>Yes</p>"),
+        pytest.param(IfStmt(False, "Yes"), "<p></p>"),
+        pytest.param(IfElseStmt(True, "Yes", "No"), "<p>Yes</p>"),
+        pytest.param(IfElseStmt(False, "Yes", "No"), "<p>No</p>"),
+    ],
+)
+def test_if(result: str, expected: str):
+    assert result == expected

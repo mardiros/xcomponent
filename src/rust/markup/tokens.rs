@@ -110,6 +110,28 @@ impl XElement {
     }
 }
 
+fn get_attrparams<'py>(
+    py: Python<'py>,
+    attrtoken: &ExpressionToken,
+    params: &Bound<'py, PyDict>,
+) -> PyResult<Bound<'py, PyDict>> {
+    let attrparams = PyDict::new(py);
+    match attrtoken {
+        ExpressionToken::Ident(ref name) => {
+            attrparams.set_item(name.to_string(), params.get_item(name.to_string())?)?;
+        }
+        ExpressionToken::BinaryExpression(ref exp) => {
+            if let Some(tok) = exp.first() {
+                if let ExpressionToken::Ident(ref name) = tok {
+                    attrparams.set_item(name.to_string(), params.get_item(name.to_string())?)?;
+                }
+            }
+        }
+        _ => (),
+    }
+    Ok(attrparams)
+}
+
 impl ToHtml for XElement {
     fn to_html<'py>(
         &self,
@@ -124,27 +146,16 @@ impl ToHtml for XElement {
                 let node_attrs = PyDict::new(py);
 
                 for (name, attrnode) in self.attrs() {
-                    let attrparams = PyDict::new(py);
                     if let XNode::Expression(ref expression) = attrnode {
-                        let attrtokens = parse_expression(expression.expression());
-                        for tok in attrtokens.unwrap() {
-                            match tok {
-                                ExpressionToken::Ident(ref name) => {
-                                    attrparams.set_item(
-                                        name.to_string(),
-                                        params.get_item(name.to_string())?,
-                                    )?;
-                                }
-                                _ => (),
-                            }
-                        }
+                        let attrtoken = parse_expression(expression.expression())?;
+                        let attrparams = get_attrparams(py, &attrtoken, &params)?;
                         let expr =
                             eval_expression(py, expression.expression(), &catalog, attrparams)?;
                         node_attrs.set_item(name, expr)?;
                     } else {
                         node_attrs.set_item(
                             name,
-                            Literal::Str(catalog.render_node(py, &attrnode, attrparams)?),
+                            Literal::Str(catalog.render_node(py, &attrnode, PyDict::new(py))?),
                         )?;
                     }
                 }

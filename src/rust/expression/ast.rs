@@ -1,8 +1,8 @@
 use std::cmp::min;
 use std::collections::HashMap;
 
-use pyo3::prelude::*;
 use pyo3::exceptions::{PySyntaxError, PyTypeError, PyZeroDivisionError};
+use pyo3::prelude::*;
 use pyo3::types::{PyBool, PyDict, PyInt, PyString, PyTuple};
 
 use crate::catalog::XCatalog;
@@ -12,6 +12,10 @@ use super::{
     parser::parse_expression,
     tokens::{ExpressionToken, Operator},
 };
+
+trait Truthy {
+    fn is_truthy(&self) -> bool;
+}
 
 #[derive(Debug, Clone, IntoPyObject)]
 pub enum Literal {
@@ -34,6 +38,17 @@ impl Literal {
         } else {
             let err: PyErr = PyTypeError::new_err(format!("Can't parse parameter {:?}", value));
             return Err(err);
+        }
+    }
+}
+
+impl Truthy for Literal {
+    fn is_truthy(&self) -> bool {
+        match self {
+            Literal::Bool(bool) => bool.clone(),
+            Literal::Int(i) => *i != 0,
+            Literal::Str(s) => !s.is_empty(),
+            Literal::XNode(_) => true,
         }
     }
 }
@@ -178,6 +193,15 @@ fn eval_div(l: Literal, r: Literal) -> PyResult<Literal> {
     }
 }
 
+fn eval_and(l: Literal, r: Literal) -> PyResult<Literal> {
+    match (l.is_truthy(), r.is_truthy()) {
+        (true, false) => Ok(r),
+        (false, false) => Ok(l),
+        (false, true) => Ok(l),
+        (true, true) => Ok(r),
+    }
+}
+
 pub fn eval_ast<'py>(
     py: Python<'py>,
     ast: &'py AST,
@@ -200,6 +224,7 @@ pub fn eval_ast<'py>(
                 Operator::Sub => eval_sub(l, r),
                 Operator::Mul => eval_mul(l, r),
                 Operator::Div => eval_div(l, r),
+                Operator::And => eval_and(l, r),
             }
         }
 

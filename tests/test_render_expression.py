@@ -40,6 +40,11 @@ def DivOp(a: int | bool | str, b: int | bool | str) -> str:
 
 
 @catalog.component()
+def AndOp(a: int | bool | str, b: int | bool | str) -> str:
+    return """<>{a and b}</>"""
+
+
+@catalog.component()
 def AddMany(a: int | bool | str, b: int | bool | str, c: int | bool | str) -> str:
     return """<>{a + b + c}</>"""
 
@@ -121,6 +126,7 @@ def test_add(component: str, expected: str):
 def test_sub(component: str, expected: str):
     assert component == expected
 
+
 @pytest.mark.parametrize(
     "component,expected",
     [
@@ -150,6 +156,26 @@ def test_div(component: str, expected: str):
 
 
 @pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(AndOp(8, 2), "2", id="and int"),
+        pytest.param(AndOp(2, 8), "8", id="and int"),
+        pytest.param(AndOp(3, 0), "0", id="and int"),
+        pytest.param(AndOp(3, False), 'false', id="and int bool"),
+        pytest.param(AndOp(3, ""), "", id="and int str"),
+        pytest.param(AndOp(0, 8), "0", id="and int"),
+        pytest.param(AndOp(3, -3), "-3", id="and int"),
+        pytest.param(AndOp(True, False), "false", id="bool"),
+        pytest.param(AndOp(False, True), "false", id="bool"),
+        pytest.param(AndOp(True, False), "false", id="bool"),
+        pytest.param(AndOp(False, False), "false", id="bool"),
+    ],
+)
+def test_and(component: str, expected: str):
+    assert component == expected
+
+
+@pytest.mark.parametrize(
     "component,args,expected",
     [
         pytest.param(AddOp, (4, "2"), "Invalid types for addition", id="add int-str"),
@@ -161,6 +187,7 @@ def test_type_error(component: Component, args: Any, expected: str):
         component(*args)
 
     assert str(exc.value) == expected
+
 
 @pytest.mark.parametrize(
     "component,args,expected",
@@ -174,7 +201,6 @@ def test_div_by_0(component: Component, args: Any, expected: str):
         component(*args)
 
     assert str(exc.value) == expected
-
 
 
 @pytest.mark.parametrize(

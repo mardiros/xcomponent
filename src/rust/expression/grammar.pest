@@ -10,7 +10,7 @@ function_call = { ident ~ WHITESPACE* ~ "(" ~ WHITESPACE* ~ argument_list? ~ WHI
 argument_list = _{ term ~ (WHITESPACE* ~ "," ~ WHITESPACE* ~ term)* }
 
 ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
-operator = { "+" | "-" | "*" | "/" }
+operator = { "+" | "-" | "*" | "/" | "and" }
 
 boolean = { "true" | "false" }
 integer = @{ (ASCII_DIGIT | "_")+ }

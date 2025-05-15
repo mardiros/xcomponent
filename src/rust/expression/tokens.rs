@@ -24,6 +24,7 @@ pub enum Operator {
     Sub,
     Mul,
     Div,
+    And,
 }
 
 impl FromStr for Operator {
@@ -35,6 +36,7 @@ impl FromStr for Operator {
             "-" => Ok(Operator::Sub),
             "*" => Ok(Operator::Mul),
             "/" => Ok(Operator::Div),
+            "and" => Ok(Operator::And),
             _ => Err(OperatorErr),
         }
     }
@@ -47,6 +49,7 @@ impl fmt::Display for Operator {
             Operator::Sub => "-",
             Operator::Mul => "*",
             Operator::Div => "/",
+            Operator::And => "and",
         };
         write!(f, "{}", op)
     }

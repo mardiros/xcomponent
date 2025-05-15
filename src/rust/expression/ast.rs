@@ -1,7 +1,8 @@
 use std::cmp::min;
+use std::collections::HashMap;
 
-use pyo3::exceptions::{PySyntaxError, PyTypeError};
 use pyo3::prelude::*;
+use pyo3::exceptions::{PySyntaxError, PyTypeError, PyZeroDivisionError};
 use pyo3::types::{PyBool, PyDict, PyInt, PyString, PyTuple};
 
 use crate::catalog::XCatalog;
@@ -104,7 +105,78 @@ pub fn parse(tokens: &[ExpressionToken]) -> Result<AST, PyErr> {
     Ok(left)
 }
 
-use std::collections::HashMap;
+fn eval_add(l: Literal, r: Literal) -> PyResult<Literal> {
+    match (l, r) {
+        (Literal::Int(a), Literal::Int(b)) => Ok(Literal::Int(a + b)),
+        (Literal::Int(a), Literal::Bool(b)) => Ok(Literal::Int(a + b as usize)),
+        (Literal::Bool(a), Literal::Int(b)) => Ok(Literal::Int(a as usize + b)),
+        (Literal::Bool(a), Literal::Bool(b)) => Ok(Literal::Int(a as usize + b as usize)),
+        (Literal::Str(a), Literal::Str(b)) => Ok(Literal::Str(a + &b)),
+        _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            "Invalid types for addition",
+        )),
+    }
+}
+
+fn eval_sub(l: Literal, r: Literal) -> PyResult<Literal> {
+    match (l, r) {
+        (Literal::Int(a), Literal::Int(b)) => Ok(Literal::Int(a - b)),
+        (Literal::Int(a), Literal::Bool(b)) => Ok(Literal::Int(a - b as usize)),
+        (Literal::Bool(a), Literal::Int(b)) => Ok(Literal::Int(a as usize - b)),
+        (Literal::Bool(a), Literal::Bool(b)) => Ok(Literal::Int(a as usize - b as usize)),
+        _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            "Invalid types for subtraction",
+        )),
+    }
+}
+
+fn eval_mul(l: Literal, r: Literal) -> PyResult<Literal> {
+    match (l, r) {
+        (Literal::Int(a), Literal::Int(b)) => Ok(Literal::Int(a * b)),
+        (Literal::Int(a), Literal::Bool(b)) => Ok(Literal::Int(a * b as usize)),
+        (Literal::Bool(a), Literal::Int(b)) => Ok(Literal::Int(a as usize * b)),
+        (Literal::Bool(a), Literal::Bool(b)) => Ok(Literal::Int(a as usize * b as usize)),
+        _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            "Invalid types for multiplication",
+        )),
+    }
+}
+
+fn eval_div(l: Literal, r: Literal) -> PyResult<Literal> {
+    match (l, r) {
+        (Literal::Int(a), Literal::Int(b)) => {
+            if b == 0 {
+                Err(PyErr::new::<PyZeroDivisionError, _>("Division by zero"))
+            } else {
+                Ok(Literal::Int(a / b))
+            }
+        }
+        (Literal::Int(a), Literal::Bool(b)) => {
+            if b as usize == 0 {
+                Err(PyErr::new::<PyZeroDivisionError, _>("Division by zero"))
+            } else {
+                Ok(Literal::Int(a / b as usize))
+            }
+        }
+        (Literal::Bool(a), Literal::Int(b)) => {
+            if b == 0 {
+                Err(PyErr::new::<PyZeroDivisionError, _>("Division by zero"))
+            } else {
+                Ok(Literal::Int(a as usize / b))
+            }
+        }
+        (Literal::Bool(a), Literal::Bool(b)) => {
+            if b as usize == 0 {
+                Err(PyErr::new::<PyZeroDivisionError, _>("Division by zero"))
+            } else {
+                Ok(Literal::Int(a as usize / b as usize))
+            }
+        }
+        _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            "Invalid types for division",
+        )),
+    }
+}
 
 pub fn eval_ast<'py>(
     py: Python<'py>,
@@ -123,25 +195,11 @@ pub fn eval_ast<'py>(
             let l = eval_ast(py, left, catalog, params)?;
             let r = eval_ast(py, right, catalog, params)?;
 
-            match (l, r, op) {
-                (Literal::Int(a), Literal::Int(b), Operator::Add) => Ok(Literal::Int(a + b)),
-                (Literal::Int(a), Literal::Int(b), Operator::Sub) => Ok(Literal::Int(a - b)),
-                (Literal::Int(a), Literal::Int(b), Operator::Mul) => Ok(Literal::Int(a * b)),
-                (Literal::Int(a), Literal::Int(b), Operator::Div) => {
-                    if b == 0 {
-                        Err(PyErr::new::<pyo3::exceptions::PyZeroDivisionError, _>(
-                            "Division by zero",
-                        ))
-                    } else {
-                        Ok(Literal::Int(a / b))
-                    }
-                }
-
-                (Literal::Str(a), Literal::Str(b), Operator::Add) => Ok(Literal::Str(a + &b)),
-
-                _ => Err(PyErr::new::<pyo3::exceptions::PyNotImplementedError, _>(
-                    "Not implement",
-                )),
+            match op {
+                Operator::Add => eval_add(l, r),
+                Operator::Sub => eval_sub(l, r),
+                Operator::Mul => eval_mul(l, r),
+                Operator::Div => eval_div(l, r),
             }
         }
 

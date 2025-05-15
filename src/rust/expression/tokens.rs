@@ -12,6 +12,7 @@ pub enum ExpType {
     Operator,
     String,
     Integer,
+    Boolean,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -88,6 +89,7 @@ pub enum ExpressionToken {
     Operator(Operator),
     String(String),
     Integer(usize),
+    Boolean(bool),
     XNode(XNode),
     FuncCall(FunctionCall),
 }
@@ -110,6 +112,7 @@ impl std::fmt::Display for ExpressionToken {
                 write!(f, "\"{}\"", value.replace('"', "\\\""))
             }
             ExpressionToken::Integer(value) => write!(f, "{}", value),
+            ExpressionToken::Boolean(value) => write!(f, "{}", value),
             ExpressionToken::XNode(n) => write!(f, "{}", n),
             ExpressionToken::FuncCall(func) => write!(f, "{}", func),
         }

@@ -2,7 +2,7 @@ WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
 
 expression = { term ~ (WHITESPACE* ~ operator ~ WHITESPACE* ~ term)* }
 
-term = _{ component | function_call | ident | string | integer }
+term = _{ component | function_call | ident | string | integer | boolean }
 
 component = { "<" ~ (!"/>" ~ ANY)* ~ "/>" }
 
@@ -12,6 +12,7 @@ argument_list = _{ term ~ (WHITESPACE* ~ "," ~ WHITESPACE* ~ term)* }
 ident = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 operator = { "+" | "-" | "*" | "/" }
 
+boolean = { "true" | "false" }
 integer = @{ (ASCII_DIGIT | "_")+ }
 string = @{ "\"" ~ (escape_sequence | !("\"" | "\\") ~ ANY)* ~ "\"" }
 

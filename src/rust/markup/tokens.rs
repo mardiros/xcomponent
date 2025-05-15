@@ -333,6 +333,7 @@ impl ToHtml for XExpression {
         let res = self.to_literal(py, catalog, params.clone())?;
 
         match res {
+            Literal::Bool(b) => Ok(format!("{}", b)),
             Literal::Int(i) => Ok(format!("{}", i)),
             Literal::Str(s) => Ok(format!("{}", s)),
             Literal::XNode(n) => catalog.render_node(py, &n, params),

@@ -51,6 +51,11 @@ fn parse_expression_token(pair: Pair<Rule>) -> Option<ExpressionToken> {
             debug!("Pushing integer {}", value);
             Some(ExpressionToken::Integer(value))
         }
+        Rule::boolean => {
+            let value: bool = pair.as_str().parse().unwrap();
+            debug!("Pushing boolean {}", value);
+            Some(ExpressionToken::Boolean(value))
+        }
         Rule::string => {
             let value = pair.as_str().trim_matches('"');
             debug!("Pushing string {}", value);

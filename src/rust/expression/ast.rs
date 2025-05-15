@@ -2,7 +2,7 @@ use std::cmp::min;
 
 use pyo3::exceptions::{PySyntaxError, PyTypeError};
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyInt, PyString, PyTuple};
+use pyo3::types::{PyBool, PyDict, PyInt, PyString, PyTuple};
 
 use crate::catalog::XCatalog;
 use crate::markup::tokens::XNode;
@@ -14,6 +14,7 @@ use super::{
 
 #[derive(Debug, Clone, IntoPyObject)]
 pub enum Literal {
+    Bool(bool),
     Int(usize),
     Str(String),
     XNode(XNode),
@@ -23,6 +24,8 @@ impl Literal {
     fn downcast<'py>(value: Bound<'py, PyAny>) -> Result<Self, PyErr> {
         if let Ok(v) = value.downcast::<PyString>() {
             return Ok(Literal::Str(v.to_string()));
+        } else if let Ok(v) = value.downcast::<PyBool>() {
+            return Ok(Literal::Bool(v.extract::<bool>()?));
         } else if let Ok(v) = value.downcast::<PyInt>() {
             return Ok(Literal::Int(v.extract::<usize>()?));
         } else if let Ok(v) = value.extract::<XNode>() {
@@ -52,6 +55,7 @@ pub enum AST {
 fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
     let ast = match tok {
         ExpressionToken::String(s) => AST::Literal(Literal::Str(s.to_string())),
+        ExpressionToken::Boolean(b) => AST::Literal(Literal::Bool(b.clone())),
         ExpressionToken::Integer(n) => AST::Literal(Literal::Int(n.clone())),
         ExpressionToken::Ident(ident) => AST::Variable(ident.to_string()),
         ExpressionToken::XNode(n) => AST::Literal(Literal::XNode(n.clone())),
@@ -142,8 +146,9 @@ pub fn eval_ast<'py>(
         }
 
         AST::Variable(name) => match params.get(name) {
-            Some(Literal::Int(i)) => Ok(Literal::Int(i.clone())),
-            Some(Literal::Str(s)) => Ok(Literal::Str(s.clone())),
+            Some(Literal::Bool(v)) => Ok(Literal::Bool(v.clone())),
+            Some(Literal::Int(v)) => Ok(Literal::Int(v.clone())),
+            Some(Literal::Str(v)) => Ok(Literal::Str(v.clone())),
             Some(Literal::XNode(node)) => {
                 let resp = catalog.render_node(py, node, PyDict::new(py));
                 resp.map(|markup| Literal::Str(markup))

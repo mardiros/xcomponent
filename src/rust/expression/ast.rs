@@ -202,6 +202,15 @@ fn eval_and(l: Literal, r: Literal) -> PyResult<Literal> {
     }
 }
 
+fn eval_or(l: Literal, r: Literal) -> PyResult<Literal> {
+    match (l.is_truthy(), r.is_truthy()) {
+        (true, false) => Ok(l),
+        (false, false) => Ok(r),
+        (false, true) => Ok(r),
+        (true, true) => Ok(l),
+    }
+}
+
 pub fn eval_ast<'py>(
     py: Python<'py>,
     ast: &'py AST,
@@ -225,6 +234,7 @@ pub fn eval_ast<'py>(
                 Operator::Mul => eval_mul(l, r),
                 Operator::Div => eval_div(l, r),
                 Operator::And => eval_and(l, r),
+                Operator::Or => eval_or(l, r),
             }
         }
 

@@ -1,3 +1,4 @@
+from typing import Any
 import pytest
 
 from xcomponent import Catalog
@@ -18,28 +19,23 @@ def Types(a: bool, b: bool, c: int, d: str, e: XNode) -> str:
 
 
 @catalog.component()
-def AddInt(a: int, b: int) -> str:
+def AddOp(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a + b}</>"""
 
 
 @catalog.component()
-def AddManyInt(a: int, b: int, c: int) -> str:
+def AddMany(a: int | bool | str, b: int | bool | str, c: int | bool | str) -> str:
     return """<>{a + b + c}</>"""
 
 
 @catalog.component()
-def AddStr(a: str, b: str) -> str:
-    return """<>{a + b}</>"""
-
-
-@catalog.component()
 def NestedOperation(aa: str, bb: str) -> str:
-    return """<AddStr a={aa} b={bb} />"""
+    return """<AddOp a={aa} b={bb} />"""
 
 
 @catalog.component()
 def NestedExpression(aa: str, bb: str) -> str:
-    return """<>{<AddStr a={aa} b={bb} />}</>"""
+    return """<>{<AddOp a={aa} b={bb} />}</>"""
 
 
 @catalog.component()
@@ -79,24 +75,56 @@ def test_types():
     assert Types(False, True, 2, "3", DummyNode(a="4")) == "false-true-2-3-<p>4</p>"
 
 
-def test_add_int():
-    assert AddInt(1, 2) == "3"
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(AddOp(4, 2), "6", id="add int"),
+        pytest.param(AddOp(13, 5), "18", id="add int-2"),
+        pytest.param(AddOp(True, 2), "3", id="add bool and int"),
+        pytest.param(AddOp(True, False), "1", id="add true-false"),
+        pytest.param(AddOp(False, False), "0", id="add false-false"),
+        pytest.param(AddOp(True, True), "2", id="add true-true"),
+        pytest.param(AddOp("1", "2"), "12", id="concat str"),
+    ],
+)
+def test_add(component: str, expected: str):
+    assert component == expected
 
 
-def test_add_many_int():
-    assert AddManyInt(1, 2, 3) == "6"
+@pytest.mark.parametrize(
+    "component,args,expected",
+    [
+        pytest.param(
+            AddOp, (4, "2"), "Invalid types for addition", id="add int-str"
+        ),
+    ],
+)
+def test_type_error(component: Component, args: Any, expected: str):
+    with pytest.raises(TypeError) as exc:
+        component(*args)
+
+    assert str(exc.value) == expected
 
 
-def test_add_str():
-    assert AddStr("1", "2") == "12"
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(AddMany(1, 2, 3), "6", id="add int"),
+    ],
+)
+def test_multiple_op(component: str, expected: str):
+    assert component == expected
 
 
-def test_nested_operation():
-    assert NestedOperation("1", "2") == "12"
-
-
-def test_nested_expression():
-    assert NestedExpression("1", "2") == "12"
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(NestedOperation("1", "2"), "12", id="operation"),
+        pytest.param(NestedExpression("1", "2"), "12", id="expression"),
+    ],
+)
+def test_nested(component: str, expected: str):
+    assert component == expected
 
 
 @pytest.mark.parametrize("func", [FuncCall, FuncCall2, FuncCall3])

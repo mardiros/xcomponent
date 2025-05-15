@@ -317,7 +317,6 @@ impl XExpression {
         params: Bound<'py, PyDict>,
     ) -> PyResult<Literal> {
         eval_expression(py, self.expression(), catalog, params.clone())
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
     }
 }
 

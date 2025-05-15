@@ -1,3 +1,4 @@
+from decimal import DivisionByZero
 from typing import Any
 import pytest
 
@@ -120,6 +121,33 @@ def test_add(component: str, expected: str):
 def test_sub(component: str, expected: str):
     assert component == expected
 
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(MulOp(8, 2), "16", id="mul int"),
+        pytest.param(MulOp(4, 5), "20", id="mul int-2"),
+        pytest.param(MulOp(True, 2), "2", id="mul bool and int"),
+        pytest.param(MulOp(True, False), "0", id="mul true-false"),
+        pytest.param(MulOp(False, False), "0", id="mul false-false"),
+        pytest.param(MulOp(True, True), "1", id="mul true-true"),
+    ],
+)
+def test_mul(component: str, expected: str):
+    assert component == expected
+
+
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(DivOp(8, 2), "4", id="mul int"),
+        pytest.param(DivOp(2, 3), "0", id="mul int-2/3"),
+        pytest.param(DivOp(True, 3), "0", id="mul bool and int"),
+        pytest.param(DivOp(2, True), "2", id="mul true-true"),
+    ],
+)
+def test_div(component: str, expected: str):
+    assert component == expected
+
 
 @pytest.mark.parametrize(
     "component,args,expected",
@@ -133,6 +161,20 @@ def test_type_error(component: Component, args: Any, expected: str):
         component(*args)
 
     assert str(exc.value) == expected
+
+@pytest.mark.parametrize(
+    "component,args,expected",
+    [
+        pytest.param(DivOp, (4, 0), "Division by zero", id="int"),
+        pytest.param(DivOp, (1, False), "Division by zero", id="bool"),
+    ],
+)
+def test_div_by_0(component: Component, args: Any, expected: str):
+    with pytest.raises(ZeroDivisionError) as exc:
+        component(*args)
+
+    assert str(exc.value) == expected
+
 
 
 @pytest.mark.parametrize(

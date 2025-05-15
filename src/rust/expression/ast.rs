@@ -16,7 +16,7 @@ use super::{
 #[derive(Debug, Clone, IntoPyObject)]
 pub enum Literal {
     Bool(bool),
-    Int(usize),
+    Int(isize),
     Str(String),
     XNode(XNode),
 }
@@ -28,7 +28,7 @@ impl Literal {
         } else if let Ok(v) = value.downcast::<PyBool>() {
             return Ok(Literal::Bool(v.extract::<bool>()?));
         } else if let Ok(v) = value.downcast::<PyInt>() {
-            return Ok(Literal::Int(v.extract::<usize>()?));
+            return Ok(Literal::Int(v.extract::<isize>()?));
         } else if let Ok(v) = value.extract::<XNode>() {
             return Ok(Literal::XNode(v));
         } else {
@@ -108,9 +108,9 @@ pub fn parse(tokens: &[ExpressionToken]) -> Result<AST, PyErr> {
 fn eval_add(l: Literal, r: Literal) -> PyResult<Literal> {
     match (l, r) {
         (Literal::Int(a), Literal::Int(b)) => Ok(Literal::Int(a + b)),
-        (Literal::Int(a), Literal::Bool(b)) => Ok(Literal::Int(a + b as usize)),
-        (Literal::Bool(a), Literal::Int(b)) => Ok(Literal::Int(a as usize + b)),
-        (Literal::Bool(a), Literal::Bool(b)) => Ok(Literal::Int(a as usize + b as usize)),
+        (Literal::Int(a), Literal::Bool(b)) => Ok(Literal::Int(a + b as isize)),
+        (Literal::Bool(a), Literal::Int(b)) => Ok(Literal::Int(a as isize + b)),
+        (Literal::Bool(a), Literal::Bool(b)) => Ok(Literal::Int(a as isize + b as isize)),
         (Literal::Str(a), Literal::Str(b)) => Ok(Literal::Str(a + &b)),
         _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
             "Invalid types for addition",
@@ -121,9 +121,9 @@ fn eval_add(l: Literal, r: Literal) -> PyResult<Literal> {
 fn eval_sub(l: Literal, r: Literal) -> PyResult<Literal> {
     match (l, r) {
         (Literal::Int(a), Literal::Int(b)) => Ok(Literal::Int(a - b)),
-        (Literal::Int(a), Literal::Bool(b)) => Ok(Literal::Int(a - b as usize)),
-        (Literal::Bool(a), Literal::Int(b)) => Ok(Literal::Int(a as usize - b)),
-        (Literal::Bool(a), Literal::Bool(b)) => Ok(Literal::Int(a as usize - b as usize)),
+        (Literal::Int(a), Literal::Bool(b)) => Ok(Literal::Int(a - b as isize)),
+        (Literal::Bool(a), Literal::Int(b)) => Ok(Literal::Int(a as isize - b)),
+        (Literal::Bool(a), Literal::Bool(b)) => Ok(Literal::Int(a as isize - b as isize)),
         _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
             "Invalid types for subtraction",
         )),
@@ -133,9 +133,9 @@ fn eval_sub(l: Literal, r: Literal) -> PyResult<Literal> {
 fn eval_mul(l: Literal, r: Literal) -> PyResult<Literal> {
     match (l, r) {
         (Literal::Int(a), Literal::Int(b)) => Ok(Literal::Int(a * b)),
-        (Literal::Int(a), Literal::Bool(b)) => Ok(Literal::Int(a * b as usize)),
-        (Literal::Bool(a), Literal::Int(b)) => Ok(Literal::Int(a as usize * b)),
-        (Literal::Bool(a), Literal::Bool(b)) => Ok(Literal::Int(a as usize * b as usize)),
+        (Literal::Int(a), Literal::Bool(b)) => Ok(Literal::Int(a * b as isize)),
+        (Literal::Bool(a), Literal::Int(b)) => Ok(Literal::Int(a as isize * b)),
+        (Literal::Bool(a), Literal::Bool(b)) => Ok(Literal::Int(a as isize * b as isize)),
         _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
             "Invalid types for multiplication",
         )),
@@ -152,24 +152,24 @@ fn eval_div(l: Literal, r: Literal) -> PyResult<Literal> {
             }
         }
         (Literal::Int(a), Literal::Bool(b)) => {
-            if b as usize == 0 {
+            if b as isize == 0 {
                 Err(PyErr::new::<PyZeroDivisionError, _>("Division by zero"))
             } else {
-                Ok(Literal::Int(a / b as usize))
+                Ok(Literal::Int(a / b as isize))
             }
         }
         (Literal::Bool(a), Literal::Int(b)) => {
             if b == 0 {
                 Err(PyErr::new::<PyZeroDivisionError, _>("Division by zero"))
             } else {
-                Ok(Literal::Int(a as usize / b))
+                Ok(Literal::Int(a as isize / b))
             }
         }
         (Literal::Bool(a), Literal::Bool(b)) => {
-            if b as usize == 0 {
+            if b as isize == 0 {
                 Err(PyErr::new::<PyZeroDivisionError, _>("Division by zero"))
             } else {
-                Ok(Literal::Int(a as usize / b as usize))
+                Ok(Literal::Int(a as isize / b as isize))
             }
         }
         _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(

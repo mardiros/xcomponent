@@ -24,6 +24,21 @@ def AddOp(a: int | bool | str, b: int | bool | str) -> str:
 
 
 @catalog.component()
+def SubOp(a: int | bool | str, b: int | bool) -> str:
+    return """<>{a - b}</>"""
+
+
+@catalog.component()
+def MulOp(a: int | bool | str, b: int | bool) -> str:
+    return """<>{a * b}</>"""
+
+
+@catalog.component()
+def DivOp(a: int | bool | str, b: int | bool | str) -> str:
+    return """<>{a / b}</>"""
+
+
+@catalog.component()
 def AddMany(a: int | bool | str, b: int | bool | str, c: int | bool | str) -> str:
     return """<>{a + b + c}</>"""
 
@@ -92,11 +107,25 @@ def test_add(component: str, expected: str):
 
 
 @pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(SubOp(8, 2), "6", id="sub int"),
+        pytest.param(SubOp(23, 5), "18", id="sub int-2"),
+        pytest.param(SubOp(True, 2), "-1", id="sub bool and int"),
+        pytest.param(SubOp(True, False), "1", id="sub true-false"),
+        pytest.param(SubOp(False, False), "0", id="sub false-false"),
+        pytest.param(SubOp(True, True), "0", id="sub true-true"),
+    ],
+)
+def test_sub(component: str, expected: str):
+    assert component == expected
+
+
+@pytest.mark.parametrize(
     "component,args,expected",
     [
-        pytest.param(
-            AddOp, (4, "2"), "Invalid types for addition", id="add int-str"
-        ),
+        pytest.param(AddOp, (4, "2"), "Invalid types for addition", id="add int-str"),
+        pytest.param(SubOp, ("1", "2"), "Invalid types for subtraction", id="sub str"),
     ],
 )
 def test_type_error(component: Component, args: Any, expected: str):

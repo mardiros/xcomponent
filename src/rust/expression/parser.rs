@@ -47,7 +47,7 @@ fn parse_expression_token(pair: Pair<Rule>) -> Option<ExpressionToken> {
             Some(ExpressionToken::Operator(op.parse().unwrap()))
         }
         Rule::integer => {
-            let value: usize = pair.as_str().parse().unwrap();
+            let value: isize = pair.as_str().parse().unwrap();
             debug!("Pushing integer {}", value);
             Some(ExpressionToken::Integer(value))
         }

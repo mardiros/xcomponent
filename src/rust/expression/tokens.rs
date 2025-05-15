@@ -88,7 +88,7 @@ pub enum ExpressionToken {
     Ident(String),
     Operator(Operator),
     String(String),
-    Integer(usize),
+    Integer(isize),
     Boolean(bool),
     XNode(XNode),
     FuncCall(FunctionCall),

@@ -28,6 +28,7 @@ pub enum Operator {
     Or,
     Eq,
     Neq,
+    Gt,
 }
 
 impl FromStr for Operator {
@@ -43,6 +44,7 @@ impl FromStr for Operator {
             "or" => Ok(Operator::Or),
             "==" => Ok(Operator::Eq),
             "!=" => Ok(Operator::Neq),
+            ">" => Ok(Operator::Gt),
             _ => Err(OperatorErr),
         }
     }
@@ -59,6 +61,7 @@ impl fmt::Display for Operator {
             Operator::Or => "or",
             Operator::Eq => "==",
             Operator::Neq => "!=",
+            Operator::Gt => ">",
         };
         write!(f, "{}", op)
     }

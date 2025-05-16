@@ -121,6 +121,11 @@ pub enum ExpressionToken {
         then_branch: Box<ExpressionToken>,
         else_branch: Option<Box<ExpressionToken>>,
     },
+    ForExpression {
+        ident: String,
+        iterable: Box<ExpressionToken>,
+        body: Box<ExpressionToken>,
+    },
 }
 
 impl std::fmt::Display for ExpressionToken {
@@ -158,6 +163,11 @@ impl std::fmt::Display for ExpressionToken {
                     )
                 }
             },
+            ExpressionToken::ForExpression {
+                ident,
+                iterable,
+                body,
+            } => write!(f, "for {} in {} {{ {} }}", ident, iterable, body),
         }
     }
 }

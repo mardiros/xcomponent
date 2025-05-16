@@ -52,6 +52,21 @@ fn parse_expression_token(pair: Pair<Rule>) -> Option<ExpressionToken> {
                 else_branch,
             })
         }
+        Rule::for_expression => {
+            let mut inner = pair.into_inner();
+            let ident = inner.next()?.as_str().to_string();
+            let iterable_expr = inner.next()?;
+            let body_expr = inner.next()?.into_inner().next()?;
+
+            let iterable = Box::new(parse_expression_token(iterable_expr)?);
+            let body = Box::new(parse_expression_token(body_expr)?);
+
+            Some(ExpressionToken::ForExpression {
+                ident,
+                iterable,
+                body,
+            })
+        }
         Rule::function_call => {
             let mut inner = pair.into_inner();
             let ident = inner.next()?.as_str().to_string();
@@ -114,8 +129,8 @@ pub(crate) fn parse_expression(raw: &str) -> Result<ExpressionToken, PyErr> {
     }
 
     Err(PyValueError::new_err(format!(
-        "Invalid expression: {}",
-        raw
+        "Invalid expression: {} ({:?})",
+        raw, pairs
     )))
 
     // if let Some(pair) = pairs.next().unwrap().into_inner().next() {

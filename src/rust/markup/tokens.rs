@@ -314,13 +314,7 @@ impl ToHtml for XExpression {
         info!("Evaluating expression {}", self.expression());
         debug!("{:?}", params.clone());
         let res = self.to_literal(py, catalog, params.clone())?;
-
-        match res {
-            Literal::Bool(b) => Ok(format!("{}", b)),
-            Literal::Int(i) => Ok(format!("{}", i)),
-            Literal::Str(s) => Ok(format!("{}", s)),
-            Literal::XNode(n) => catalog.render_node(py, &n, params),
-        }
+        res.to_html(py, catalog, params)
     }
 }
 

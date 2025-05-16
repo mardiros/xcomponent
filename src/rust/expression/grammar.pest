@@ -1,8 +1,8 @@
-expression = { if_expression | binary_expression }
+expression = { for_expression | if_expression | binary_expression }
 
 binary_expression = { term ~ (WHITESPACE* ~ operator ~ WHITESPACE* ~ term)* }
 
-term = _{ if_expression | component | function_call | ident | string | integer | boolean }
+term = _{ for_expression | if_expression | component | function_call | ident | string | integer | boolean }
 
 component = { "<" ~ (!"/>" ~ ANY)* ~ "/>" }
 
@@ -14,7 +14,7 @@ operator = { "+" | "-" | "*" | "/" | "and" | "or" | "==" | "!=" | ">=" | "<=" | 
 boolean = { "true" | "false" }
 integer = @{ (ASCII_DIGIT | "_")+ }
 string = @{ "\"" ~ (escape_sequence | !("\"" | "\\") ~ ANY)* ~ "\"" }
-keyword = { "if" | "else" | operator | boolean | "{" | "}" }
+keyword = { "for" |"in" | "if" | "else" | operator | boolean | "{" | "}" }
 
 ident = { !keyword ~ ident_raw }
 ident_raw = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
@@ -24,7 +24,10 @@ WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
 escape_sequence = { "\\" ~ ( "\"" | "\\" | "n" | "t" | "r" ) }
 
 if_expression = {
-    "if" ~ WHITESPACE* ~ binary_expression ~ WHITESPACE* ~ block ~ (WHITESPACE* ~ "else" ~ WHITESPACE* ~ block )?
+    "if " ~ WHITESPACE* ~ binary_expression ~ WHITESPACE* ~ block ~ (WHITESPACE* ~ "else" ~ WHITESPACE* ~ block )?
 }
+
+for_expression = { "for " ~ WHITESPACE* ~ ident ~ WHITESPACE* ~ "in" ~ WHITESPACE* ~ term ~ WHITESPACE* ~ block }
+
 
 block = { "{" ~ WHITESPACE* ~ expression ~ WHITESPACE* ~ "}" }

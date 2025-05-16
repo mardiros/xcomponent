@@ -2,11 +2,11 @@ use std::cmp::min;
 use std::collections::HashMap;
 
 use pyo3::exceptions::{PySyntaxError, PyTypeError, PyZeroDivisionError};
-use pyo3::prelude::*;
-use pyo3::types::{PyBool, PyDict, PyInt, PyString, PyTuple};
+use pyo3::types::{PyBool, PyDict, PyInt, PyList, PyString, PyTuple};
+use pyo3::{prelude::*, BoundObject, IntoPyObjectExt};
 
 use crate::catalog::XCatalog;
-use crate::markup::tokens::XNode;
+use crate::markup::tokens::{ToHtml, XNode};
 
 use super::{
     parser::parse_expression,
@@ -23,6 +23,7 @@ pub enum Literal {
     Int(isize),
     Str(String),
     XNode(XNode),
+    List(Vec<Literal>),
 }
 
 impl Literal {
@@ -35,9 +36,29 @@ impl Literal {
             return Ok(Literal::Int(v.extract::<isize>()?));
         } else if let Ok(v) = value.extract::<XNode>() {
             return Ok(Literal::XNode(v));
+        } else if let Ok(seq) = value.downcast::<PyList>() {
+            let mut items = Vec::with_capacity(seq.len());
+            for item in seq.iter() {
+                items.push(Literal::downcast(item)?);
+            }
+            Ok(Literal::List(items))
         } else {
             let err: PyErr = PyTypeError::new_err(format!("Can't parse parameter {:?}", value));
             return Err(err);
+        }
+    }
+    fn into_py<'py>(&self, py: Python<'py>) -> pyo3::Bound<'py, PyAny> {
+        match self {
+            Literal::Bool(v) => v // wtf
+                .into_pyobject(py)
+                .unwrap()
+                .unbind()
+                .into_bound_py_any(py)
+                .unwrap(),
+            Literal::Int(v) => v.clone().into_pyobject(py).unwrap().into_any(),
+            Literal::Str(v) => v.clone().into_pyobject(py).unwrap().into_any(),
+            Literal::XNode(v) => v.clone().into_pyobject(py).unwrap().into_any(),
+            Literal::List(v) => v.clone().into_pyobject(py).unwrap().into_any(),
         }
     }
 }
@@ -49,6 +70,30 @@ impl Truthy for Literal {
             Literal::Int(i) => *i != 0,
             Literal::Str(s) => !s.is_empty(),
             Literal::XNode(_) => true,
+            Literal::List(items) => !items.is_empty(),
+        }
+    }
+}
+
+impl ToHtml for Literal {
+    fn to_html<'py>(
+        &self,
+        py: Python<'py>,
+        catalog: &XCatalog,
+        params: Bound<'py, PyDict>,
+    ) -> PyResult<String> {
+        match self {
+            Literal::Bool(b) => Ok(format!("{}", b)),
+            Literal::Int(i) => Ok(format!("{}", i)),
+            Literal::Str(s) => Ok(format!("{}", s)),
+            Literal::List(l) => {
+                let mut out = String::new();
+                for item in l {
+                    out.push_str(item.to_html(py, catalog, params.clone())?.as_str());
+                }
+                Ok(out)
+            }
+            Literal::XNode(n) => catalog.render_node(py, &n, params),
         }
     }
 }
@@ -70,6 +115,11 @@ pub enum AST {
         condition: Box<AST>,
         then_branch: Box<AST>,
         else_branch: Option<Box<AST>>,
+    },
+    ForStatement {
+        ident: String,
+        iterable: Box<AST>,
+        body: Box<AST>,
     },
 }
 
@@ -123,6 +173,15 @@ fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
                 Some(token) => Some(token_to_ast(token).map(|x| Box::new(x))?),
                 None => None,
             },
+        }),
+        ExpressionToken::ForExpression {
+            ident,
+            iterable,
+            body,
+        } => Ok(AST::ForStatement {
+            ident: ident.clone(),
+            iterable: token_to_ast(iterable).map(|x| Box::new(x))?,
+            body: token_to_ast(body).map(|x| Box::new(x))?,
         }),
         _ => Err(PySyntaxError::new_err(format!("Syntax error near {}", tok))),
     };
@@ -356,6 +415,7 @@ pub fn eval_ast<'py>(
             Some(Literal::Bool(v)) => Ok(Literal::Bool(v.clone())),
             Some(Literal::Int(v)) => Ok(Literal::Int(v.clone())),
             Some(Literal::Str(v)) => Ok(Literal::Str(v.clone())),
+            Some(Literal::List(v)) => Ok(Literal::List(v.clone())),
             Some(Literal::XNode(node)) => {
                 let resp = catalog.render_node(py, node, PyDict::new(py));
                 resp.map(|markup| Literal::Str(markup))
@@ -391,6 +451,39 @@ pub fn eval_ast<'py>(
                 }
             }
         }
+        AST::ForStatement {
+            ident,
+            iterable,
+            body,
+        } => {
+            let iter_lit = eval_ast(py, iterable, catalog, params)?;
+
+            // let var = params.get(iterable).map(|x| Ok(x)).unwrap_or_else(|| {
+            //     return Err(PyUnboundLocalError::new_err(format!(
+            //         "{:?} is not defined in {:?}",
+            //         ident, params
+            //     )));
+            // })?;
+            match iter_lit {
+                Literal::List(iter) => {
+                    let mut res = String::new();
+                    for v in iter {
+                        let mut block_params = params.clone();
+                        block_params.insert(ident.clone(), v);
+                        let item = eval_ast(py, body, catalog, &block_params)?;
+                        res.push_str(
+                            item.to_html(py, catalog, wrap_params(py, &block_params)?)?
+                                .as_str(),
+                        )
+                    }
+                    Ok(Literal::Str(res))
+                }
+                _ => Err(PyTypeError::new_err(format!(
+                    "{} {:?} is not iterable",
+                    ident, iter_lit
+                ))),
+            }
+        }
     }
 }
 
@@ -401,6 +494,17 @@ fn cast_params<'py>(params: Bound<'py, PyDict>) -> Result<HashMap<String, Litera
         let key_str = key.downcast::<PyString>()?.to_string();
         let val = Literal::downcast(value)?;
         result.insert(key_str, val);
+    }
+    Ok(result)
+}
+
+fn wrap_params<'py>(
+    py: Python<'py>,
+    params: &HashMap<String, Literal>,
+) -> Result<Bound<'py, PyDict>, PyErr> {
+    let result = PyDict::new(py);
+    for (key, value) in params.iter() {
+        result.set_item(key, value.into_py(py))?;
     }
     Ok(result)
 }

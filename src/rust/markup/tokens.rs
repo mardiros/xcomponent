@@ -4,11 +4,7 @@ use pyo3::{prelude::*, types::PyDict};
 
 use crate::{
     catalog::XCatalog,
-    expression::{
-        ast::{eval_expression, Literal},
-        parser::parse_expression,
-        tokens::ExpressionToken,
-    },
+    expression::ast::{eval_expression, Literal},
 };
 
 pub trait ToHtml {
@@ -110,28 +106,6 @@ impl XElement {
     }
 }
 
-fn get_attrparams<'py>(
-    py: Python<'py>,
-    attrtoken: &ExpressionToken,
-    params: &Bound<'py, PyDict>,
-) -> PyResult<Bound<'py, PyDict>> {
-    let attrparams = PyDict::new(py);
-    match attrtoken {
-        ExpressionToken::Ident(ref name) => {
-            attrparams.set_item(name.to_string(), params.get_item(name.to_string())?)?;
-        }
-        ExpressionToken::BinaryExpression(ref exp) => {
-            if let Some(tok) = exp.first() {
-                if let ExpressionToken::Ident(ref name) = tok {
-                    attrparams.set_item(name.to_string(), params.get_item(name.to_string())?)?;
-                }
-            }
-        }
-        _ => (),
-    }
-    Ok(attrparams)
-}
-
 impl ToHtml for XElement {
     fn to_html<'py>(
         &self,
@@ -147,11 +121,10 @@ impl ToHtml for XElement {
 
                 for (name, attrnode) in self.attrs() {
                     if let XNode::Expression(ref expression) = attrnode {
-                        let attrtoken = parse_expression(expression.expression())?;
-                        let attrparams = get_attrparams(py, &attrtoken, &params)?;
-                        let expr =
-                            eval_expression(py, expression.expression(), &catalog, attrparams)?;
-                        node_attrs.set_item(name, expr)?;
+                        node_attrs.set_item(
+                            name,
+                            eval_expression(py, expression.expression(), &catalog, params.clone())?,
+                        )?;
                     } else {
                         node_attrs.set_item(
                             name,

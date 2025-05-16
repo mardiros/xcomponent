@@ -25,6 +25,11 @@ def NestedFunction(aa: int, bb: int) -> str:
     return """<>{<AddOp a={max(aa, 3)} b={bb} />}</>"""
 
 
+@catalog.component()
+def NestedIf(aa: int, bb: int) -> str:
+    return """<>{<AddOp a={if aa > 3 { 6 } else { 0 }} b={bb} />}</>"""
+
+
 catalog.function(max)
 
 
@@ -34,6 +39,7 @@ catalog.function(max)
         pytest.param(NestedOperation("1", "2"), "12", id="operation"),
         pytest.param(NestedExpression("1", "2"), "12", id="expression"),
         pytest.param(NestedFunction(6, 6), "12", id="expression"),
+        pytest.param(NestedIf(5, 6), "12", id="expression"),
     ],
 )
 def test_nested(component: str, expected: str):

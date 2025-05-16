@@ -26,6 +26,7 @@ pub enum Operator {
     Div,
     And,
     Or,
+    Eq,
 }
 
 impl FromStr for Operator {
@@ -39,6 +40,7 @@ impl FromStr for Operator {
             "/" => Ok(Operator::Div),
             "and" => Ok(Operator::And),
             "or" => Ok(Operator::Or),
+            "==" => Ok(Operator::Eq),
             _ => Err(OperatorErr),
         }
     }
@@ -53,6 +55,7 @@ impl fmt::Display for Operator {
             Operator::Div => "/",
             Operator::And => "and",
             Operator::Or => "or",
+            Operator::Eq => "==",
         };
         write!(f, "{}", op)
     }

@@ -258,17 +258,25 @@ fn eval_or(l: Literal, r: Literal) -> PyResult<Literal> {
     }
 }
 
-fn eval_eq(l: Literal, r: Literal) -> PyResult<Literal> {
+fn eval_raw_eq(l: Literal, r: Literal) -> PyResult<bool> {
     match (l, r) {
-        (Literal::Int(a), Literal::Int(b)) => Ok(Literal::Bool(a == b)),
-        (Literal::Int(a), Literal::Bool(b)) => Ok(Literal::Bool(a == b as isize)),
-        (Literal::Bool(a), Literal::Int(b)) => Ok(Literal::Bool(a as isize == b)),
-        (Literal::Bool(a), Literal::Bool(b)) => Ok(Literal::Bool(a == b)),
-        (Literal::Str(a), Literal::Str(b)) => Ok(Literal::Bool(a == b)),
+        (Literal::Int(a), Literal::Int(b)) => Ok(a == b),
+        (Literal::Int(a), Literal::Bool(b)) => Ok(a == b as isize),
+        (Literal::Bool(a), Literal::Int(b)) => Ok(a as isize == b),
+        (Literal::Bool(a), Literal::Bool(b)) => Ok(a == b),
+        (Literal::Str(a), Literal::Str(b)) => Ok(a == b),
         _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "Invalid types for multiplication",
+            "Invalid types for equality",
         )),
     }
+}
+
+fn eval_eq(l: Literal, r: Literal) -> PyResult<Literal> {
+    return eval_raw_eq(l, r).map(|b| Literal::Bool(b));
+}
+
+fn eval_neq(l: Literal, r: Literal) -> PyResult<Literal> {
+    return eval_raw_eq(l, r).map(|b| Literal::Bool(!b));
 }
 
 pub fn eval_ast<'py>(
@@ -294,6 +302,7 @@ pub fn eval_ast<'py>(
                 Operator::And => eval_and(l, r),
                 Operator::Or => eval_or(l, r),
                 Operator::Eq => eval_eq(l, r),
+                Operator::Neq => eval_neq(l, r),
             }
         }
 

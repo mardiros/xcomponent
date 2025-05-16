@@ -13,6 +13,11 @@ def Eq(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a == b}</>"""
 
 
+@catalog.component()
+def Neq(a: int | bool | str, b: int | bool | str) -> str:
+    return """<>{a != b}</>"""
+
+
 @pytest.mark.parametrize(
     "component,expected",
     [
@@ -29,4 +34,23 @@ def Eq(a: int | bool | str, b: int | bool | str) -> str:
     ],
 )
 def test_eq(component: str, expected: str):
+    assert component == expected
+
+
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(Neq(4, 2), "true", id="int-true"),
+        pytest.param(Neq(5, 5), "false", id="int-false"),
+        pytest.param(Neq(True, 2), "true", id="bool and int-true"),
+        pytest.param(Neq(True, 1), "false", id="bool and int-false"),
+        pytest.param(Neq(False, 0), "false", id="bool and int-false"),
+        pytest.param(Neq(True, False), "true", id="false-true"),
+        pytest.param(Neq(False, False), "false", id="true-true"),
+        pytest.param(Neq(True, True), "false", id="add false-false"),
+        pytest.param(Neq("1", "2"), "true", id="str-true"),
+        pytest.param(Neq("1", "1"), "false", id="str-false"),
+    ],
+)
+def test_neq(component: str, expected: str):
     assert component == expected

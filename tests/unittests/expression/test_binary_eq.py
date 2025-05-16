@@ -23,6 +23,11 @@ def Gt(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a > b}</>"""
 
 
+@catalog.component()
+def Lt(a: int | bool | str, b: int | bool | str) -> str:
+    return """<>{a < b}</>"""
+
+
 @pytest.mark.parametrize(
     "component,expected",
     [
@@ -66,6 +71,8 @@ def test_neq(component: str, expected: str):
     [
         pytest.param(Gt(4, 2), "true", id="int-true"),
         pytest.param(Gt(5, 5), "false", id="int-false"),
+        pytest.param(Gt(5, True), "true", id="int-bool-true"),
+        pytest.param(Gt(-5, True), "false", id="int-bool-false"),
         pytest.param(Gt(True, 0), "true", id="bool and int-true"),
         pytest.param(Gt(True, 1), "false", id="bool and int-false"),
         pytest.param(Gt(False, 2), "false", id="bool and int-false"),
@@ -75,4 +82,23 @@ def test_neq(component: str, expected: str):
     ],
 )
 def test_gt(component: str, expected: str):
+    assert component == expected
+
+
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(Lt(2, 4), "true", id="int-true"),
+        pytest.param(Lt(5, 5), "false", id="int-false"),
+        pytest.param(Lt(-5, True), "true", id="int-bool-true"),
+        pytest.param(Lt(5, True), "false", id="int-bool-false"),
+        pytest.param(Lt(False, 1), "true", id="bool and int-true"),
+        pytest.param(Lt(True, 1), "false", id="bool and int-false"),
+        pytest.param(Lt(False, 2), "true", id="bool and int-true"),
+        pytest.param(Lt(True, False), "false", id="false-true"),
+        pytest.param(Lt(False, False), "false", id="false-false"),
+        pytest.param(Lt(True, True), "false", id="add true-true"),
+    ],
+)
+def test_lt(component: str, expected: str):
     assert component == expected

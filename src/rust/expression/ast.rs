@@ -292,8 +292,25 @@ fn eval_raw_gt(l: Literal, r: Literal) -> PyResult<bool> {
     }
 }
 
+fn eval_raw_lt(l: Literal, r: Literal) -> PyResult<bool> {
+    match (l, r) {
+        (Literal::Int(a), Literal::Int(b)) => Ok(a < b),
+        (Literal::Int(a), Literal::Bool(b)) => Ok(a < b as isize),
+        (Literal::Bool(a), Literal::Int(b)) => Ok((a as isize) < b),
+        (Literal::Bool(a), Literal::Bool(b)) => Ok(a < b),
+        (Literal::Str(a), Literal::Str(b)) => Ok(a < b),
+        _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+            "Invalid types for comparison",
+        )),
+    }
+}
+
 fn eval_gt(l: Literal, r: Literal) -> PyResult<Literal> {
     return eval_raw_gt(l, r).map(|b| Literal::Bool(b));
+}
+
+fn eval_lt(l: Literal, r: Literal) -> PyResult<Literal> {
+    return eval_raw_lt(l, r).map(|b| Literal::Bool(b));
 }
 
 pub fn eval_ast<'py>(
@@ -321,6 +338,7 @@ pub fn eval_ast<'py>(
                 Operator::Eq => eval_eq(l, r),
                 Operator::Neq => eval_neq(l, r),
                 Operator::Gt => eval_gt(l, r),
+                Operator::Lt => eval_lt(l, r),
             }
         }
 

@@ -9,16 +9,6 @@ catalog = Catalog()
 
 
 @catalog.component()
-def DummyNode(a: int) -> str:
-    return """<p>{a}</p>"""
-
-
-@catalog.component()
-def Types(a: bool, b: bool, c: int, d: str, e: XNode) -> str:
-    return """<>{a}-{b}-{c}-{d}-{e}</>"""
-
-
-@catalog.component()
 def AddOp(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a + b}</>"""
 
@@ -51,63 +41,6 @@ def OrOp(a: int | bool | str, b: int | bool | str) -> str:
 @catalog.component()
 def AddMany(a: int | bool | str, b: int | bool | str, c: int | bool | str) -> str:
     return """<>{a + b + c}</>"""
-
-
-@catalog.component()
-def IfStmt(a: bool, b: str) -> str:
-    return """<p>{if a { b }}</p>"""
-
-
-@catalog.component()
-def IfElseStmt(a: bool, b: str, c: str) -> str:
-    return """<p>{ if a { b } else { c } }</p>"""
-
-
-@catalog.component()
-def NestedOperation(aa: str, bb: str) -> str:
-    return """<AddOp a={aa} b={bb} />"""
-
-
-@catalog.component()
-def NestedExpression(aa: str, bb: str) -> str:
-    return """<>{<AddOp a={aa} b={bb} />}</>"""
-
-
-@catalog.component()
-def FuncCall(a: int, b: int) -> str:
-    return """<>{max(a, b)}</>"""
-
-
-@catalog.component()
-def FuncCall2(a: int, b: int) -> str:
-    return """<>{my_max(a, b)}</>"""
-
-
-@catalog.component()
-def FuncCall3(a: int, b: int) -> str:
-    return """<>{my_max2(a, b)}</>"""
-
-
-catalog.function(max)
-
-
-@catalog.function
-def my_max(i: int, j: int):
-    return max(i, j)
-
-
-@catalog.function("my_max2")
-def my_dummy_max(i: int, j: int):
-    return max(i, j)
-
-
-# --------------------------------------------------------------------------- #
-# -                              tests                                      - #
-# --------------------------------------------------------------------------- #
-
-
-def test_types():
-    assert Types(False, True, 2, "3", DummyNode(a="4")) == "false-true-2-3-<p>4</p>"
 
 
 @pytest.mark.parametrize(
@@ -248,32 +181,3 @@ def test_div_by_0(component: Component, args: Any, expected: str):
 )
 def test_multiple_op(component: str, expected: str):
     assert component == expected
-
-
-@pytest.mark.parametrize(
-    "component,expected",
-    [
-        pytest.param(NestedOperation("1", "2"), "12", id="operation"),
-        pytest.param(NestedExpression("1", "2"), "12", id="expression"),
-    ],
-)
-def test_nested(component: str, expected: str):
-    assert component == expected
-
-
-@pytest.mark.parametrize("func", [FuncCall, FuncCall2, FuncCall3])
-def test_call(func: Component):
-    assert func("1", "2") == "2"
-
-
-@pytest.mark.parametrize(
-    "result,expected",
-    [
-        pytest.param(IfStmt(True, "Yes"), "<p>Yes</p>"),
-        pytest.param(IfStmt(False, "Yes"), "<p></p>"),
-        pytest.param(IfElseStmt(True, "Yes", "No"), "<p>Yes</p>"),
-        pytest.param(IfElseStmt(False, "Yes", "No"), "<p>No</p>"),
-    ],
-)
-def test_if(result: str, expected: str):
-    assert result == expected

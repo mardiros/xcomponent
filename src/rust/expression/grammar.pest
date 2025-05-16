@@ -2,13 +2,15 @@ expression = { for_expression | if_expression | binary_expression }
 
 binary_expression = { term ~ (WHITESPACE* ~ operator ~ WHITESPACE* ~ term)* }
 
-term = _{ for_expression | if_expression | component | function_call | ident | string | integer | boolean }
+term = _{ for_expression | if_expression | field_access | primary }
+
+field_access = { primary ~ ("." ~ ident)+ }
+primary = _{ component | function_call | ident | string | integer | boolean }
 
 component = { "<" ~ (!"/>" ~ ANY)* ~ "/>" }
 
 function_call = { ident ~ WHITESPACE* ~ "(" ~ WHITESPACE* ~ argument_list? ~ WHITESPACE* ~ ")" }
 argument_list = _{ term ~ (WHITESPACE* ~ "," ~ WHITESPACE* ~ term)* }
-
 
 operator = { "+" | "-" | "*" | "/" | "and" | "or" | "==" | "!=" | ">=" | "<=" | ">" | "<" }
 boolean = { "true" | "false" }

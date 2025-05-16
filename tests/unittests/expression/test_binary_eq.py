@@ -1,9 +1,6 @@
-from typing import Any
 import pytest
 
 from xcomponent import Catalog
-from xcomponent.service.catalog import Component
-from xcomponent.xcore import XNode
 
 catalog = Catalog()
 
@@ -26,6 +23,16 @@ def Gt(a: int | bool | str, b: int | bool | str) -> str:
 @catalog.component()
 def Lt(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a < b}</>"""
+
+
+@catalog.component()
+def Gte(a: int | bool | str, b: int | bool | str) -> str:
+    return """<>{a >= b}</>"""
+
+
+@catalog.component()
+def Lte(a: int | bool | str, b: int | bool | str) -> str:
+    return """<>{a <= b}</>"""
 
 
 @pytest.mark.parametrize(
@@ -101,4 +108,45 @@ def test_gt(component: str, expected: str):
     ],
 )
 def test_lt(component: str, expected: str):
+    assert component == expected
+
+
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(Gte(4, 2), "true", id="int-true"),
+        pytest.param(Gte(5, 5), "true", id="int-eq-true"),
+        pytest.param(Gte(5, 6), "false", id="int-false"),
+        pytest.param(Gte(5, True), "true", id="int-bool-true"),
+        pytest.param(Gte(-5, True), "false", id="int-bool-false"),
+        pytest.param(Gte(True, 0), "true", id="bool and int-true"),
+        pytest.param(Gte(True, 1), "true", id="bool and int-false"),
+        pytest.param(Gte(False, 2), "false", id="bool and int-false"),
+        pytest.param(Gte(True, False), "true", id="false-true"),
+        pytest.param(Gte(False, False), "true", id="false-false"),
+        pytest.param(Gte(True, True), "true", id="add true-true"),
+        pytest.param(Gte(False, True), "false", id="false-true"),
+    ],
+)
+def test_gte(component: str, expected: str):
+    assert component == expected
+
+
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(Lte(2, 4), "true", id="int-true"),
+        pytest.param(Lte(5, 5), "true", id="int-false"),
+        pytest.param(Lte(-5, True), "true", id="int-bool-true"),
+        pytest.param(Lte(5, True), "false", id="int-bool-false"),
+        pytest.param(Lte(False, 1), "true", id="bool and int-true"),
+        pytest.param(Lte(True, 1), "true", id="bool and int-false"),
+        pytest.param(Lte(False, 2), "true", id="bool and int-true"),
+        pytest.param(Lte(True, False), "false", id="true-false"),
+        pytest.param(Lte(False, False), "true", id="false-false"),
+        pytest.param(Lte(True, True), "true", id="add true-true"),
+        pytest.param(Lte(False, True), "true", id="false-true"),
+    ],
+)
+def test_lte(component: str, expected: str):
     assert component == expected

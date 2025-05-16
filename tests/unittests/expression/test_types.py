@@ -1,8 +1,4 @@
-from typing import Any
-import pytest
-
 from xcomponent import Catalog
-from xcomponent.service.catalog import Component
 from xcomponent.xcore import XNode
 
 catalog = Catalog()

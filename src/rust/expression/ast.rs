@@ -22,6 +22,7 @@ trait Truthy {
 #[pyclass]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum LiteralKey {
+    Int(isize),
     Str(String),
     Uuid(String),
 }
@@ -29,15 +30,18 @@ pub enum LiteralKey {
 impl fmt::Display for LiteralKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            LiteralKey::Str(v) => write!(f, "{}", v),
-            LiteralKey::Uuid(v) => write!(f, "{}", v),
+            LiteralKey::Int(v) => write!(f, "{}", v),
+            LiteralKey::Str(v) => write!(f, "\"{}\"", v),
+            LiteralKey::Uuid(v) => write!(f, "\"{}\"", v),
         }
     }
 }
 
 impl LiteralKey {
     fn downcast<'py>(value: Bound<'py, PyAny>) -> Result<Self, PyErr> {
-        if let Ok(v) = value.downcast::<PyString>() {
+        if let Ok(v) = value.downcast::<PyInt>() {
+            return Ok(LiteralKey::Int(v.extract::<isize>()?));
+        } else if let Ok(v) = value.downcast::<PyString>() {
             return Ok(LiteralKey::Str(v.to_string()));
         } else if value.downcast::<PyAny>()?.get_type().name()? == "UUID" {
             let uuid_str = value.getattr("hex")?;
@@ -49,6 +53,7 @@ impl LiteralKey {
     }
     fn into_py<'py>(&self, py: Python<'py>) -> pyo3::Bound<'py, PyAny> {
         match self {
+            LiteralKey::Int(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             LiteralKey::Uuid(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             LiteralKey::Str(v) => v.clone().into_pyobject(py).unwrap().into_any(),
         }
@@ -60,7 +65,7 @@ impl TryFrom<Literal> for LiteralKey {
 
     fn try_from(lit: Literal) -> Result<Self, Self::Error> {
         match lit {
-            // Literal::Int(i) => Ok(LiteralKey::Int(i)),
+            Literal::Int(i) => Ok(LiteralKey::Int(i)),
             Literal::Str(s) => Ok(LiteralKey::Str(s)),
             Literal::Uuid(u) => Ok(LiteralKey::Uuid(u)),
             _ => Err(PyTypeError::new_err(format!(

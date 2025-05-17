@@ -37,7 +37,9 @@ def NestedDictComplexType(product: Product) -> str:
 
 
 @catalog.component()
-def DynamicKeyDictComplexType(products: dict[UUID, Product], product_id: UUID) -> str:
+def DynamicKeyDictComplexType(
+    products: dict[UUID | int, Product], product_id: UUID | int
+) -> str:
     return """<>{products[product_id].owner.username}</>"""
 
 
@@ -69,7 +71,19 @@ def DynamicKeyDictComplexType(products: dict[UUID, Product], product_id: UUID) -
                 product_id=UUID(int=3),
             ),
             "bernard",
-            id="nested-dict",
+            id="key-dict-uuid",
+        ),
+        pytest.param(
+            DynamicKeyDictComplexType(
+                products={
+                    1: Product(owner=User(username="alice")),
+                    2: Product(owner=User(username="bob")),
+                    3: Product(owner=User(username="bernard")),
+                },
+                product_id=3,
+            ),
+            "bernard",
+            id="key-dict-int",
         ),
     ],
 )

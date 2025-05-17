@@ -25,7 +25,7 @@ fn parse_expression_tokens(pairs: Pairs<Rule>) -> Vec<ExpressionToken> {
 fn parse_expression_token(pair: Pair<Rule>) -> Option<ExpressionToken> {
     match pair.as_rule() {
         Rule::expression => parse_expression_token(pair.into_inner().next()?),
-        Rule::field_access => {
+        Rule::field => {
             let mut inner = pair.into_inner();
             let base = parse_expression_token(inner.next()?)?;
 

@@ -36,6 +36,11 @@ def NestedDictComplexType(product: Product) -> str:
     return """<>{product.owner.username}</>"""
 
 
+@catalog.component()
+def DynamicKeyDictComplexType(products: dict[UUID, Product], product_id: UUID) -> str:
+    return """<>{products[product_id].owner.username}</>"""
+
+
 @pytest.mark.parametrize(
     "component,expected",
     [

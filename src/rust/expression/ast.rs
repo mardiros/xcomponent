@@ -1,5 +1,6 @@
 use std::cmp::min;
 use std::collections::HashMap;
+use std::fmt;
 
 use pyo3::exceptions::{PySyntaxError, PyTypeError, PyZeroDivisionError};
 use pyo3::types::{PyBool, PyDict, PyInt, PyList, PyString, PyTuple};
@@ -17,14 +18,67 @@ trait Truthy {
     fn is_truthy(&self) -> bool;
 }
 
+#[pyclass]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum LiteralKey {
+    Str(String),
+    Uuid(String),
+}
+
+impl fmt::Display for LiteralKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LiteralKey::Str(v) => write!(f, "{}", v),
+            LiteralKey::Uuid(v) => write!(f, "{}", v),
+        }
+    }
+}
+
+impl LiteralKey {
+    fn downcast<'py>(value: Bound<'py, PyAny>) -> Result<Self, PyErr> {
+        if let Ok(v) = value.downcast::<PyString>() {
+            error!("<ssssssssssssss> {:?}", v.to_string());
+            return Ok(LiteralKey::Str(v.to_string()));
+        } else if value.downcast::<PyAny>()?.get_type().name()? == "UUID" {
+            error!("<UUIDUUIDUUIDUUID> {:?}", value);
+            let uuid_str = value.getattr("hex")?;
+            Ok(LiteralKey::Uuid(uuid_str.to_string()))
+        } else {
+            error!("<><><><><><><><><><><><><><> {:?}", value);
+            let err: PyErr = PyTypeError::new_err(format!("Can't parse parameter {:?}", value));
+            return Err(err);
+        }
+    }
+    fn into_py<'py>(&self, py: Python<'py>) -> pyo3::Bound<'py, PyAny> {
+        match self {
+            LiteralKey::Uuid(v) => v.clone().into_pyobject(py).unwrap().into_any(),
+            LiteralKey::Str(v) => v.clone().into_pyobject(py).unwrap().into_any(),
+        }
+    }
+}
+// // equivalent to former `ToPyObject` implementations
+// impl<'py> IntoPyObject<'py> for LiteralKey {
+//     type Target = PyString;
+//     type Output = Bound<'py, Self::Target>;
+//     type Error = std::convert::Infallible;
+
+//     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+//         match self {
+//             LiteralKey::Str(v) => v.clone().into_pyobject(py),
+//             LiteralKey::Uuid(v) => v.clone().into_pyobject(py),
+//         }
+//     }
+// }
+
 #[derive(Debug, Clone, IntoPyObject)]
 pub enum Literal {
     Bool(bool),
     Int(isize),
     Str(String),
+    Uuid(String), // Uuid type does not support IntoPyObject
     XNode(XNode),
     List(Vec<Literal>),
-    Dict(HashMap<String, Literal>),
+    Dict(HashMap<LiteralKey, Literal>),
 }
 
 impl Literal {
@@ -46,11 +100,14 @@ impl Literal {
         } else if let Ok(dict) = value.downcast::<PyDict>() {
             let mut map = HashMap::new();
             for (k, v) in dict {
-                let key: String = k.extract()?;
+                let key: LiteralKey = LiteralKey::downcast(k)?;
                 let val: Literal = Literal::downcast(v)?;
                 map.insert(key, val);
             }
             Ok(Literal::Dict(map))
+        } else if value.downcast::<PyAny>()?.get_type().name()? == "UUID" {
+            let uuid_str = value.getattr("hex")?;
+            Ok(Literal::Uuid(uuid_str.to_string()))
         } else {
             let err: PyErr = PyTypeError::new_err(format!("Can't parse parameter {:?}", value));
             return Err(err);
@@ -64,6 +121,7 @@ impl Literal {
                 .unbind()
                 .into_bound_py_any(py)
                 .unwrap(),
+            Literal::Uuid(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::Int(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::Str(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::XNode(v) => v.clone().into_pyobject(py).unwrap().into_any(),
@@ -71,7 +129,11 @@ impl Literal {
             Literal::Dict(map) => {
                 let dict = PyDict::new(py);
                 for (k, v) in map {
-                    dict.set_item(k, v.into_py(py)).unwrap();
+                    dict.set_item(
+                        k.clone().into_pyobject(py).unwrap().into_any(),
+                        v.into_py(py),
+                    )
+                    .unwrap();
                 }
                 dict.into_any()
             }
@@ -85,6 +147,7 @@ impl Truthy for Literal {
             Literal::Bool(bool) => bool.clone(),
             Literal::Int(i) => *i != 0,
             Literal::Str(s) => !s.is_empty(),
+            Literal::Uuid(_) => true,
             Literal::XNode(_) => true,
             Literal::List(items) => !items.is_empty(),
             Literal::Dict(d) => !d.is_empty(),
@@ -103,6 +166,7 @@ impl ToHtml for Literal {
             Literal::Bool(b) => Ok(format!("{}", b)),
             Literal::Int(i) => Ok(format!("{}", i)),
             Literal::Str(s) => Ok(format!("{}", s)),
+            Literal::Uuid(uuid) => Ok(format!("{}", uuid)),
             Literal::List(l) => {
                 let mut out = String::new();
                 for item in l {
@@ -115,7 +179,7 @@ impl ToHtml for Literal {
                 out.push_str("<dl>");
                 for (k, item) in d {
                     out.push_str("<dt>");
-                    out.push_str(k.as_str());
+                    out.push_str(format!("{}", k).as_str());
                     out.push_str("</dt>");
                     out.push_str("<dt>");
                     out.push_str(item.to_html(py, catalog, params.clone())?.as_str());
@@ -182,6 +246,7 @@ fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
             }
         },
         ExpressionToken::String(s) => Ok(AST::Literal(Literal::Str(s.to_string()))),
+        // ExpressionToken::Uuid(s) => Ok(AST::Literal(Literal::Uuid(s.to_string()))),
         ExpressionToken::Boolean(b) => Ok(AST::Literal(Literal::Bool(b.clone()))),
         ExpressionToken::Integer(n) => Ok(AST::Literal(Literal::Int(n.clone()))),
         ExpressionToken::Ident(ident) => Ok(AST::Variable(ident.to_string())),
@@ -420,7 +485,7 @@ pub fn eval_ast<'py>(
     py: Python<'py>,
     ast: &'py AST,
     catalog: &XCatalog,
-    params: &HashMap<String, Literal>,
+    params: &HashMap<LiteralKey, Literal>,
 ) -> Result<Literal, PyErr> {
     // error!(":::::::");
     // error!("{:?}", ast);
@@ -447,10 +512,11 @@ pub fn eval_ast<'py>(
             }
         }
 
-        AST::Variable(name) => match params.get(name) {
+        AST::Variable(name) => match params.get(&LiteralKey::Str(name.clone())) {
             Some(Literal::Bool(v)) => Ok(Literal::Bool(v.clone())),
             Some(Literal::Int(v)) => Ok(Literal::Int(v.clone())),
             Some(Literal::Str(v)) => Ok(Literal::Str(v.clone())),
+            Some(Literal::Uuid(v)) => Ok(Literal::Uuid(v.clone())),
             Some(Literal::List(v)) => Ok(Literal::List(v.clone())),
             Some(Literal::Dict(v)) => Ok(Literal::Dict(v.clone())),
             Some(Literal::XNode(node)) => {
@@ -464,12 +530,17 @@ pub fn eval_ast<'py>(
         AST::FieldAccess(obj, field) => {
             let base = eval_ast(py, &obj, &catalog, &params)?;
             match base {
-                Literal::Dict(map) => match map.get(field) {
-                    Some(val) => Ok(val.clone()),
-                    None => Err(PyErr::new::<pyo3::exceptions::PyAttributeError, _>(
+                Literal::Dict(map) => {
+                    if let Some(val) = map.get(&LiteralKey::Str(field.clone())) {
+                        return Ok(val.clone());
+                    }
+                    if let Some(val) = map.get(&LiteralKey::Uuid(field.clone())) {
+                        return Ok(val.clone());
+                    }
+                    Err(PyErr::new::<pyo3::exceptions::PyAttributeError, _>(
                         format!("Field '{}' not found", field),
-                    )),
-                },
+                    ))
+                }
                 _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
                     "Cannot access field '{}' on non-object",
                     field
@@ -521,7 +592,7 @@ pub fn eval_ast<'py>(
                     let mut res = String::new();
                     for v in iter {
                         let mut block_params = params.clone();
-                        block_params.insert(ident.clone(), v);
+                        block_params.insert(LiteralKey::Str(ident.clone()), v);
                         let item = eval_ast(py, body, catalog, &block_params)?;
                         res.push_str(
                             item.to_html(py, catalog, wrap_params(py, &block_params)?)?
@@ -539,11 +610,10 @@ pub fn eval_ast<'py>(
     }
 }
 
-fn cast_params<'py>(params: Bound<'py, PyDict>) -> Result<HashMap<String, Literal>, PyErr> {
+fn cast_params<'py>(params: Bound<'py, PyDict>) -> Result<HashMap<LiteralKey, Literal>, PyErr> {
     let mut result = HashMap::new();
-
     for (key, value) in params.iter() {
-        let key_str = key.downcast::<PyString>()?.to_string();
+        let key_str = LiteralKey::Str(key.to_string());
         let val = Literal::downcast(value)?;
         result.insert(key_str, val);
     }
@@ -552,11 +622,11 @@ fn cast_params<'py>(params: Bound<'py, PyDict>) -> Result<HashMap<String, Litera
 
 fn wrap_params<'py>(
     py: Python<'py>,
-    params: &HashMap<String, Literal>,
+    params: &HashMap<LiteralKey, Literal>,
 ) -> Result<Bound<'py, PyDict>, PyErr> {
     let result = PyDict::new(py);
     for (key, value) in params.iter() {
-        result.set_item(key, value.into_py(py))?;
+        result.set_item(key.into_py(py), value.into_py(py))?;
     }
     Ok(result)
 }

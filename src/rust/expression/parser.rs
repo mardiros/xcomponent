@@ -133,7 +133,7 @@ fn parse_expression_token(pair: Pair<Rule>) -> Option<ExpressionToken> {
     }
 }
 
-pub(crate) fn parse_expression(raw: &str) -> Result<ExpressionToken, PyErr> {
+pub(crate) fn tokenize(raw: &str) -> Result<ExpressionToken, PyErr> {
     let mut pairs = ExpressionParser::parse(Rule::expression, raw.trim())
         .map_err(|e| PySyntaxError::new_err(format!("{}", e)))?;
 

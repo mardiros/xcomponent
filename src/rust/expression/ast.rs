@@ -10,7 +10,7 @@ use crate::catalog::XCatalog;
 use crate::markup::tokens::{ToHtml, XNode};
 
 use super::{
-    parser::parse_expression,
+    parser::tokenize,
     tokens::{ExpressionToken, Operator},
 };
 
@@ -642,7 +642,7 @@ pub fn eval_expression<'py>(
         &expression[..min(expression.len(), 24)]
     );
     let params_ast = cast_params(params)?;
-    let token = parse_expression(expression)?;
+    let token = tokenize(expression)?;
     let ast = parse(&[token])?;
     eval_ast(py, &ast, catalog, &params_ast)
 }

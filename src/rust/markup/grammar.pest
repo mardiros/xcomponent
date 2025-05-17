@@ -1,4 +1,4 @@
-WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
+whitespace = _{ " " | "\t" | "\n" | "\r" }
 
 document      = _{ SOI ~ (fragment | element) ~ EOI }
 node      = _{ doctype | element | expression | fragment | comment | text }
@@ -11,8 +11,8 @@ normal_element = {
 }
 
 
-self_closing_element = { "<" ~ ident ~ (WHITESPACE* ~ attribute)* ~ WHITESPACE* ~ "/>" }
-open_tag             = { "<" ~ ident ~ (WHITESPACE* ~ attribute)* ~ WHITESPACE* ~ ">" }
+self_closing_element = { "<" ~ ident ~ (whitespace* ~ attribute)* ~ whitespace* ~ "/>" }
+open_tag             = { "<" ~ ident ~ (whitespace* ~ attribute)* ~ whitespace* ~ ">" }
 close_tag = @{ "</" ~ ident ~ ">" }
 
 fragment = { open_fragment ~ node* ~ close_fragment }

@@ -1,6 +1,6 @@
 expression = { for_expression | if_expression | binary_expression }
 
-binary_expression = { term ~ (WHITESPACE* ~ operator ~ WHITESPACE* ~ term)* }
+binary_expression = { term ~ (whitespace* ~ operator ~ whitespace* ~ term)* }
 
 term = _{ for_expression | if_expression | postfix }
 
@@ -14,8 +14,8 @@ primary = _{ component | function_call | ident | string | integer | boolean }
 
 component = { "<" ~ (!"/>" ~ ANY)* ~ "/>" }
 
-function_call = { ident ~ WHITESPACE* ~ "(" ~ WHITESPACE* ~ argument_list? ~ WHITESPACE* ~ ")" }
-argument_list = _{ term ~ (WHITESPACE* ~ "," ~ WHITESPACE* ~ term)* }
+function_call = { ident ~ whitespace* ~ "(" ~ whitespace* ~ argument_list? ~ whitespace* ~ ")" }
+argument_list = _{ term ~ (whitespace* ~ "," ~ whitespace* ~ term)* }
 
 operator = { "+" | "-" | "*" | "/" | "and" | "or" | "==" | "!=" | ">=" | "<=" | ">" | "<" }
 boolean = { "true" | "false" }
@@ -25,15 +25,15 @@ string = @{ "\"" ~ (escape_sequence | !("\"" | "\\") ~ ANY)* ~ "\"" }
 keyword = { "for" | "in" | "if" | "else" | operator | boolean | "{" | "}" | "[" | "]" }
 
 ident = { !keyword ~ ident_raw }
-ident_raw = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+ident_raw = _{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
-WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
+whitespace = _{ " " | "\t" | "\n" | "\r" }
 escape_sequence = { "\\" ~ ( "\"" | "\\" | "n" | "t" | "r" ) }
 
 if_expression = {
-    "if " ~ WHITESPACE* ~ binary_expression ~ WHITESPACE* ~ block ~ (WHITESPACE* ~ "else" ~ WHITESPACE* ~ block )?
+    "if " ~ whitespace* ~ binary_expression ~ whitespace* ~ block ~ (whitespace* ~ "else" ~ whitespace* ~ block )?
 }
 
-for_expression = { "for " ~ WHITESPACE* ~ ident ~ WHITESPACE* ~ "in" ~ WHITESPACE* ~ term ~ WHITESPACE* ~ block }
+for_expression = { "for" ~ whitespace+ ~ ident ~ whitespace+ ~ "in" ~ whitespace+ ~ term ~ whitespace* ~ block }
 
-block = { "{" ~ WHITESPACE* ~ expression ~ WHITESPACE* ~ "}" }
+block = { whitespace* ~"{" ~ whitespace* ~ expression ~ whitespace* ~ "}" ~ whitespace* }

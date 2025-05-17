@@ -72,7 +72,6 @@ fn parse_node(pair: Pair<Rule>) -> Option<XNode> {
             if text.trim().len() > 0 {
                 Some(XNode::Text(XText::new(text.to_string())))
             } else {
-                error!("Dropping blank text");
                 None
             }
         }

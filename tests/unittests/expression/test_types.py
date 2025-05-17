@@ -60,8 +60,15 @@ def DynamicKeyDictComplexType(products: dict[UUID, Product], product_id: UUID) -
             id="nested-dict",
         ),
         pytest.param(
-            NestedDictComplexType({}),
-            "alice",
+            DynamicKeyDictComplexType(
+                products={
+                    UUID(int=1): Product(owner=User(username="alice")),
+                    UUID(int=2): Product(owner=User(username="bob")),
+                    UUID(int=3): Product(owner=User(username="bernard")),
+                },
+                product_id=UUID(int=3),
+            ),
+            "bernard",
             id="nested-dict",
         ),
     ],

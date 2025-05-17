@@ -1,4 +1,5 @@
 from typing import TypedDict
+from uuid import UUID
 from xcomponent import Catalog
 from xcomponent.xcore import XNode
 
@@ -10,8 +11,10 @@ catalog = Catalog()
 class User(TypedDict):
     username: str
 
+
 class Product(TypedDict):
     owner: User
+
 
 @catalog.component()
 def DummyNode(a: int) -> str:
@@ -19,25 +22,31 @@ def DummyNode(a: int) -> str:
 
 
 @catalog.component()
-def Types(a: bool, b: bool, c: int, d: str, e: XNode) -> str:
-    return """<>{a}-{b}-{c}-{d}-{e}</>"""
+def Types(a: bool, b: bool, c: int, d: str, e: UUID, f: XNode) -> str:
+    return """<>{a}-{b}-{c}-{d}-{e}-{f}</>"""
 
 
 @catalog.component()
 def DictComplexType(u: User) -> str:
     return """<>{u.username}</>"""
 
+
 @catalog.component()
 def NestedDictComplexType(product: Product) -> str:
     return """<>{product.owner.username}</>"""
+
+
+@catalog.component()
+def DynamicKeyDictComplexType(products: dict[UUID, Product], product_id: UUID) -> str:
+    return """<>{products[product_id].owner.username}</>"""
 
 
 @pytest.mark.parametrize(
     "component,expected",
     [
         pytest.param(
-            Types(False, True, 2, "3", DummyNode(a="4")),
-            "false-true-2-3-<p>4</p>",
+            Types(False, True, 2, "3", UUID(int=4), DummyNode(a="5")),
+            "false-true-2-3-00000000000000000000000000000004-<p>5</p>",
             id="simpletypes",
         ),
         pytest.param(
@@ -45,10 +54,21 @@ def NestedDictComplexType(product: Product) -> str:
             "bob",
             id="dict",
         ),
-
         pytest.param(
             NestedDictComplexType(Product(owner=User(username="alice"))),
             "alice",
+            id="nested-dict",
+        ),
+        pytest.param(
+            DynamicKeyDictComplexType(
+                products={
+                    UUID(int=1): Product(owner=User(username="alice")),
+                    UUID(int=2): Product(owner=User(username="bob")),
+                    UUID(int=3): Product(owner=User(username="bernard")),
+                },
+                product_id=UUID(int=3),
+            ),
+            "bernard",
             id="nested-dict",
         ),
     ],

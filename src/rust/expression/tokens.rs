@@ -1,8 +1,7 @@
 use std::{fmt, str::FromStr};
 
-use pyo3::prelude::*;
-
 use crate::markup::tokens::XNode;
+use pyo3::prelude::*;
 
 #[pyclass(eq, eq_int)]
 #[derive(Debug, Clone, PartialEq)]
@@ -107,16 +106,23 @@ impl fmt::Display for FunctionCall {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum PostfixOp {
+    Field(String),
+    Index(Box<ExpressionToken>),
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum ExpressionToken {
     BinaryExpression(Vec<ExpressionToken>),
     Ident(String),
     Operator(Operator),
     String(String),
+    // Uuid(String),
     Integer(isize),
     Boolean(bool),
     XNode(XNode),
     FuncCall(FunctionCall),
-    FieldAccess(Box<ExpressionToken>, String),
+    PostfixOp(PostfixOp),
     IfExpression {
         condition: Box<ExpressionToken>,
         then_branch: Box<ExpressionToken>,
@@ -127,6 +133,7 @@ pub enum ExpressionToken {
         iterable: Box<ExpressionToken>,
         body: Box<ExpressionToken>,
     },
+    Noop,
 }
 
 impl std::fmt::Display for ExpressionToken {
@@ -146,10 +153,14 @@ impl std::fmt::Display for ExpressionToken {
             ExpressionToken::String(value) => {
                 write!(f, "\"{}\"", value.replace('"', "\\\""))
             }
+            // ExpressionToken::Uuid(value) => write!(f, "\"{}\"", value),
             ExpressionToken::Integer(value) => write!(f, "{}", value),
             ExpressionToken::Boolean(value) => write!(f, "{}", value),
             ExpressionToken::XNode(n) => write!(f, "{}", n),
-            ExpressionToken::FieldAccess(o, field) => write!(f, "{}.{}", o, field),
+            ExpressionToken::PostfixOp(op) => match op {
+                PostfixOp::Field(field) => write!(f, ".{}", field),
+                PostfixOp::Index(index) => write!(f, "[{}]", index),
+            },
             ExpressionToken::FuncCall(func) => write!(f, "{}", func),
             ExpressionToken::IfExpression {
                 condition,
@@ -170,6 +181,7 @@ impl std::fmt::Display for ExpressionToken {
                 iterable,
                 body,
             } => write!(f, "for {} in {} {{ {} }}", ident, iterable, body),
+            ExpressionToken::Noop => write!(f, ""), // ??
         }
     }
 }

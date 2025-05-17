@@ -24,6 +24,7 @@ pub enum Literal {
     Str(String),
     XNode(XNode),
     List(Vec<Literal>),
+    Dict(HashMap<String, Literal>),
 }
 
 impl Literal {
@@ -42,6 +43,14 @@ impl Literal {
                 items.push(Literal::downcast(item)?);
             }
             Ok(Literal::List(items))
+        } else if let Ok(dict) = value.downcast::<PyDict>() {
+            let mut map = HashMap::new();
+            for (k, v) in dict {
+                let key: String = k.extract()?;
+                let val: Literal = Literal::downcast(v)?;
+                map.insert(key, val);
+            }
+            Ok(Literal::Dict(map))
         } else {
             let err: PyErr = PyTypeError::new_err(format!("Can't parse parameter {:?}", value));
             return Err(err);
@@ -59,6 +68,13 @@ impl Literal {
             Literal::Str(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::XNode(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::List(v) => v.clone().into_pyobject(py).unwrap().into_any(),
+            Literal::Dict(map) => {
+                let dict = PyDict::new(py);
+                for (k, v) in map {
+                    dict.set_item(k, v.into_py(py)).unwrap();
+                }
+                dict.into_any()
+            }
         }
     }
 }
@@ -71,6 +87,7 @@ impl Truthy for Literal {
             Literal::Str(s) => !s.is_empty(),
             Literal::XNode(_) => true,
             Literal::List(items) => !items.is_empty(),
+            Literal::Dict(d) => !d.is_empty(),
         }
     }
 }
@@ -93,6 +110,20 @@ impl ToHtml for Literal {
                 }
                 Ok(out)
             }
+            Literal::Dict(d) => {
+                let mut out = String::new();
+                out.push_str("<dl>");
+                for (k, item) in d {
+                    out.push_str("<dt>");
+                    out.push_str(k.as_str());
+                    out.push_str("</dt>");
+                    out.push_str("<dt>");
+                    out.push_str(item.to_html(py, catalog, params.clone())?.as_str());
+                    out.push_str("</dt>");
+                }
+                out.push_str("</dl>");
+                Ok(out)
+            }
             Literal::XNode(n) => catalog.render_node(py, &n, params),
         }
     }
@@ -107,6 +138,7 @@ pub enum AST {
         op: Operator,
         right: Box<AST>,
     },
+    FieldAccess(Box<AST>, String),
     FuncCall {
         name: String,
         args: Vec<AST>,
@@ -154,6 +186,10 @@ fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
         ExpressionToken::Integer(n) => Ok(AST::Literal(Literal::Int(n.clone()))),
         ExpressionToken::Ident(ident) => Ok(AST::Variable(ident.to_string())),
         ExpressionToken::XNode(n) => Ok(AST::Literal(Literal::XNode(n.clone()))),
+        ExpressionToken::FieldAccess(base, field) => {
+            let base_ast = token_to_ast(base)?;
+            Ok(AST::FieldAccess(Box::new(base_ast), field.clone()))
+        }
         ExpressionToken::FuncCall(func) => Ok(AST::FuncCall {
             name: func.ident().to_string(),
             args: func
@@ -416,6 +452,7 @@ pub fn eval_ast<'py>(
             Some(Literal::Int(v)) => Ok(Literal::Int(v.clone())),
             Some(Literal::Str(v)) => Ok(Literal::Str(v.clone())),
             Some(Literal::List(v)) => Ok(Literal::List(v.clone())),
+            Some(Literal::Dict(v)) => Ok(Literal::Dict(v.clone())),
             Some(Literal::XNode(node)) => {
                 let resp = catalog.render_node(py, node, PyDict::new(py));
                 resp.map(|markup| Literal::Str(markup))
@@ -424,6 +461,21 @@ pub fn eval_ast<'py>(
                 format!("Undefined: {}", name),
             )),
         },
+        AST::FieldAccess(obj, field) => {
+            let base = eval_ast(py, &obj, &catalog, &params)?;
+            match base {
+                Literal::Dict(map) => match map.get(field) {
+                    Some(val) => Ok(val.clone()),
+                    None => Err(PyErr::new::<pyo3::exceptions::PyAttributeError, _>(
+                        format!("Field '{}' not found", field),
+                    )),
+                },
+                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+                    "Cannot access field '{}' on non-object",
+                    field
+                ))),
+            }
+        }
 
         AST::FuncCall { name, args } => {
             let lit_args = args

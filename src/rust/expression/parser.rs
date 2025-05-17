@@ -25,6 +25,21 @@ fn parse_expression_tokens(pairs: Pairs<Rule>) -> Vec<ExpressionToken> {
 fn parse_expression_token(pair: Pair<Rule>) -> Option<ExpressionToken> {
     match pair.as_rule() {
         Rule::expression => parse_expression_token(pair.into_inner().next()?),
+        Rule::field_access => {
+            let mut inner = pair.into_inner();
+            let base = parse_expression_token(inner.next()?)?;
+
+            inner.fold(Some(base), |acc, segment| {
+                let base_expr = acc?;
+                match segment.as_rule() {
+                    Rule::ident => Some(ExpressionToken::FieldAccess(
+                        Box::new(base_expr),
+                        segment.as_str().to_string(),
+                    )),
+                    _ => None,
+                }
+            })
+        }
         Rule::binary_expression => {
             let inner = pair.into_inner();
             let children = parse_expression_tokens(inner);

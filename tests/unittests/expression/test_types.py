@@ -43,6 +43,11 @@ def DynamicKeyDictComplexType(
     return """<>{products[product_id].owner.username}</>"""
 
 
+@catalog.component()
+def DynamicKeyListComplexType(users: list[User], user_id: int) -> str:
+    return """<>{users[user_id].username}</>"""
+
+
 @pytest.mark.parametrize(
     "component,expected",
     [
@@ -81,6 +86,30 @@ def DynamicKeyDictComplexType(
                     3: Product(owner=User(username="bernard")),
                 },
                 product_id=3,
+            ),
+            "bernard",
+            id="key-dict-int",
+        ),
+        pytest.param(
+            DynamicKeyListComplexType(
+                users=[
+                    User(username="alice"),
+                    User(username="bob"),
+                    User(username="bernard"),
+                ],
+                user_id=2,
+            ),
+            "bernard",
+            id="key-dict-int",
+        ),
+        pytest.param(
+            DynamicKeyListComplexType(
+                users=[
+                    User(username="alice"),
+                    User(username="bob"),
+                    User(username="bernard"),
+                ],
+                user_id=-1,
             ),
             "bernard",
             id="key-dict-int",

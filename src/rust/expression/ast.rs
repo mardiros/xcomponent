@@ -2,7 +2,7 @@ use std::cmp::min;
 use std::collections::HashMap;
 use std::fmt;
 
-use pyo3::exceptions::{PyKeyError, PySyntaxError, PyTypeError, PyZeroDivisionError};
+use pyo3::exceptions::{PyIndexError, PyKeyError, PySyntaxError, PyTypeError, PyZeroDivisionError};
 use pyo3::types::{PyBool, PyDict, PyInt, PyList, PyString, PyTuple};
 use pyo3::{prelude::*, BoundObject, IntoPyObjectExt};
 
@@ -567,8 +567,26 @@ pub fn eval_ast<'py>(
                     let value = map
                         .get(&LiteralKey::try_from(key.clone())?)
                         .ok_or_else(|| PyKeyError::new_err(format!("{:?}", key)))?;
-                    return Ok(value.clone());
+                    Ok(value.clone())
                 }
+                Literal::List(lst) => match key {
+                    Literal::Int(idx) => {
+                        let real_index = if idx > 0 {
+                            idx as isize
+                        } else {
+                            (lst.len() as isize + idx) as isize
+                        };
+                        if real_index < 0 {
+                            Err(PyIndexError::new_err(format!("Index out of range {}", idx)))
+                        } else {
+                            let value = lst.get(real_index as usize).ok_or_else(|| {
+                                PyIndexError::new_err(format!("Index out of range {}", idx))
+                            })?;
+                            Ok(value.clone())
+                        }
+                    }
+                    _ => Err(PyTypeError::new_err(format!("{:?}", key))),
+                },
                 _ => Err(PyErr::new::<PyTypeError, _>(format!(
                     "Cannot access index '{:?}' on non-object",
                     base

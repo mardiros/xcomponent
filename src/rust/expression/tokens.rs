@@ -116,6 +116,7 @@ pub enum ExpressionToken {
     Boolean(bool),
     XNode(XNode),
     FuncCall(FunctionCall),
+    FieldAccess(Box<ExpressionToken>, String),
     IfExpression {
         condition: Box<ExpressionToken>,
         then_branch: Box<ExpressionToken>,
@@ -148,6 +149,7 @@ impl std::fmt::Display for ExpressionToken {
             ExpressionToken::Integer(value) => write!(f, "{}", value),
             ExpressionToken::Boolean(value) => write!(f, "{}", value),
             ExpressionToken::XNode(n) => write!(f, "{}", n),
+            ExpressionToken::FieldAccess(o, field) => write!(f, "{}.{}", o, field),
             ExpressionToken::FuncCall(func) => write!(f, "{}", func),
             ExpressionToken::IfExpression {
                 condition,

@@ -1,8 +1,7 @@
 use std::{fmt, str::FromStr};
 
-use pyo3::prelude::*;
-
 use crate::markup::tokens::XNode;
+use pyo3::prelude::*;
 
 #[pyclass(eq, eq_int)]
 #[derive(Debug, Clone, PartialEq)]
@@ -112,6 +111,7 @@ pub enum ExpressionToken {
     Ident(String),
     Operator(Operator),
     String(String),
+    // Uuid(String),
     Integer(isize),
     Boolean(bool),
     XNode(XNode),
@@ -146,6 +146,7 @@ impl std::fmt::Display for ExpressionToken {
             ExpressionToken::String(value) => {
                 write!(f, "\"{}\"", value.replace('"', "\\\""))
             }
+            // ExpressionToken::Uuid(value) => write!(f, "\"{}\"", value),
             ExpressionToken::Integer(value) => write!(f, "{}", value),
             ExpressionToken::Boolean(value) => write!(f, "{}", value),
             ExpressionToken::XNode(n) => write!(f, "{}", n),

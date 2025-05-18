@@ -2,7 +2,9 @@ use std::cmp::min;
 use std::collections::HashMap;
 use std::fmt;
 
-use pyo3::exceptions::{PyIndexError, PyKeyError, PySyntaxError, PyTypeError, PyZeroDivisionError};
+use pyo3::exceptions::{
+    PyAttributeError, PyIndexError, PyKeyError, PySyntaxError, PyTypeError, PyZeroDivisionError,
+};
 use pyo3::types::{PyBool, PyDict, PyInt, PyList, PyString, PyTuple};
 use pyo3::{prelude::*, BoundObject, IntoPyObjectExt};
 
@@ -99,6 +101,7 @@ pub enum Literal {
     XNode(XNode),
     List(Vec<Literal>),
     Dict(HashMap<LiteralKey, Literal>),
+    Callable(String), // the name of the callable
 }
 
 impl Literal {
@@ -146,6 +149,7 @@ impl Literal {
             Literal::Str(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::XNode(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::List(v) => v.clone().into_pyobject(py).unwrap().into_any(),
+            Literal::Callable(v) => v.clone().into_pyobject(py).unwrap().into_any(), // wrong!
             Literal::Dict(map) => {
                 let dict = PyDict::new(py);
                 for (k, v) in map {
@@ -169,6 +173,7 @@ impl Truthy for Literal {
             Literal::Str(s) => !s.is_empty(),
             Literal::Uuid(_) => true,
             Literal::XNode(_) => true,
+            Literal::Callable(_) => true,
             Literal::List(items) => !items.is_empty(),
             Literal::Dict(d) => !d.is_empty(),
         }
@@ -186,6 +191,7 @@ impl ToHtml for Literal {
             Literal::Bool(b) => Ok(format!("{}", b)),
             Literal::Int(i) => Ok(format!("{}", i)),
             Literal::Str(s) => Ok(format!("{}", s)),
+            Literal::Callable(s) => Ok(format!("{}()", s)),
             Literal::Uuid(uuid) => Ok(format!("{}", uuid)),
             Literal::List(l) => {
                 let mut out = String::new();
@@ -224,9 +230,10 @@ pub enum AST {
     },
     FieldAccess(Box<AST>, String),
     IndexAccess(Box<AST>, Box<AST>),
-    FuncCall {
-        name: String,
+    CallAccess {
+        left: Box<AST>,
         args: Vec<AST>,
+        kwargs: HashMap<String, AST>,
     },
     IfStatement {
         condition: Box<AST>,
@@ -254,14 +261,6 @@ fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
             error!("Should never enter postfix op code : {:?}", op);
             Ok(AST::Literal(Literal::Str("".to_string())))
         }
-        ExpressionToken::FuncCall(func) => Ok(AST::FuncCall {
-            name: func.ident().to_string(),
-            args: func
-                .params()
-                .iter()
-                .map(|x| parse(std::slice::from_ref(x)))
-                .collect::<Result<Vec<_>, _>>()?,
-        }),
         ExpressionToken::IfExpression {
             condition,
             then_branch,
@@ -284,7 +283,7 @@ fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
             body: token_to_ast(body).map(|x| Box::new(x))?,
         }),
         _ => Err(PySyntaxError::new_err(format!(
-            "Syntax error, unexpected token {}",
+            "Syntax error, unexpected token {:?}",
             tok
         ))),
     };
@@ -305,6 +304,21 @@ pub fn parse(tokens: &[ExpressionToken]) -> Result<AST, PyErr> {
                 PostfixOp::Index(i) => {
                     left = AST::IndexAccess(Box::new(left), Box::new(token_to_ast(i)?))
                 }
+                PostfixOp::Call { args, kwargs } => {
+                    left = AST::CallAccess {
+                        left: Box::new(left),
+                        args: args
+                            .into_iter()
+                            .map(|arg| -> Result<_, _> { token_to_ast(arg) })
+                            .collect::<Result<_, _>>()?,
+                        kwargs: kwargs
+                            .into_iter()
+                            .map(|(k, v)| -> Result<(String, AST), PyErr> {
+                                Ok((k.clone(), token_to_ast(v)?))
+                            })
+                            .collect::<Result<_, _>>()?,
+                    };
+                }
             },
             ExpressionToken::Operator(op) => {
                 let right = token_to_ast(
@@ -320,7 +334,7 @@ pub fn parse(tokens: &[ExpressionToken]) -> Result<AST, PyErr> {
             }
             _ => {
                 return Err(PySyntaxError::new_err(format!(
-                    "Operator expected, got {}",
+                    "Operator expected, got {:?}",
                     op_token,
                 )))
             }
@@ -525,6 +539,7 @@ pub fn eval_ast<'py>(
             Some(Literal::Bool(v)) => Ok(Literal::Bool(v.clone())),
             Some(Literal::Int(v)) => Ok(Literal::Int(v.clone())),
             Some(Literal::Str(v)) => Ok(Literal::Str(v.clone())),
+            Some(Literal::Callable(v)) => Ok(Literal::Callable(v.clone())),
             Some(Literal::Uuid(v)) => Ok(Literal::Uuid(v.clone())),
             Some(Literal::List(v)) => Ok(Literal::List(v.clone())),
             Some(Literal::Dict(v)) => Ok(Literal::Dict(v.clone())),
@@ -532,9 +547,15 @@ pub fn eval_ast<'py>(
                 let resp = catalog.render_node(py, node, PyDict::new(py));
                 resp.map(|markup| Literal::Str(markup))
             }
-            None => Err(PyErr::new::<pyo3::exceptions::PyUnboundLocalError, _>(
-                format!("Undefined: {:?}", name),
-            )),
+            None => {
+                if let Some(_) = catalog.functions().get(name) {
+                    Ok(Literal::Callable(name.clone()))
+                } else {
+                    Err(PyErr::new::<pyo3::exceptions::PyUnboundLocalError, _>(
+                        format!("Undefined: {:?}", name),
+                    ))
+                }
+            }
         },
         AST::FieldAccess(obj, field) => {
             let base = eval_ast(py, &obj, &catalog, &params)?;
@@ -593,14 +614,35 @@ pub fn eval_ast<'py>(
                 ))),
             }
         }
-        AST::FuncCall { name, args } => {
+
+        AST::CallAccess { left, args, kwargs } => {
+            // left(*args, **kwargs)
+            let base = eval_ast(py, left, catalog, params)?;
+
             let lit_args = args
                 .iter()
                 .map(|arg| eval_ast(py, arg, catalog, params))
                 .collect::<Result<Vec<_>, _>>()?;
-            let py_args = PyTuple::new(py, lit_args)?;
-            let res = catalog.call(py, name, &py_args)?;
-            Literal::downcast(res)
+
+            let lit_kwargs = kwargs
+                .iter()
+                .map(|(name, arg)| Ok((name.clone(), eval_ast(py, arg, catalog, params)?)))
+                .collect::<Result<HashMap<String, Literal>, PyErr>>()?;
+            let py_args = PyTuple::new(py, lit_args.iter().map(|v| v.into_py(py)))?;
+            let py_kwargs = PyDict::new(py);
+            for (k, v) in lit_kwargs {
+                py_kwargs.set_item(k, v.into_py(py))?;
+            }
+            match base {
+                Literal::Callable(ident) => {
+                    let res = catalog.call(py, ident.as_str(), &py_args, &py_kwargs)?;
+                    Literal::downcast(res)
+                }
+                _ => Err(PyAttributeError::new_err(format!(
+                    "{:?} is not callable",
+                    base
+                ))),
+            }
         }
 
         AST::IfStatement {

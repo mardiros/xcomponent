@@ -22,8 +22,13 @@ impl PyCallable {
         PyCallable { callable }
     }
 
-    fn call<'py>(&self, py: Python<'py>, args: Py<PyTuple>) -> PyResult<Bound<'py, PyAny>> {
-        self.callable.bind(py).call(args, None)
+    fn call<'py>(
+        &self,
+        py: Python<'py>,
+        args: Py<PyTuple>,
+        kwargs: &Bound<'py, PyDict>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        self.callable.bind(py).call(args, Some(kwargs))
     }
 }
 
@@ -102,17 +107,23 @@ impl XCatalog {
     pub fn get<'py>(&'py self, py: Python<'py>, name: &'py str) -> Option<&Bound<'py, XTemplate>> {
         self.components.get(name).map(|node| node.bind(py))
     }
+
+    pub fn functions(&self) -> &HashMap<String, Py<PyCallable>> {
+        &self.functions
+    }
     pub fn call<'py>(
         &self,
         py: Python<'py>,
         name: &str,
         args: &Bound<'py, PyTuple>,
+        kwargs: &Bound<'py, PyDict>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let func = self
             .functions
             .get(name)
             .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyKeyError, _>("Function not found"))?;
-        func.bind(py).call_method1("call", (args,))
+        let res = func.bind(py).call_method("call", (args, kwargs), None);
+        res
     }
 
     pub fn render_node<'py>(

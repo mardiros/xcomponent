@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Any
 from collections.abc import Mapping, Callable
 
+
 class NodeType(Enum):
     Element = "Element"
     Comment = "Comment"
@@ -9,11 +10,13 @@ class NodeType(Enum):
     Expression = "Expression"
     Fragment = "Fragment"
 
+
 class XFragment:
     children: list[XNode]
     __match_args__ = ("children",)
 
     def __init__(self, children: list[XNode]) -> None: ...
+
 
 class XElement:
     name: str
@@ -26,12 +29,14 @@ class XElement:
         self, name: str, attrs: dict[str, XNode], children: list[XNode]
     ) -> None: ...
 
+
 class XText:
     text: str
 
     __match_args__ = ("text",)
 
     def __init__(self, text: str) -> None: ...
+
 
 class XComment:
     comment: str
@@ -40,12 +45,14 @@ class XComment:
 
     def __init__(self, comment: str) -> None: ...
 
+
 class XExpression:
     expression: str
 
     __match_args__ = ("expression",)
 
     def __init__(self, expression: str) -> None: ...
+
 
 class XNode:
     @staticmethod
@@ -64,9 +71,11 @@ class XNode:
     def __eq__(self, other: object) -> bool: ...
     def unwrap(self) -> XFragment | XElement | XComment | XText | XExpression: ...
 
+
 class XTemplate:
     node: XNode
     params: Mapping[str, type | Any]
+
 
 class XCatalog:
     def __init__(self) -> None: ...
@@ -79,5 +88,6 @@ class XCatalog:
         self,
         node: XNode,
         params: Mapping[str, Any],
+        globals: Mapping[str, Any],
     ) -> str: ...
-    def render(self, template: str, params: dict[str, Any]) -> str: ...
+    def render(self, template: str, globals: dict[str, Any]) -> str: ...

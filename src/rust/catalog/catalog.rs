@@ -131,17 +131,18 @@ impl XCatalog {
         py: Python<'py>,
         node: &XNode,
         params: Bound<'py, PyDict>,
+        globals: Bound<'py, PyDict>,
     ) -> PyResult<String> {
-        node.to_html(py, &self, params)
+        node.to_html(py, &self, params, globals)
     }
 
     pub fn render<'py>(
         &self,
         py: Python<'py>,
         template: &str,
-        params: Bound<'py, PyDict>,
+        globals: Bound<'py, PyDict>,
     ) -> PyResult<String> {
         let node = parse_markup(template)?;
-        self.render_node(py, &node, params)
+        self.render_node(py, &node, PyDict::new(py), globals)
     }
 }

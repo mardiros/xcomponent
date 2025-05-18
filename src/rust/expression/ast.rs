@@ -49,7 +49,7 @@ impl LiteralKey {
             let uuid_str = value.getattr("hex")?;
             Ok(LiteralKey::Uuid(uuid_str.to_string()))
         } else {
-            let err: PyErr = PyTypeError::new_err(format!("Can't parse parameter {:?}", value));
+            let err: PyErr = PyTypeError::new_err(format!("Can't use {:?} as LiteralKey", value));
             return Err(err);
         }
     }
@@ -132,7 +132,11 @@ impl Literal {
             let uuid_str = value.getattr("hex")?;
             Ok(Literal::Uuid(uuid_str.to_string()))
         } else {
-            let err: PyErr = PyTypeError::new_err(format!("Can't parse parameter {:?}", value));
+            let err: PyErr = PyTypeError::new_err(format!(
+                "Can't parse parameter {} {:?}",
+                value.downcast::<PyAny>()?.get_type().name()?,
+                value
+            ));
             return Err(err);
         }
     }
@@ -186,6 +190,7 @@ impl ToHtml for Literal {
         py: Python<'py>,
         catalog: &XCatalog,
         params: Bound<'py, PyDict>,
+        globals: Bound<'py, PyDict>,
     ) -> PyResult<String> {
         match self {
             Literal::Bool(b) => Ok(format!("{}", b)),
@@ -196,7 +201,10 @@ impl ToHtml for Literal {
             Literal::List(l) => {
                 let mut out = String::new();
                 for item in l {
-                    out.push_str(item.to_html(py, catalog, params.clone())?.as_str());
+                    out.push_str(
+                        item.to_html(py, catalog, params.clone(), globals.clone())?
+                            .as_str(),
+                    );
                 }
                 Ok(out)
             }
@@ -208,13 +216,16 @@ impl ToHtml for Literal {
                     out.push_str(format!("{}", k).as_str());
                     out.push_str("</dt>");
                     out.push_str("<dt>");
-                    out.push_str(item.to_html(py, catalog, params.clone())?.as_str());
+                    out.push_str(
+                        item.to_html(py, catalog, params.clone(), globals.clone())?
+                            .as_str(),
+                    );
                     out.push_str("</dt>");
                 }
                 out.push_str("</dl>");
                 Ok(out)
             }
-            Literal::XNode(n) => catalog.render_node(py, &n, params),
+            Literal::XNode(n) => catalog.render_node(py, &n, params.clone(), globals.clone()),
         }
     }
 }
@@ -509,6 +520,7 @@ pub fn eval_ast<'py>(
     ast: &'py AST,
     catalog: &XCatalog,
     params: &HashMap<LiteralKey, Literal>,
+    globals: &HashMap<LiteralKey, Literal>,
 ) -> Result<Literal, PyErr> {
     // error!(":::::::");
     // error!("{:?}", ast);
@@ -516,8 +528,8 @@ pub fn eval_ast<'py>(
         AST::Literal(lit) => Ok(lit.clone()),
 
         AST::Binary { left, op, right } => {
-            let l = eval_ast(py, left, catalog, params)?;
-            let r = eval_ast(py, right, catalog, params)?;
+            let l = eval_ast(py, left, catalog, params, &globals)?;
+            let r = eval_ast(py, right, catalog, params, &globals)?;
 
             match op {
                 Operator::Add => eval_add(l, r),
@@ -544,21 +556,25 @@ pub fn eval_ast<'py>(
             Some(Literal::List(v)) => Ok(Literal::List(v.clone())),
             Some(Literal::Dict(v)) => Ok(Literal::Dict(v.clone())),
             Some(Literal::XNode(node)) => {
-                let resp = catalog.render_node(py, node, PyDict::new(py));
+                let resp =
+                    catalog.render_node(py, node, PyDict::new(py), wrap_params(py, globals)?);
                 resp.map(|markup| Literal::Str(markup))
             }
             None => {
-                if let Some(_) = catalog.functions().get(name) {
+                let k = LiteralKey::Str(name.clone());
+                if let Some(lit) = globals.get(&k) {
+                    Ok(lit.clone())
+                } else if let Some(_) = catalog.functions().get(name) {
                     Ok(Literal::Callable(name.clone()))
                 } else {
                     Err(PyErr::new::<pyo3::exceptions::PyUnboundLocalError, _>(
-                        format!("Undefined: {:?}", name),
+                        format!("{:?} is undefined", name),
                     ))
                 }
             }
         },
         AST::FieldAccess(obj, field) => {
-            let base = eval_ast(py, &obj, &catalog, &params)?;
+            let base = eval_ast(py, &obj, &catalog, &params, &globals)?;
             match base {
                 Literal::Dict(map) => {
                     if let Some(val) = map.get(&LiteralKey::Str(field.clone())) {
@@ -581,8 +597,8 @@ pub fn eval_ast<'py>(
 
         AST::IndexAccess(obj, index) => {
             // obj[index]
-            let base = eval_ast(py, obj, catalog, params)?;
-            let key = eval_ast(py, index, catalog, params)?;
+            let base = eval_ast(py, obj, catalog, params, &globals)?;
+            let key = eval_ast(py, index, catalog, params, &globals)?;
             match base {
                 Literal::Dict(map) => {
                     let value = map
@@ -617,16 +633,18 @@ pub fn eval_ast<'py>(
 
         AST::CallAccess { left, args, kwargs } => {
             // left(*args, **kwargs)
-            let base = eval_ast(py, left, catalog, params)?;
+            let base = eval_ast(py, left, catalog, params, &globals)?;
 
             let lit_args = args
                 .iter()
-                .map(|arg| eval_ast(py, arg, catalog, params))
+                .map(|arg| eval_ast(py, arg, catalog, params, &globals))
                 .collect::<Result<Vec<_>, _>>()?;
 
             let lit_kwargs = kwargs
                 .iter()
-                .map(|(name, arg)| Ok((name.clone(), eval_ast(py, arg, catalog, params)?)))
+                .map(|(name, arg)| {
+                    Ok((name.clone(), eval_ast(py, arg, catalog, params, &globals)?))
+                })
                 .collect::<Result<HashMap<String, Literal>, PyErr>>()?;
             let py_args = PyTuple::new(py, lit_args.iter().map(|v| v.into_py(py)))?;
             let py_kwargs = PyDict::new(py);
@@ -650,12 +668,12 @@ pub fn eval_ast<'py>(
             then_branch,
             else_branch,
         } => {
-            let is_then = eval_ast(py, condition, catalog, params)?;
+            let is_then = eval_ast(py, condition, catalog, params, &globals)?;
             if is_then.is_truthy() {
-                eval_ast(py, then_branch, catalog, params)
+                eval_ast(py, then_branch, catalog, params, &globals)
             } else {
                 if let Some(else_) = else_branch {
-                    eval_ast(py, else_, catalog, params)
+                    eval_ast(py, else_, catalog, params, &globals)
                 } else {
                     Ok(Literal::Str("".to_string()))
                 }
@@ -666,7 +684,7 @@ pub fn eval_ast<'py>(
             iterable,
             body,
         } => {
-            let iter_lit = eval_ast(py, iterable, catalog, params)?;
+            let iter_lit = eval_ast(py, iterable, catalog, params, &globals)?;
 
             // let var = params.get(iterable).map(|x| Ok(x)).unwrap_or_else(|| {
             //     return Err(PyUnboundLocalError::new_err(format!(
@@ -680,10 +698,15 @@ pub fn eval_ast<'py>(
                     for v in iter {
                         let mut block_params = params.clone();
                         block_params.insert(LiteralKey::Str(ident.clone()), v);
-                        let item = eval_ast(py, body, catalog, &block_params)?;
+                        let item = eval_ast(py, body, catalog, &block_params, &globals)?;
                         res.push_str(
-                            item.to_html(py, catalog, wrap_params(py, &block_params)?)?
-                                .as_str(),
+                            item.to_html(
+                                py,
+                                catalog,
+                                wrap_params(py, &block_params)?,
+                                wrap_params(py, globals)?,
+                            )?
+                            .as_str(),
                         )
                     }
                     Ok(Literal::Str(res))
@@ -723,6 +746,7 @@ pub fn eval_expression<'py>(
     expression: &str,
     catalog: &XCatalog,
     params: Bound<'py, PyDict>,
+    globals: Bound<'py, PyDict>,
 ) -> Result<Literal, PyErr> {
     info!(
         "Evaluating expression {}...",
@@ -731,5 +755,6 @@ pub fn eval_expression<'py>(
     let params_ast = cast_params(params)?;
     let token = tokenize(expression)?;
     let ast = parse(&[token])?;
-    eval_ast(py, &ast, catalog, &params_ast)
+    let global_params = cast_params(globals)?;
+    eval_ast(py, &ast, catalog, &params_ast, &global_params)
 }

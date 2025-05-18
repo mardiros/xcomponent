@@ -78,19 +78,27 @@ impl TryFrom<Literal> for LiteralKey {
     }
 }
 
-// // equivalent to former `ToPyObject` implementations
-// impl<'py> IntoPyObject<'py> for LiteralKey {
-//     type Target = PyString;
-//     type Output = Bound<'py, Self::Target>;
-//     type Error = std::convert::Infallible;
+#[derive(Debug, IntoPyObject)]
+pub struct PyObj {
+    obj: Py<PyAny>,
+}
 
-//     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-//         match self {
-//             LiteralKey::Str(v) => v.clone().into_pyobject(py),
-//             LiteralKey::Uuid(v) => v.clone().into_pyobject(py),
-//         }
-//     }
-// }
+impl PyObj {
+    pub fn new(obj: Py<PyAny>) -> Self {
+        PyObj { obj }
+    }
+    pub fn obj(&self) -> &Py<PyAny> {
+        &self.obj
+    }
+}
+
+impl Clone for PyObj {
+    fn clone(&self) -> Self {
+        Python::with_gil(|py| PyObj {
+            obj: self.obj.clone_ref(py),
+        })
+    }
+}
 
 #[derive(Debug, Clone, IntoPyObject)]
 pub enum Literal {
@@ -102,6 +110,7 @@ pub enum Literal {
     List(Vec<Literal>),
     Dict(HashMap<LiteralKey, Literal>),
     Callable(String), // the name of the callable
+    Object(PyObj),
 }
 
 impl Literal {
@@ -132,12 +141,8 @@ impl Literal {
             let uuid_str = value.getattr("hex")?;
             Ok(Literal::Uuid(uuid_str.to_string()))
         } else {
-            let err: PyErr = PyTypeError::new_err(format!(
-                "Can't parse parameter {} {:?}",
-                value.downcast::<PyAny>()?.get_type().name()?,
-                value
-            ));
-            return Err(err);
+            let o: Py<PyAny> = value.extract()?;
+            Ok(Literal::Object(PyObj::new(o)))
         }
     }
     fn into_py<'py>(&self, py: Python<'py>) -> pyo3::Bound<'py, PyAny> {
@@ -154,6 +159,7 @@ impl Literal {
             Literal::XNode(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::List(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::Callable(v) => v.clone().into_pyobject(py).unwrap().into_any(), // wrong!
+            Literal::Object(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::Dict(map) => {
                 let dict = PyDict::new(py);
                 for (k, v) in map {
@@ -178,6 +184,19 @@ impl Truthy for Literal {
             Literal::Uuid(_) => true,
             Literal::XNode(_) => true,
             Literal::Callable(_) => true,
+            Literal::Object(o) => {
+                Python::with_gil(|py| {
+                    match o
+                        .obj()
+                        .into_pyobject(py)
+                        .unwrap()
+                        .call_method("__bool__", (), None)
+                    {
+                        Ok(b) => b.extract::<bool>().unwrap(),
+                        Err(_) => false, // or panic/log
+                    }
+                })
+            }
             Literal::List(items) => !items.is_empty(),
             Literal::Dict(d) => !d.is_empty(),
         }
@@ -225,6 +244,20 @@ impl ToHtml for Literal {
                 out.push_str("</dl>");
                 Ok(out)
             }
+            Literal::Object(o) => Ok(format!(
+                "{}",
+                Python::with_gil(|py| {
+                    match o
+                        .obj()
+                        .into_pyobject(py)
+                        .unwrap()
+                        .call_method("__repr__", (), None)
+                    {
+                        Ok(b) => b.extract::<String>().unwrap(),
+                        Err(_) => "<PyObject>".to_string(),
+                    }
+                })
+            )),
             Literal::XNode(n) => catalog.render_node(py, &n, params.clone(), globals.clone()),
         }
     }
@@ -555,6 +588,7 @@ pub fn eval_ast<'py>(
             Some(Literal::Uuid(v)) => Ok(Literal::Uuid(v.clone())),
             Some(Literal::List(v)) => Ok(Literal::List(v.clone())),
             Some(Literal::Dict(v)) => Ok(Literal::Dict(v.clone())),
+            Some(Literal::Object(v)) => Ok(Literal::Object(v.clone())),
             Some(Literal::XNode(node)) => {
                 let resp =
                     catalog.render_node(py, node, PyDict::new(py), wrap_params(py, globals)?);
@@ -577,6 +611,7 @@ pub fn eval_ast<'py>(
             let base = eval_ast(py, &obj, &catalog, &params, &globals)?;
             match base {
                 Literal::Dict(map) => {
+                    // no integer cannot be a field name here
                     if let Some(val) = map.get(&LiteralKey::Str(field.clone())) {
                         return Ok(val.clone());
                     }
@@ -588,6 +623,11 @@ pub fn eval_ast<'py>(
                         field, map
                     )))
                 }
+                Literal::Object(o) => Python::with_gil(|py| {
+                    // only string here. maybe callable
+                    let item = o.obj().getattr(py, field)?.into_bound(py);
+                    Literal::downcast(item)
+                }),
                 _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
                     "Cannot access field '{}' on non-object",
                     field
@@ -624,6 +664,20 @@ pub fn eval_ast<'py>(
                     }
                     _ => Err(PyTypeError::new_err(format!("{:?}", key))),
                 },
+                Literal::Object(o) => Python::with_gil(|py| {
+                    let item = match key {
+                        Literal::Int(idx) => {
+                            // FIXME, add len call here for negatif index
+                            o.obj().into_pyobject(py).unwrap().call_method(
+                                "__getitem__",
+                                (idx,),
+                                None,
+                            )
+                        }
+                        _ => Err(PyTypeError::new_err(format!("Index access{:?}", key))),
+                    }?;
+                    Literal::downcast(item)
+                }),
                 _ => Err(PyErr::new::<PyTypeError, _>(format!(
                     "Cannot access index '{:?}' on non-object",
                     base
@@ -656,6 +710,10 @@ pub fn eval_ast<'py>(
                     let res = catalog.call(py, ident.as_str(), &py_args, &py_kwargs)?;
                     Literal::downcast(res)
                 }
+                Literal::Object(o) => Python::with_gil(|py| {
+                    let res = o.obj().call(py, py_args, Some(&py_kwargs))?;
+                    Literal::downcast(res.into_bound(py))
+                }),
                 _ => Err(PyAttributeError::new_err(format!(
                     "{:?} is not callable",
                     base

@@ -40,16 +40,19 @@ class Catalog:
 
         kwargs: dict[str, Any] = {}
         parameters: dict[str, type | Any] = {}
+        defaults: dict[str, Any] = {}
 
         for name, param in signature.parameters.items():
             kwargs[name] = None
+            if param.default != inspect._empty:
+                defaults[name] = param.default
             if param.annotation is not inspect.Parameter.empty:
                 parameters[name] = param.annotation
             else:
                 parameters[name] = Any
 
         template = params(**kwargs)
-        self._catalog.add_component(component_name, template, parameters)
+        self._catalog.add_component(component_name, template, parameters, defaults)
 
     def component(self, name: str = "") -> Callable[[Component], Component]:
         """

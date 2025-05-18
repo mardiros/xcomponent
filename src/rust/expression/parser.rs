@@ -1,10 +1,12 @@
-use pest::iterators::{Pair, Pairs};
+use std::collections::HashMap;
+
+use pest::iterators::Pair;
 use pest::Parser;
 use pest_derive::Parser;
 use pyo3::exceptions::{PySyntaxError, PyValueError};
 use pyo3::PyErr;
 
-use crate::expression::tokens::{ExpressionToken, FunctionCall};
+use crate::expression::tokens::ExpressionToken;
 use crate::markup::parser::parse_markup;
 
 use super::tokens::PostfixOp;
@@ -12,19 +14,6 @@ use super::tokens::PostfixOp;
 #[derive(Parser)]
 #[grammar = "rust/expression/grammar.pest"]
 pub struct ExpressionParser;
-
-fn parse_expression_tokens(pairs: Pairs<Rule>) -> Vec<ExpressionToken> {
-    let mut result = Vec::new();
-
-    for pair in pairs {
-        if let Ok(node) = parse_expression_token(pair) {
-            if node != ExpressionToken::Noop {
-                result.push(node);
-            }
-        }
-    }
-    return result;
-}
 
 fn parse_expression_token(pair: Pair<Rule>) -> Result<ExpressionToken, String> {
     match pair.as_rule() {
@@ -42,6 +31,29 @@ fn parse_expression_token(pair: Pair<Rule>) -> Result<ExpressionToken, String> {
             Ok(ExpressionToken::PostfixOp(PostfixOp::Index(Box::new(
                 postfix,
             ))))
+        }
+        Rule::call => {
+            let inner = pair.into_inner();
+            let mut args = Vec::new();
+            let mut kwargs = HashMap::new();
+            for arg in inner {
+                match arg.as_rule() {
+                    Rule::kw_arg => {
+                        let mut kw_inner = arg.into_inner();
+                        let key = kw_inner.next().unwrap().as_str().to_string();
+                        let value = parse_expression_token(kw_inner.next().unwrap())?;
+                        kwargs.insert(key, value);
+                    }
+                    Rule::pos_arg => {
+                        let arg_inner = arg.into_inner().next().unwrap();
+                        let value = parse_expression_token(arg_inner)?;
+                        args.push(value);
+                    }
+                    _ => return Err(format!("Unexpected rule in call: {:?}", arg.as_rule()).into()),
+                }
+            }
+
+            Ok(ExpressionToken::PostfixOp(PostfixOp::Call { args, kwargs }))
         }
         Rule::binary_expression => {
             let mut inner = pair.into_inner();
@@ -90,13 +102,6 @@ fn parse_expression_token(pair: Pair<Rule>) -> Result<ExpressionToken, String> {
                 iterable,
                 body,
             })
-        }
-        Rule::function_call => {
-            let mut inner = pair.into_inner();
-            let ident = inner.next().unwrap().as_str().to_string();
-            let params = parse_expression_tokens(inner);
-            debug!("Pushing function call {}({:?})", ident, params);
-            Ok(ExpressionToken::FuncCall(FunctionCall::new(ident, params)))
         }
         Rule::ident => {
             let content = pair.as_str();

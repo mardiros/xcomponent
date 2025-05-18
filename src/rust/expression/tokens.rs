@@ -1,4 +1,4 @@
-use std::{fmt, str::FromStr};
+use std::{collections::HashMap, fmt, str::FromStr};
 
 use crate::markup::tokens::XNode;
 use pyo3::prelude::*;
@@ -76,39 +76,13 @@ impl fmt::Display for Operator {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct FunctionCall {
-    ident: String,
-    params: Vec<ExpressionToken>,
-}
-
-impl FunctionCall {
-    pub fn new(ident: String, params: Vec<ExpressionToken>) -> Self {
-        FunctionCall { ident, params }
-    }
-    pub fn ident(&self) -> &str {
-        return self.ident.as_str();
-    }
-    pub fn params(&self) -> &Vec<ExpressionToken> {
-        return self.params.as_ref();
-    }
-}
-
-impl fmt::Display for FunctionCall {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let params = (self
-            .params
-            .iter()
-            .map(|p| format!("{}", p))
-            .collect::<Vec<_>>())
-        .join(",");
-        write!(f, "{}({})", self.ident, params)
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
 pub enum PostfixOp {
     Field(String),
     Index(Box<ExpressionToken>),
+    Call {
+        args: Vec<ExpressionToken>,
+        kwargs: HashMap<String, ExpressionToken>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -121,7 +95,6 @@ pub enum ExpressionToken {
     Integer(isize),
     Boolean(bool),
     XNode(XNode),
-    FuncCall(FunctionCall),
     PostfixOp(PostfixOp),
     IfExpression {
         condition: Box<ExpressionToken>,
@@ -160,8 +133,9 @@ impl std::fmt::Display for ExpressionToken {
             ExpressionToken::PostfixOp(op) => match op {
                 PostfixOp::Field(field) => write!(f, ".{}", field),
                 PostfixOp::Index(index) => write!(f, "[{}]", index),
+                // FIXME, display the args and kwargs properly
+                PostfixOp::Call { args, kwargs } => write!(f, "({:?}, {:?})", args, kwargs),
             },
-            ExpressionToken::FuncCall(func) => write!(f, "{}", func),
             ExpressionToken::IfExpression {
                 condition,
                 then_branch,

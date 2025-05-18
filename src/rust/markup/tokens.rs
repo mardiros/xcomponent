@@ -124,7 +124,10 @@ impl ToHtml for XElement {
         match catalog.get(py, self.name()) {
             Some(py_template) => {
                 let node = py_template.getattr("node")?.extract::<XNode>()?;
-                let node_attrs = PyDict::new(py);
+                let node_attrs = py_template
+                    .getattr("defaults")?
+                    .downcast::<PyDict>()?
+                    .clone();
 
                 for (name, attrnode) in self.attrs() {
                     if let XNode::Expression(ref expression) = attrnode {

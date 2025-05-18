@@ -37,13 +37,18 @@ impl PyCallable {
 pub struct XTemplate {
     node: Py<XNode>,
     params: Py<PyDict>,
+    defaults: Py<PyDict>,
 }
 
 #[pymethods]
 impl XTemplate {
     #[new]
-    pub fn new(node: Py<XNode>, params: Py<PyDict>) -> Self {
-        XTemplate { node, params }
+    pub fn new(node: Py<XNode>, params: Py<PyDict>, defaults: Py<PyDict>) -> Self {
+        XTemplate {
+            node,
+            params,
+            defaults,
+        }
     }
 
     #[getter]
@@ -54,6 +59,11 @@ impl XTemplate {
     #[getter]
     pub fn params<'py>(&self, py: Python<'py>) -> &Bound<'py, PyAny> {
         self.params.bind(py)
+    }
+
+    #[getter]
+    pub fn defaults<'py>(&self, py: Python<'py>) -> &Bound<'py, PyAny> {
+        self.defaults.bind(py)
     }
 }
 
@@ -79,10 +89,11 @@ impl XCatalog {
         name: &str,
         template: &str,
         params: Py<PyDict>,
+        defaults: Py<PyDict>,
     ) -> PyResult<()> {
         let node = parse_markup(template)?;
         let py_node = Py::new(py, node)?;
-        let template = XTemplate::new(py_node, params);
+        let template = XTemplate::new(py_node, params, defaults);
         info!("Registering node {}", name);
         debug!("{:?}", template);
         let py_template = Py::new(py, template)?;

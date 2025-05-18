@@ -20,7 +20,7 @@ open_fragment = { "<>" }
 close_fragment = { "</>" }
 
 doctype = @{ "<!DOCTYPE" ~ (!">" ~ ANY)* ~ ">" }
-attribute = { attr_name ~ "=" ~ attr_value }
+attribute = { attr_name ~ ("=" ~ attr_value)? }
 comment   = { "<!--" ~ (!"-->" ~ ANY)* ~ "-->" }
 expression = { "{" ~ (expression | (!"}" ~ ANY))* ~ "}" }
 

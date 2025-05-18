@@ -1,3 +1,4 @@
+import pytest
 from xcomponent import Catalog, XNode
 
 catalog = Catalog()
@@ -25,6 +26,16 @@ def HtmlHead(title: str) -> str:
             <title>{title}</title>
             <meta charset="UTF-8"/>
         </>
+    """
+
+
+@catalog.component()
+def Details(summary: str, children: XNode, opened: bool = False):
+    return """
+        <details open={opened}>
+            <summary>{summary}</summary>
+            {children}
+        </details>
     """
 
 
@@ -90,3 +101,46 @@ def test_render_children_param():
         )
         == result
     )
+
+
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(
+            catalog.render(
+                """
+                <Details summary="Click to expand" opened>
+                    <div>I am in</div>
+                </Details>
+                """
+            ),
+            "<details open><summary>Click to expand</summary>"
+            "<div>I am in</div></details>",
+            id="true",
+        ),
+        # pytest.param(
+        #     catalog.render(
+        #         """
+        #         <Details summary="Click to expand" opened={false}>
+        #             <div>I am in</div>
+        #         </Details>
+        #         """
+        #     ),
+        #     "<details><summary>Click to expand</summary><div>I am in</div></details>",
+        #     id="false",
+        # ),
+        # pytest.param(
+        #     catalog.render(
+        #         """
+        #         <Details summary="Click to expand">
+        #             <div>I am in</div>
+        #         </Details>
+        #         """
+        #     ),
+        #     "<details><summary>Click to expand</summary><div>I am in</div></details>",
+        #     id="default",
+        # ),
+    ],
+)
+def test_render_bool_attr(component, expected):
+    assert component == expected

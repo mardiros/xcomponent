@@ -91,17 +91,21 @@ fn parse_open_tag(pair: Pair<Rule>) -> (String, HashMap<String, XNode>) {
         if attr.as_rule() == Rule::attribute {
             let mut parts = attr.into_inner();
             let key = parts.next().unwrap().as_str().to_string();
-            let value = parts.next().unwrap().as_str();
-            if value.starts_with('{') {
-                attrs.insert(
-                    key,
-                    XNode::Expression(XExpression::new(value[1..value.len() - 1].to_string())),
-                );
+            if let Some(value_pair) = parts.next() {
+                let value = value_pair.as_str();
+                if value.starts_with('{') {
+                    attrs.insert(
+                        key,
+                        XNode::Expression(XExpression::new(value[1..value.len() - 1].to_string())),
+                    );
+                } else {
+                    attrs.insert(
+                        key,
+                        XNode::Text(XText::new(value[1..value.len() - 1].to_string())),
+                    );
+                }
             } else {
-                attrs.insert(
-                    key,
-                    XNode::Text(XText::new(value[1..value.len() - 1].to_string())),
-                );
+                attrs.insert(key, XNode::Expression(XExpression::new("true".to_string())));
             }
         }
     }

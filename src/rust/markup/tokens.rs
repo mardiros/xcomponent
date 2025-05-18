@@ -145,8 +145,25 @@ impl ToHtml for XElement {
             None => {
                 result.push_str(format!("<{}", self.name).as_str());
                 for (name, node) in self.attrs() {
-                    let value = catalog.render_node(py, &node, params.clone())?;
-                    result.push_str(format!(" {}=\"{}\"", name, value).as_str());
+                    let attr = match node {
+                        XNode::Expression(ref expr) => {
+                            let v =
+                                eval_expression(py, expr.expression(), &catalog, params.clone())?;
+                            match v {
+                                Literal::Bool(false) => "".to_string(),
+                                Literal::Bool(true) => format!(" {}", name),
+                                _ => {
+                                    let value = catalog.render_node(py, &node, params.clone())?;
+                                    format!(" {}=\"{}\"", name, value)
+                                }
+                            }
+                        }
+                        _ => {
+                            let value = catalog.render_node(py, &node, params.clone())?;
+                            format!(" {}=\"{}\"", name, value)
+                        }
+                    };
+                    result.push_str(format!("{}", attr).as_str());
                 }
                 if self.children().len() > 0 {
                     result.push_str(">");

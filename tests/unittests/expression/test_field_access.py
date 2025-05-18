@@ -40,8 +40,8 @@ def Page(head: XNode):
     """
 
 
-# def test_render_property():
-#     assert catalog.render("<Article/>", {"dummy": DummyObject()}) == "<div>Dummy</div>"
+def test_render_property():
+    assert Article(globals={"dummy": DummyObject()}) == "<div>Dummy</div>"
 
 
 def test_render_nested_property():

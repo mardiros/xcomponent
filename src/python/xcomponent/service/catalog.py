@@ -11,18 +11,43 @@ from xcomponent.xcore import (
     XNode,
 )
 
+__all__ = ["Component", "Function", "Catalog"]
+
+
 Component = Callable[..., str]
+"""
+A component is a function that takes parameters which are the component parameters,
+and always return a string, which is the template.
+
+Then the callable has to be decorated with the [@catalog.component](#xcomponent.Catalog.component)
+"""
+
 Function = Callable[..., Any]
+"""
+A component is a function that takes parameters which are the component parameters,
+and always return a string, which is the template.
+
+Then the callable has to be decorated with the [@catalog.component](#xcomponent.Catalog.component)
+"""
 
 
 class Catalog:
-    """Store all the handlers for gherkin action."""
+    """
+    Store all the components and functions to render templates.
+    """
 
     def __init__(self) -> None:
         self.scanned: set[ModuleType] = set()
         self._catalog = XCatalog()
 
-    def render(self, content: str, **params: dict[str, Any]) -> str:
+    def render(self, content: str, **params: Any) -> str:
+        """
+        Render the given markup.
+
+        :param content: The markup to render
+        :param params: Global variables that does not need to do props drilling.
+        :return: the rendered template.
+        """
         return self._catalog.render(content, **params)
 
     def register_template(
@@ -64,7 +89,10 @@ class Catalog:
         self, name: str | Component = ""
     ) -> Callable[[Component], Component] | Component:
         """
-        Decorator to register a template with its schema parameters
+        Decorator to register a template with its schema parameters.
+
+        :param name: optional name for the component, by default, it is the function name.
+        :return: A function that render the component without global variable supports.
         """
         component_name = name.__name__ if isinstance(name, Callable) else name
 
@@ -102,7 +130,13 @@ class Catalog:
 
     def function(self, name: str | Function = "") -> Function:
         """
-        Decorator to register a template with its schema parameters
+        Decorator to register a template with its schema parameters.
+
+        It can be used as a decorator ( `@catalog.function` )
+        or a parametrized decorator ( `@catalog.function(name="registered_name")` )
+
+        :param name: name of the function in case it is the parametrized function
+        :return: the decorated method.
         """
         if isinstance(name, Callable):
             self._catalog.add_function(name.__name__, name)

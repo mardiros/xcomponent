@@ -1,0 +1,64 @@
+site_name: XComponent Documentation
+
+site_url: https://mardiros.github.io/xcomponent
+
+
+nav:
+- Get Started:
+  - Welcome to XComponent: index.md
+  - Getting started: getting_started.md
+  - Changelog: changelog.md
+- API Documentation:
+  - Public API: api.md
+  - Core API: api_xcore.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+plugins:
+  - search
+  - autorefs
+  - include-markdown
+  - mkdocstrings:
+      enabled: true
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: false
+            show_signature_annotations: true
+            docstring_style: sphinx
+            members_order: source
+            merge_init_into_class: true
+            search_mode: source
+        # python-stub:
+        #   options:
+        #     show_source: false
+        #     show_signature_annotations: true
+        #     docstring_style: sphinx
+        #     members_order: source
+        #     merge_init_into_class: true
+        #     search_mode: stub    # prefer .pyi files
+
+theme:
+  name: material
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode

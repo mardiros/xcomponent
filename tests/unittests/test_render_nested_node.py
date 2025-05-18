@@ -42,7 +42,15 @@ def HelloWebPage(title: str) -> str:
 
 def test_catalog_render():
     assert catalog.render("<HelloWebPage title='my title'/>") == (
-        '<!DOCTYPE html><html><head><title>my title</title>'
+        "<!DOCTYPE html><html><head><title>my title</title>"
+        '<meta charset="UTF-8"/>'
+        '</head><body><h1>Hello, world!"</h1></body></html>'
+    )
+
+
+def test_render_component():
+    assert HelloWebPage(title="my title") == (
+        "<!DOCTYPE html><html><head><title>my title</title>"
         '<meta charset="UTF-8"/>'
         '</head><body><h1>Hello, world!"</h1></body></html>'
     )

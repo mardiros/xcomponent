@@ -1,3 +1,5 @@
+"""Typing for the rust code."""
+
 from enum import Enum
 from typing import Any
 from collections.abc import Mapping, Callable
@@ -48,6 +50,7 @@ class XExpression:
     def __init__(self, expression: str) -> None: ...
 
 class XNode:
+    """Represent a node in the markup."""
     @staticmethod
     def Fragment(fragment: XFragment, /) -> XNode: ...
     @staticmethod
@@ -70,6 +73,7 @@ class XTemplate:
     defaults: Mapping[str, Any]
 
 class XCatalog:
+    """Catalog of templates en functions."""
     def __init__(self) -> None: ...
     def add_component(
         self,

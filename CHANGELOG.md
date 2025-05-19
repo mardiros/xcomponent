@@ -1,3 +1,8 @@
+## 0.1.6  -  2025-05-19
+
+* Fix default values
+* Add support of @catalog.component without parameter.
+
 ## 0.1.5  -  2025-05-18
 
 * Add support of dict, list, objects, indexes, attributes, method calls.

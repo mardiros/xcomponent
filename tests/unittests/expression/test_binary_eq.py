@@ -5,32 +5,32 @@ from xcomponent import Catalog
 catalog = Catalog()
 
 
-@catalog.component()
+@catalog.component
 def Eq(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a == b}</>"""
 
 
-@catalog.component()
+@catalog.component
 def Neq(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a != b}</>"""
 
 
-@catalog.component()
+@catalog.component
 def Gt(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a > b}</>"""
 
 
-@catalog.component()
+@catalog.component
 def Lt(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a < b}</>"""
 
 
-@catalog.component()
+@catalog.component
 def Gte(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a >= b}</>"""
 
 
-@catalog.component()
+@catalog.component
 def Lte(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a <= b}</>"""
 

@@ -16,34 +16,34 @@ class Product(TypedDict):
     owner: User
 
 
-@catalog.component()
+@catalog.component
 def DummyNode(a: int) -> str:
     return """<p>{a}</p>"""
 
 
-@catalog.component()
+@catalog.component
 def Types(a: bool, b: bool, c: int, d: str, e: UUID, f: XNode) -> str:
     return """<>{a}-{b}-{c}-{d}-{e}-{f}</>"""
 
 
-@catalog.component()
+@catalog.component
 def DictComplexType(u: User) -> str:
     return """<>{u.username}</>"""
 
 
-@catalog.component()
+@catalog.component
 def NestedDictComplexType(product: Product) -> str:
     return """<>{product.owner.username}</>"""
 
 
-@catalog.component()
+@catalog.component
 def DynamicKeyDictComplexType(
     products: dict[UUID | int, Product], product_id: UUID | int
 ) -> str:
     return """<>{products[product_id].owner.username}</>"""
 
 
-@catalog.component()
+@catalog.component
 def DynamicKeyListComplexType(users: list[User], user_id: int) -> str:
     return """<>{users[user_id].username}</>"""
 

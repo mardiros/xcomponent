@@ -4,22 +4,22 @@ from xcomponent import Catalog, XNode
 catalog = Catalog()
 
 
-@catalog.component()
+@catalog.component
 def H1(title: str) -> str:
     return """<h1>{title}</h1>"""
 
 
-@catalog.component()
+@catalog.component
 def H2(title: str) -> str:
     return """<h2>I - {title}</h2>"""
 
 
-@catalog.component()
+@catalog.component
 def Section() -> str:
     return """<div><H1 title="hello"/><H2 title="world"/></div>"""
 
 
-@catalog.component()
+@catalog.component
 def HtmlHead(title: str) -> str:
     return """
         <>
@@ -29,7 +29,7 @@ def HtmlHead(title: str) -> str:
     """
 
 
-@catalog.component()
+@catalog.component
 def Details(summary: str, children: XNode, opened: bool = False):
     return """
         <details open={opened}>
@@ -39,7 +39,7 @@ def Details(summary: str, children: XNode, opened: bool = False):
     """
 
 
-@catalog.component()
+@catalog.component
 def Layout(head: XNode, children: XNode) -> str:
     return """
         <>

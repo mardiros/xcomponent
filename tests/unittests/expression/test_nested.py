@@ -5,27 +5,27 @@ from xcomponent import Catalog
 catalog = Catalog()
 
 
-@catalog.component()
+@catalog.component
 def AddOp(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a + b}</>"""
 
 
-@catalog.component()
+@catalog.component
 def NestedOperation(aa: str, bb: str) -> str:
     return """<AddOp a={aa} b={bb} />"""
 
 
-@catalog.component()
+@catalog.component
 def NestedExpression(aa: str, bb: str) -> str:
     return """<>{<AddOp a={aa} b={bb} />}</>"""
 
 
-@catalog.component()
+@catalog.component
 def NestedFunction(aa: int, bb: int) -> str:
     return """<>{<AddOp a={max(aa, 3)} b={bb} />}</>"""
 
 
-@catalog.component()
+@catalog.component
 def NestedIf(aa: int, bb: int) -> str:
     return """<>{<AddOp a={if aa > 3 { 6 } else { 0 }} b={bb} />}</>"""
 

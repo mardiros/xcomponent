@@ -11,14 +11,14 @@ class Request:
 catalog = Catalog()
 
 
-@catalog.component()
+@catalog.component
 def SidebarItem(title: str, route_name: str) -> str:
     return """
         <li><a href={request.route_path(route_name, foo="bar")}>{title}</a></li>
     """
 
 
-@catalog.component()
+@catalog.component
 def Sidebar() -> str:
     return """
         <ul>

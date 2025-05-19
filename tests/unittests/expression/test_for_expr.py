@@ -5,12 +5,12 @@ from xcomponent import Catalog
 catalog = Catalog()
 
 
-@catalog.component()
+@catalog.component
 def Item(name: str) -> str:
     return """<li>{name}</li>"""
 
 
-@catalog.component()
+@catalog.component
 def ForStmt(lst: list[str]) -> str:
     return """<ul>{for x in lst { <Item name={x} /> }}</ul>"""
 

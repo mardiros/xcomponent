@@ -4,7 +4,7 @@ from xcomponent import Catalog
 catalog = Catalog()
 
 
-@catalog.component()
+@catalog.component
 def HelloWorld(name: str = "world") -> str:
     return """<p>Hello {name}</p>"""
 

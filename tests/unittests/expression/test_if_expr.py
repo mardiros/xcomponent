@@ -5,12 +5,12 @@ from xcomponent import Catalog
 catalog = Catalog()
 
 
-@catalog.component()
+@catalog.component
 def IfStmt(a: bool, b: str) -> str:
     return """<p>{if a { b }}</p>"""
 
 
-@catalog.component()
+@catalog.component
 def IfElseStmt(a: bool, b: str, c: str) -> str:
     return """<p>{ if a { b } else { c } }</p>"""
 

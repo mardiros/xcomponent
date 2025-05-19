@@ -6,22 +6,22 @@ from xcomponent.service.catalog import Component
 catalog = Catalog()
 
 
-@catalog.component()
+@catalog.component
 def FuncCall(a: int, b: int) -> str:
     return """<>{max(a, b)}</>"""
 
 
-@catalog.component()
+@catalog.component
 def FuncCall2(a: int, b: int) -> str:
     return """<>{my_max(a, b)}</>"""
 
 
-@catalog.component()
+@catalog.component
 def FuncCall3(a: int, b: int) -> str:
     return """<>{my_max2(a, b)}</>"""
 
 
-@catalog.component()
+@catalog.component
 def FuncCall4(a: int, b: int) -> str:
     return """<>{my_max(i=a, j=b)}</>"""
 

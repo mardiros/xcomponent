@@ -54,11 +54,13 @@ class Catalog:
         template = params(**kwargs)
         self._catalog.add_component(component_name, template, parameters, defaults)
 
-    def component(self, name: str = "") -> Callable[[Component], Component]:
+    def component(
+        self, name: str | Callable[..., str] = ""
+    ) -> Callable[[Component], Component] | Component:
         """
         Decorator to register a template with its schema parameters
         """
-        component_name = name
+        component_name = name.__name__ if isinstance(name, Callable) else name
 
         def decorator(fn: Callable[..., str]):
             @wraps(fn)
@@ -79,7 +81,10 @@ class Catalog:
             self.register_template(component_name or fn.__name__, fn)
             return render
 
-        return decorator
+        if isinstance(name, Callable):
+            return decorator(name)
+        else:
+            return decorator
 
     def function(self, name: str | Callable[..., Any] = "") -> Callable[..., Any]:
         """

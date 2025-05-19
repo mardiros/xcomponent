@@ -7,37 +7,37 @@ from xcomponent.service.catalog import Component
 catalog = Catalog()
 
 
-@catalog.component()
+@catalog.component
 def AddOp(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a + b}</>"""
 
 
-@catalog.component()
+@catalog.component
 def SubOp(a: int | bool | str, b: int | bool) -> str:
     return """<>{a - b}</>"""
 
 
-@catalog.component()
+@catalog.component
 def MulOp(a: int | bool | str, b: int | bool) -> str:
     return """<>{a * b}</>"""
 
 
-@catalog.component()
+@catalog.component
 def DivOp(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a / b}</>"""
 
 
-@catalog.component()
+@catalog.component
 def AndOp(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a and b}</>"""
 
 
-@catalog.component()
+@catalog.component
 def OrOp(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a or b}</>"""
 
 
-@catalog.component()
+@catalog.component
 def AddMany(a: int | bool | str, b: int | bool | str, c: int | bool | str) -> str:
     return """<>{a + b + c}</>"""
 

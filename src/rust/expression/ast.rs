@@ -159,7 +159,7 @@ impl Literal {
             Literal::XNode(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::List(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::Callable(v) => v.clone().into_pyobject(py).unwrap().into_any(), // wrong!
-            Literal::Object(v) => v.clone().into_pyobject(py).unwrap().into_any(),
+            Literal::Object(v) => v.clone().obj.into_pyobject(py).unwrap().into_any(),
             Literal::Dict(map) => {
                 let dict = PyDict::new(py);
                 for (k, v) in map {

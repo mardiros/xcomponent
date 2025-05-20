@@ -4,7 +4,6 @@ version = "0.1.6"
 authors = ["Guillaume Gauvrit <guillaume@gauvr.it>"]
 edition = "2021"
 description = "JSX-like for python using maturin/pyo3 and pest."
-license = "MIT"
 license-file = "LICENSE"
 readme = "README.md"
 

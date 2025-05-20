@@ -1,3 +1,7 @@
+## 0.1.7  -  2025-05-20
+
+* Fix PyAny object serialization passed from parent to child element. 
+
 ## 0.1.6  -  2025-05-19
 
 * Fix default values

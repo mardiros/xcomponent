@@ -159,7 +159,7 @@ impl Literal {
             Literal::XNode(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::List(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::Callable(v) => v.clone().into_pyobject(py).unwrap().into_any(), // wrong!
-            Literal::Object(v) => v.clone().into_pyobject(py).unwrap().into_any(),
+            Literal::Object(v) => v.clone().obj.into_pyobject(py).unwrap().into_any(),
             Literal::Dict(map) => {
                 let dict = PyDict::new(py);
                 for (k, v) in map {
@@ -211,6 +211,7 @@ impl ToHtml for Literal {
         params: Bound<'py, PyDict>,
         globals: Bound<'py, PyDict>,
     ) -> PyResult<String> {
+        debug!("Rendering {:?}", self);
         match self {
             Literal::Bool(b) => Ok(format!("{}", b)),
             Literal::Int(i) => Ok(format!("{}", i)),

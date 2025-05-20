@@ -123,6 +123,8 @@ impl ToHtml for XElement {
         let mut result = String::new();
         match catalog.get(py, self.name()) {
             Some(py_template) => {
+                debug!("Rendering template {:?}", py_template);
+
                 let node = py_template.getattr("node")?.extract::<XNode>()?;
                 let node_attrs = py_template
                     .getattr("defaults")?
@@ -153,6 +155,7 @@ impl ToHtml for XElement {
                         )?;
                     }
                 }
+                debug!("Rendered node_attrs {:?}", node_attrs);
                 if self.children().len() > 0 {
                     let mut childchildren = String::new();
                     for child in self.children() {
@@ -172,6 +175,7 @@ impl ToHtml for XElement {
                 )
             }
             None => {
+                debug!("Rendering final element <{}/>", self.name);
                 result.push_str(format!("<{}", self.name).as_str());
                 for (name, node) in self.attrs() {
                     let attr = match node {
@@ -386,7 +390,7 @@ impl ToHtml for XExpression {
         info!("Evaluating expression {}", self.expression());
         debug!("{:?}", params.clone());
         let res = self.to_literal(py, catalog, params.clone(), globals.clone())?;
-        res.to_html(py, catalog, params, globals.clone())
+        res.to_html(py, catalog, params, globals)
     }
 }
 

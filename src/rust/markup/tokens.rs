@@ -390,7 +390,7 @@ impl ToHtml for XExpression {
         info!("Evaluating expression {}", self.expression());
         debug!("{:?}", params.clone());
         let res = self.to_literal(py, catalog, params.clone(), globals.clone())?;
-        res.to_html(py, catalog, params, globals.clone())
+        res.to_html(py, catalog, params, globals)
     }
 }
 

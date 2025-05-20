@@ -211,6 +211,7 @@ impl ToHtml for Literal {
         params: Bound<'py, PyDict>,
         globals: Bound<'py, PyDict>,
     ) -> PyResult<String> {
+        debug!("Rendering {:?}", self);
         match self {
             Literal::Bool(b) => Ok(format!("{}", b)),
             Literal::Int(i) => Ok(format!("{}", i)),

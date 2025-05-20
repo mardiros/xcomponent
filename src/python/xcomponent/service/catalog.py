@@ -3,7 +3,7 @@
 from functools import wraps
 import inspect
 from types import ModuleType
-from typing import Callable, Any
+from typing import Callable, Any, overload
 
 from xcomponent.xcore import (
     XCatalog,
@@ -13,6 +13,7 @@ from xcomponent.xcore import (
 VENUSIAN_CATEGORY = "xcomponent"
 
 Component = Callable[..., str]
+Function = Callable[..., Any]
 
 
 class Catalog:
@@ -54,15 +55,21 @@ class Catalog:
         template = params(**kwargs)
         self._catalog.add_component(component_name, template, parameters, defaults)
 
+    @overload
+    def component(self, name: Component) -> Component: ...
+
+    @overload
+    def component(self, name: str) -> Callable[[Component], Component]: ...
+
     def component(
-        self, name: str | Callable[..., str] = ""
+        self, name: str | Component = ""
     ) -> Callable[[Component], Component] | Component:
         """
         Decorator to register a template with its schema parameters
         """
         component_name = name.__name__ if isinstance(name, Callable) else name
 
-        def decorator(fn: Callable[..., str]):
+        def decorator(fn: Component):
             @wraps(fn)
             def render(*args, **kwargs):
                 template = self._catalog.get(component_name or fn.__name__)
@@ -86,7 +93,13 @@ class Catalog:
         else:
             return decorator
 
-    def function(self, name: str | Callable[..., Any] = "") -> Callable[..., Any]:
+    @overload
+    def function(self, name: Function) -> Function: ...
+
+    @overload
+    def function(self, name: str) -> Callable[[Function], Function]: ...
+
+    def function(self, name: str | Function = "") -> Function:
         """
         Decorator to register a template with its schema parameters
         """
@@ -94,7 +107,7 @@ class Catalog:
             self._catalog.add_function(name.__name__, name)
             return name
 
-        def decorator(fn: Callable[..., str]):
+        def decorator(fn: Function):
             self._catalog.add_function(name or fn.__name__, fn)
             return fn
 

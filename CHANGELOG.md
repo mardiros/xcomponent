@@ -1,3 +1,7 @@
+## 0.1.8  -  2025-05-21
+* Fix postfix usage on right paremeter of binary expressions
+* Authorize expression inside function 
+
 ## 0.1.7  -  2025-05-20
 
 * Fix PyAny object serialization passed from parent to child element. 

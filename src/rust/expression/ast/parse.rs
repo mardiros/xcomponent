@@ -1,16 +1,10 @@
-use std::cmp::min;
-
 use pyo3::exceptions::PySyntaxError;
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
 
-use crate::catalog::XCatalog;
+use super::model::{Literal, AST};
 
-use super::eval_ast::{cast_params, eval_ast, Literal, AST};
-use super::parser::tokenize;
-
-use super::tokens::ExpressionToken;
-use super::tokens::PostfixOp;
+use crate::expression::tokens::ExpressionToken;
+use crate::expression::tokens::PostfixOp;
 
 pub fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
     let ast = match tok {
@@ -108,22 +102,4 @@ pub fn parse(tokens: &[ExpressionToken]) -> Result<AST, PyErr> {
     }
 
     Ok(left)
-}
-
-pub fn eval_expression<'py>(
-    py: Python<'py>,
-    expression: &str,
-    catalog: &XCatalog,
-    params: Bound<'py, PyDict>,
-    globals: Bound<'py, PyDict>,
-) -> Result<Literal, PyErr> {
-    info!(
-        "Evaluating expression {}...",
-        &expression[..min(expression.len(), 24)]
-    );
-    let params_ast = cast_params(params)?;
-    let token = tokenize(expression)?;
-    let ast = parse(&[token])?;
-    let global_params = cast_params(globals)?;
-    eval_ast(py, &ast, catalog, &params_ast, &global_params)
 }

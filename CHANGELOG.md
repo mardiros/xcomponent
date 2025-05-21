@@ -1,3 +1,7 @@
+## 0.1.9  -  2025-05-21
+
+* Remove debug logging 
+
 ## 0.1.8  -  2025-05-21
 * Fix postfix usage on right paremeter of binary expressions
 * Authorize expression inside function 

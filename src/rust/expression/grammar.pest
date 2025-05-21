@@ -15,8 +15,8 @@ call = {
 
 call_args = _{ call_arg ~ (whitespace* ~ "," ~ whitespace* ~ call_arg)* }
 call_arg = _{ kw_arg | pos_arg }
-pos_arg = { term }
-kw_arg = { ident ~ whitespace* ~ "=" ~ whitespace* ~ term }
+pos_arg = { expression }
+kw_arg = { ident ~ whitespace* ~ "=" ~ whitespace* ~ expression }
 
 primary = _{ component | ident | string | integer | boolean }
 component = { "<" ~ (!"/>" ~ ANY)* ~ "/>" }

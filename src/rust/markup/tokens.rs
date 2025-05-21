@@ -4,7 +4,7 @@ use pyo3::{prelude::*, types::PyDict};
 
 use crate::{
     catalog::XCatalog,
-    expression::ast::{eval_expression, Literal},
+    expression::ast::{eval::eval_expression, model::Literal},
 };
 
 pub trait ToHtml {

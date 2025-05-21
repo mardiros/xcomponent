@@ -1,3 +1,5 @@
+use std::slice::Iter;
+
 use pyo3::exceptions::PySyntaxError;
 use pyo3::prelude::*;
 
@@ -49,12 +51,11 @@ pub fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
     ast
 }
 
-pub fn parse(tokens: &[ExpressionToken]) -> Result<AST, PyErr> {
-    let mut iter = tokens.iter();
+pub fn parse_next(iter: &mut Iter<ExpressionToken>) -> Result<AST, PyErr> {
     let tok = iter
         .next()
         .ok_or(PySyntaxError::new_err("expected at least one token"))?;
-    let mut left = token_to_ast(tok)?;
+    let mut left = token_to_ast(&tok)?;
 
     while let Some(op_token) = iter.next() {
         error!(">>> {:?}", op_token);
@@ -62,29 +63,26 @@ pub fn parse(tokens: &[ExpressionToken]) -> Result<AST, PyErr> {
             ExpressionToken::PostfixOp(op) => match op {
                 PostfixOp::Field(f) => left = AST::FieldAccess(Box::new(left), f.clone()),
                 PostfixOp::Index(i) => {
-                    left = AST::IndexAccess(Box::new(left), Box::new(token_to_ast(i)?))
+                    left = AST::IndexAccess(Box::new(left), Box::new(token_to_ast(&i)?))
                 }
                 PostfixOp::Call { args, kwargs } => {
                     left = AST::CallAccess {
                         left: Box::new(left),
                         args: args
                             .into_iter()
-                            .map(|arg| -> Result<_, _> { token_to_ast(arg) })
+                            .map(|arg| -> Result<_, _> { token_to_ast(&arg) })
                             .collect::<Result<_, _>>()?,
                         kwargs: kwargs
                             .into_iter()
                             .map(|(k, v)| -> Result<(String, AST), PyErr> {
-                                Ok((k.clone(), token_to_ast(v)?))
+                                Ok((k.clone(), token_to_ast(&v)?))
                             })
                             .collect::<Result<_, _>>()?,
                     };
                 }
             },
             ExpressionToken::Operator(op) => {
-                let right = token_to_ast(
-                    iter.next()
-                        .ok_or(PySyntaxError::new_err("token expected"))?,
-                )?;
+                let right = parse_next(iter)?;
 
                 left = AST::Binary {
                     left: Box::new(left),
@@ -102,4 +100,10 @@ pub fn parse(tokens: &[ExpressionToken]) -> Result<AST, PyErr> {
     }
 
     Ok(left)
+}
+
+pub fn parse(tokens: &[ExpressionToken]) -> Result<AST, PyErr> {
+    debug!(">>>> Parsing tokens :{:?}", tokens);
+    let mut iter = tokens.iter();
+    parse_next(&mut iter)
 }

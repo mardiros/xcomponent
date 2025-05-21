@@ -58,7 +58,6 @@ pub fn parse_next(iter: &mut Iter<ExpressionToken>) -> Result<AST, PyErr> {
     let mut left = token_to_ast(&tok)?;
 
     while let Some(op_token) = iter.next() {
-        error!(">>> {:?}", op_token);
         match op_token {
             ExpressionToken::PostfixOp(op) => match op {
                 PostfixOp::Field(f) => left = AST::FieldAccess(Box::new(left), f.clone()),

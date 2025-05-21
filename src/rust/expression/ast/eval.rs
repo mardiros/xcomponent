@@ -189,7 +189,6 @@ pub fn eval_ast<'py>(
         AST::Binary { left, op, right } => {
             let l = eval_ast(py, left, catalog, params, &globals)?;
             let r = eval_ast(py, right, catalog, params, &globals)?;
-            error!("{:?}", r);
 
             match op {
                 Operator::Add => eval_add(l, r),

@@ -1,4 +1,4 @@
-use crate::context::{Literal, LiteralKey};
+use crate::context::Literal;
 use crate::expression::tokens::Operator;
 use std::collections::HashMap;
 

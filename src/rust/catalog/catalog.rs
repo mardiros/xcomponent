@@ -5,9 +5,12 @@ use pyo3::{
     types::{PyAny, PyDict, PyTuple},
 };
 
-use crate::markup::{
-    parser::parse_markup,
-    tokens::{ToHtml, XNode},
+use crate::{
+    context::RenderContext,
+    markup::{
+        parser::parse_markup,
+        tokens::{ToHtml, XNode},
+    },
 };
 
 #[pyclass]
@@ -149,10 +152,9 @@ impl XCatalog {
         &self,
         py: Python<'py>,
         node: &XNode,
-        params: Bound<'py, PyDict>,
-        globals: Bound<'py, PyDict>,
+        context: &'py mut RenderContext,
     ) -> PyResult<String> {
-        node.to_html(py, &self, params, globals)
+        node.to_html(py, &self, context)
     }
 
     #[pyo3(signature = (template, **kwds))]
@@ -168,10 +170,9 @@ impl XCatalog {
         } else {
             PyDict::new(py)
         };
-        let globals: Bound<'py, PyDict> = params
-            .get_item("globals")?
-            .map(|o| o.extract())
-            .unwrap_or(Ok(PyDict::new(py)))?;
-        self.render_node(py, &node, params, globals)
+        let mut context = RenderContext::new();
+        context.push(params)?;
+
+        self.render_node(py, &node, &mut context)
     }
 }

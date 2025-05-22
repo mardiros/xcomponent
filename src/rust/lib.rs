@@ -14,6 +14,7 @@ mod expression;
 mod markup;
 
 use crate::catalog::XCatalog;
+use crate::context::RenderContext;
 use crate::markup::parser::parse_markup;
 use crate::markup::tokens::{NodeType, XComment, XElement, XExpression, XFragment, XNode, XText};
 
@@ -31,6 +32,7 @@ fn xcore(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<XText>()?;
     m.add_class::<XExpression>()?;
     m.add_class::<XCatalog>()?;
+    m.add_class::<RenderContext>()?;
 
     m.add_function(wrap_pyfunction!(parse_markup, m)?)?;
     Ok(())

@@ -209,8 +209,7 @@ impl ToHtml for Literal {
         &self,
         py: Python<'py>,
         catalog: &XCatalog,
-        params: Bound<'py, PyDict>,
-        globals: Bound<'py, PyDict>,
+        context: &mut RenderContext,
     ) -> PyResult<String> {
         debug!("Rendering {:?}", self);
         match self {
@@ -222,10 +221,7 @@ impl ToHtml for Literal {
             Literal::List(l) => {
                 let mut out = String::new();
                 for item in l {
-                    out.push_str(
-                        item.to_html(py, catalog, params.clone(), globals.clone())?
-                            .as_str(),
-                    );
+                    out.push_str(item.to_html(py, catalog, context)?.as_str());
                 }
                 Ok(out)
             }
@@ -237,10 +233,7 @@ impl ToHtml for Literal {
                     out.push_str(format!("{}", k).as_str());
                     out.push_str("</dt>");
                     out.push_str("<dt>");
-                    out.push_str(
-                        item.to_html(py, catalog, params.clone(), globals.clone())?
-                            .as_str(),
-                    );
+                    out.push_str(item.to_html(py, catalog, context)?.as_str());
                     out.push_str("</dt>");
                 }
                 out.push_str("</dl>");
@@ -260,7 +253,47 @@ impl ToHtml for Literal {
                     }
                 })
             )),
-            Literal::XNode(n) => catalog.render_node(py, &n, params.clone(), globals.clone()),
+            Literal::XNode(n) => catalog.render_node(py, &n, context),
         }
+    }
+}
+
+#[pyclass]
+#[derive(Debug)]
+pub struct RenderContext {
+    stack: Vec<HashMap<LiteralKey, Literal>>,
+}
+
+#[pymethods]
+impl RenderContext {
+    #[new]
+    pub fn new() -> Self {
+        Self { stack: vec![] }
+    }
+
+    pub fn push<'py>(&mut self, params: Bound<'py, PyDict>) -> PyResult<()> {
+        let anyparams: Bound<'py, PyAny> = params.extract()?;
+        if let Literal::Dict(d) = Literal::downcast(anyparams)? {
+            self.stack.push(d);
+            Ok(())
+        } else {
+            // we comme from a Pydict, so this is dead code, right?
+            Err(PyTypeError::new_err(format!("Invalid rendering type")))
+        }
+    }
+
+    pub fn pop(&mut self) {
+        self.stack.pop();
+    }
+}
+
+impl RenderContext {
+    pub fn insert(&mut self, key: LiteralKey, value: Literal) {
+        let mut d = HashMap::new();
+        d.insert(key, value);
+        self.stack.push(d);
+    }
+    pub fn get(&self, key: &LiteralKey) -> Option<&Literal> {
+        self.stack.iter().rev().find_map(|scope| scope.get(key))
     }
 }

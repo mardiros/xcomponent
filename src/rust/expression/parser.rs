@@ -136,6 +136,10 @@ fn parse_expression_token(pair: Pair<Rule>) -> Result<ExpressionToken, String> {
                 .map(|n| ExpressionToken::XNode(n))
                 .map_err(|e| format!("Syntax error need {}", e))
         }
+        Rule::comment => {
+            debug!("Ignoring comment");
+            Ok(ExpressionToken::Noop)
+        }
         _ => {
             warn!("No rule defined for {:?}", pair.as_rule());
             Ok(ExpressionToken::Noop)

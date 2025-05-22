@@ -1,6 +1,6 @@
-expression = { for_expression | if_expression | binary_expression }
+expression = { for_expression | if_expression | binary_expression | comment_expression }
 
-binary_expression = { term ~ (whitespace* ~ operator ~ whitespace* ~ term)* }
+binary_expression = { comment_expression* ~ whitespace*  ~ term ~ (whitespace* ~ operator ~ whitespace* ~ term)* }
 
 term = _{ for_expression | if_expression | postfix }
 
@@ -31,7 +31,7 @@ keyword = { "for" | "in" | "if" | "else" | operator | boolean | "{" | "}" | "[" 
 ident = { !keyword ~ ident_raw }
 ident_raw = _{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
-whitespace = _{ " " | "\t" | "\n" | "\r" }
+whitespace = _{ " " | "\t" | "\n" | "\r" | comment_expression }
 escape_sequence = { "\\" ~ ( "\"" | "\\" | "n" | "t" | "r" ) }
 
 if_expression = {
@@ -41,3 +41,5 @@ if_expression = {
 for_expression = { "for" ~ whitespace+ ~ ident ~ whitespace+ ~ "in" ~ whitespace+ ~ term ~ whitespace* ~ block }
 
 block = { whitespace* ~"{" ~ whitespace* ~ expression ~ whitespace* ~ "}" ~ whitespace* }
+comment_expression = _{ "/*" ~ comment ~ "*/" }
+comment = { (!"*/" ~ ANY)* }

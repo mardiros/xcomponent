@@ -151,7 +151,6 @@ impl Literal {
             Literal::Str(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::XNode(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::List(v) => {
-
                 let vals = v
                     .iter()
                     .map(|o| o.into_py(py))
@@ -160,7 +159,7 @@ impl Literal {
                 lst.into_any()
 
                 // v.clone().into_pyobject(py).unwrap().into_any()
-            },
+            }
             Literal::Callable(v) => v.clone().into_pyobject(py).unwrap().into_any(), // wrong!
             Literal::Object(v) => v.clone().obj.into_pyobject(py).unwrap().into_any(),
             Literal::Dict(map) => {

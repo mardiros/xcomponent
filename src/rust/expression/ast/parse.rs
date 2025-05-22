@@ -43,6 +43,8 @@ pub fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
             iterable: token_to_ast(iterable).map(|x| Box::new(x))?,
             body: token_to_ast(body).map(|x| Box::new(x))?,
         }),
+        // Comment produce a Noop
+        ExpressionToken::Noop => Ok(AST::Literal(Literal::Str("".to_string()))),
         _ => Err(PySyntaxError::new_err(format!(
             "Syntax error, unexpected token {:?}",
             tok
@@ -51,12 +53,22 @@ pub fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
     ast
 }
 
-pub fn parse_next(iter: &mut Iter<ExpressionToken>) -> Result<AST, PyErr> {
-    let tok = iter
-        .next()
-        .ok_or(PySyntaxError::new_err("expected at least one token"))?;
-    let mut left = token_to_ast(&tok)?;
+pub fn get_left(iter: &mut Iter<ExpressionToken>) -> Result<AST, PyErr> {
+    loop {
+        let tok = iter
+            .next()
+            .ok_or(PySyntaxError::new_err("expected at least one token"))?;
+        match tok {
+            ExpressionToken::Noop => {}
+            _ => {
+                return token_to_ast(&tok);
+            }
+        }
+    }
+}
 
+pub fn parse_next(iter: &mut Iter<ExpressionToken>) -> Result<AST, PyErr> {
+    let mut left = get_left(iter)?;
     while let Some(op_token) = iter.next() {
         match op_token {
             ExpressionToken::PostfixOp(op) => match op {
@@ -88,6 +100,9 @@ pub fn parse_next(iter: &mut Iter<ExpressionToken>) -> Result<AST, PyErr> {
                     op: op.clone(),
                     right: Box::new(right),
                 };
+            }
+            ExpressionToken::Noop => {
+                // A rule that ignore comment
             }
             _ => {
                 return Err(PySyntaxError::new_err(format!(

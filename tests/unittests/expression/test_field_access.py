@@ -1,3 +1,4 @@
+from typing import Any
 from xcomponent import Catalog, XNode
 
 catalog = Catalog()
@@ -14,9 +15,9 @@ class DummyObject:
 
 
 @catalog.component
-def Article():
+def Article(globals: Any):
     return """
-    <div>{dummy.type}</div>
+    <div>{globals.dummy.type}</div>
     """
 
 
@@ -45,7 +46,7 @@ def Page(head: XNode):
 
 def test_render_nested_property():
     assert catalog.render(
-        "<Page head={<HtmlHead title={dummy.title}/>}/>",
+        "<Page head={<HtmlHead title={globals.dummy.title}/>}/>",
         globals={"dummy": DummyObject()},
     ) == (
         "<html><head><title>a dummy title</title></head>"

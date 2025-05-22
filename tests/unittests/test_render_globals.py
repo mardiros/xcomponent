@@ -1,3 +1,4 @@
+from typing import Any
 from xcomponent import Catalog
 
 
@@ -5,9 +6,9 @@ catalog = Catalog()
 
 
 @catalog.component
-def SidebarItem(title: str, route_name: str) -> str:
+def SidebarItem(title: str, route_name: str, globals: Any) -> str:
     return """
-        <li><a href={route_path[route_name]}>{title}</a></li>
+        <li><a href={globals.route_path[route_name]}>{title}</a></li>
     """
 
 

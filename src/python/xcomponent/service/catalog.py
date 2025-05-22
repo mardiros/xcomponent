@@ -83,7 +83,8 @@ class Catalog:
                     if typ is XNode:
                         kwargs[key] = self._catalog.render(kwargs[key])
 
-                return self._catalog.render_node(template.node, kwargs, {})
+                globals = kwargs.pop("globals", {})
+                return self._catalog.render_node(template.node, kwargs, globals)
 
             self.register_template(component_name or fn.__name__, fn)
             return render

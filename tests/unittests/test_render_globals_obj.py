@@ -12,9 +12,9 @@ catalog = Catalog()
 
 
 @catalog.component
-def SidebarItem(title: str, route_name: str) -> str:
+def SidebarItem(title: str, route_name: str, globals: Any) -> str:
     return """
-        <li><a href={request.route_path(route_name, foo="bar")}>{title}</a></li>
+        <li><a href={globals.request.route_path(route_name, foo="bar")}>{title}</a></li>
     """
 
 

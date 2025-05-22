@@ -38,7 +38,7 @@ if_expression = {
     "if " ~ whitespace* ~ binary_expression ~ whitespace* ~ block ~ (whitespace* ~ "else" ~ whitespace* ~ block )?
 }
 
-for_expression = { "for" ~ whitespace+ ~ ident ~ whitespace+ ~ "in" ~ whitespace+ ~ term ~ whitespace* ~ block }
+for_expression = { "for" ~ whitespace+ ~ ident ~ whitespace+ ~ "in" ~ whitespace+ ~ expression ~ whitespace* ~ block }
 
 block = { whitespace* ~"{" ~ whitespace* ~ expression ~ whitespace* ~ "}" ~ whitespace* }
 comment_expression = _{ "/*" ~ comment ~ "*/" }

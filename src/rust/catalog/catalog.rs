@@ -65,6 +65,14 @@ impl XTemplate {
     pub fn defaults<'py>(&self, py: Python<'py>) -> &Bound<'py, PyAny> {
         self.defaults.bind(py)
     }
+
+    pub fn __str__<'py>(&self, py: Python<'py>) -> Result<String, PyErr> {
+        let r = self.node.getattr(py, "__repr__")?.call0(py)?;
+        let res: String = r.extract(py)?;
+        let p = self.params.getattr(py, "__repr__")?.call0(py)?;
+        let pres: String = p.extract(py)?;
+        Ok(format!("{}({})", res, pres))
+    }
 }
 
 #[pyclass]

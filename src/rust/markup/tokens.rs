@@ -123,7 +123,7 @@ impl ToHtml for XElement {
         let mut result = String::new();
         match catalog.get(py, self.name()) {
             Some(py_template) => {
-                debug!("Rendering template {:?}", py_template);
+                debug!("Rendering template {}", py_template);
 
                 let node = py_template.getattr("node")?.extract::<XNode>()?;
                 let node_attrs = py_template

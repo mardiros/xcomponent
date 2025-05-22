@@ -1,6 +1,4 @@
-from collections.abc import Mapping
 from xcomponent import Catalog, XNode
-from xcomponent.service.catalog import Component
 
 catalog = Catalog()
 

@@ -67,6 +67,7 @@ class XNode:
 class XTemplate:
     node: XNode
     params: Mapping[str, type | Any]
+    defaults: Mapping[str, Any]
 
 class XCatalog:
     def __init__(self) -> None: ...

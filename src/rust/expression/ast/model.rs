@@ -139,7 +139,7 @@ impl Literal {
         }
     }
     pub fn into_py<'py>(&self, py: Python<'py>) -> pyo3::Bound<'py, PyAny> {
-        match self {
+        let ret = match self {
             Literal::Bool(v) => v // wtf
                 .into_pyobject(py)
                 .unwrap()
@@ -150,7 +150,17 @@ impl Literal {
             Literal::Int(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::Str(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::XNode(v) => v.clone().into_pyobject(py).unwrap().into_any(),
-            Literal::List(v) => v.clone().into_pyobject(py).unwrap().into_any(),
+            Literal::List(v) => {
+
+                let vals = v
+                    .iter()
+                    .map(|o| o.into_py(py))
+                    .collect::<Vec<pyo3::Bound<'py, pyo3::PyAny>>>();
+                let lst = PyList::new(py, vals).unwrap();
+                lst.into_any()
+
+                // v.clone().into_pyobject(py).unwrap().into_any()
+            },
             Literal::Callable(v) => v.clone().into_pyobject(py).unwrap().into_any(), // wrong!
             Literal::Object(v) => v.clone().obj.into_pyobject(py).unwrap().into_any(),
             Literal::Dict(map) => {
@@ -164,7 +174,8 @@ impl Literal {
                 }
                 dict.into_any()
             }
-        }
+        };
+        ret
     }
 }
 

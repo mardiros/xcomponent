@@ -133,16 +133,14 @@ impl ToHtml for XElement {
 
                 for (name, attrnode) in self.attrs() {
                     if let XNode::Expression(ref expression) = attrnode {
-                        node_attrs.set_item(
-                            name,
-                            eval_expression(
-                                py,
-                                expression.expression(),
-                                &catalog,
-                                params.clone(),
-                                globals.clone(),
-                            )?,
+                        let node_attr_v = eval_expression(
+                            py,
+                            expression.expression(),
+                            &catalog,
+                            params.clone(),
+                            globals.clone(),
                         )?;
+                        node_attrs.set_item(name, node_attr_v.into_py(py))?;
                     } else {
                         node_attrs.set_item(
                             name,

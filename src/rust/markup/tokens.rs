@@ -2,10 +2,7 @@ use std::collections::HashMap;
 
 use pyo3::{prelude::*, types::PyDict};
 
-use crate::{
-    catalog::XCatalog,
-    expression::ast::{eval::eval_expression, model::Literal},
-};
+use crate::{catalog::XCatalog, context::Literal, expression::ast::eval::eval_expression};
 
 pub trait ToHtml {
     fn to_html<'py>(

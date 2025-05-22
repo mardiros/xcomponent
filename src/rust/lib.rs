@@ -9,6 +9,7 @@ use env_logger;
 use pyo3::prelude::*;
 
 mod catalog;
+mod context;
 mod expression;
 mod markup;
 

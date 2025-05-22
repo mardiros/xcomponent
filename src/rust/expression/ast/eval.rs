@@ -8,12 +8,12 @@ use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyTuple};
 
 use crate::catalog::XCatalog;
+use crate::context::{Literal, LiteralKey, Truthy};
+use crate::expression::ast::model::AST;
 use crate::expression::ast::parse::parse;
 use crate::expression::tokens::ExpressionToken;
 use crate::expression::{parser::tokenize, tokens::Operator};
 use crate::markup::tokens::ToHtml;
-
-use super::model::{Literal, LiteralKey, Truthy, AST};
 
 fn eval_add(l: Literal, r: Literal) -> PyResult<Literal> {
     match (l, r) {

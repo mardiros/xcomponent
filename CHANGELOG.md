@@ -1,3 +1,14 @@
+## 0.2.0  -  2025-05-22
+
+* Breaking changes: Now the catalog.render takes a kwargs for parameters, 
+  and, its not global parameters, to have global parameters, do a globals
+  named keyword arguments.
+* Breaking changes: Now, to access to global variable in a component,
+  the function must declared a parameter named 'globals', that will
+  received the globals context from the catalog.render keyword arguments.
+* Now any components can be rendered by calling the function, since the
+  signature of the functions must contains global for global variables.
+
 ## 0.1.10  -  2025-05-22
 
 * Implement comments in expression using /* this is a comment */ 

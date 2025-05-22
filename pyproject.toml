@@ -7,12 +7,15 @@ authors = [{ name = "Guillaume Gauvrit", email = "guillaume@gauvr.it" }]
 license = { text = "MIT" }
 requires-python = ">=3.11"
 classifiers = [
+    "Internet :: WWW/HTTP :: Dynamic Content",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Rust",
+    "Software Development :: User Interfaces",
+    "Text Processing :: Markup :: HTML",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
 ]

@@ -118,28 +118,28 @@ def test_render_children_param():
             "<div>I am in</div></details>",
             id="true",
         ),
-        # pytest.param(
-        #     catalog.render(
-        #         """
-        #         <Details summary="Click to expand" opened={false}>
-        #             <div>I am in</div>
-        #         </Details>
-        #         """
-        #     ),
-        #     "<details><summary>Click to expand</summary><div>I am in</div></details>",
-        #     id="false",
-        # ),
-        # pytest.param(
-        #     catalog.render(
-        #         """
-        #         <Details summary="Click to expand">
-        #             <div>I am in</div>
-        #         </Details>
-        #         """
-        #     ),
-        #     "<details><summary>Click to expand</summary><div>I am in</div></details>",
-        #     id="default",
-        # ),
+        pytest.param(
+            catalog.render(
+                """
+                <Details summary="Click to expand" opened={false}>
+                    <div>I am in</div>
+                </Details>
+                """
+            ),
+            "<details><summary>Click to expand</summary><div>I am in</div></details>",
+            id="false",
+        ),
+        pytest.param(
+            catalog.render(
+                """
+                <Details summary="Click to expand">
+                    <div>I am in</div>
+                </Details>
+                """
+            ),
+            "<details><summary>Click to expand</summary><div>I am in</div></details>",
+            id="default",
+        ),
     ],
 )
 def test_render_bool_attr(component, expected):

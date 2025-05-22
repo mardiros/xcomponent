@@ -155,13 +155,23 @@ impl XCatalog {
         node.to_html(py, &self, params, globals)
     }
 
+    #[pyo3(signature = (template, **kwds))]
     pub fn render<'py>(
         &self,
         py: Python<'py>,
         template: &str,
-        globals: Bound<'py, PyDict>,
+        kwds: Option<Bound<'py, PyDict>>,
     ) -> PyResult<String> {
         let node = parse_markup(template)?;
-        self.render_node(py, &node, PyDict::new(py), globals)
+        let params = if let Some(params) = kwds {
+            params
+        } else {
+            PyDict::new(py)
+        };
+        let globals: Bound<'py, PyDict> = params
+            .get_item("globals")?
+            .map(|o| o.extract())
+            .unwrap_or(Ok(PyDict::new(py)))?;
+        self.render_node(py, &node, params, globals)
     }
 }

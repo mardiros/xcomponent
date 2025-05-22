@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from typing import Any
+from typing import Mapping
 from xcomponent import Catalog
 
 catalog = Catalog()
@@ -23,11 +25,11 @@ def Excerpt(page: Page) -> str:
 
 
 @catalog.component
-def Home() -> str:
+def Home(globals: Mapping[str, Any]) -> str:
     return """
         <div>
         {
-          for page in pages {
+          for page in globals.pages {
             <Excerpt page={page} />
           }
         }
@@ -37,13 +39,14 @@ def Home() -> str:
 
 def test_render_attrs_from_globals():
     rendered = catalog.render(
-        "<Home/>",
-        {
-            "pages": [
-                Page(title="foo", summary="This is foo"),
-                Page(title="bar", summary="This is bar"),
-            ]
-        },
+        Home(
+            globals={
+                "pages": [
+                    Page(title="foo", summary="This is foo"),
+                    Page(title="bar", summary="This is bar"),
+                ]
+            }
+        ),
     )
     assert rendered == (
         "<div><div><h2>foo</h2><div>This is foo</div></div>"

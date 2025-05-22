@@ -222,15 +222,16 @@ pub fn eval_ast<'py>(
                 resp.map(|markup| Literal::Str(markup))
             }
             None => {
-                let k = LiteralKey::Str(name.clone());
-                if let Some(lit) = globals.get(&k) {
-                    Ok(lit.clone())
-                } else if let Some(_) = catalog.functions().get(name) {
-                    Ok(Literal::Callable(name.clone()))
+                if name == "globals" {
+                    Ok(Literal::Dict(globals.clone()))
                 } else {
-                    Err(PyErr::new::<pyo3::exceptions::PyUnboundLocalError, _>(
-                        format!("{:?} is undefined", name),
-                    ))
+                    if let Some(_) = catalog.functions().get(name) {
+                        Ok(Literal::Callable(name.clone()))
+                    } else {
+                        Err(PyErr::new::<pyo3::exceptions::PyUnboundLocalError, _>(
+                            format!("{:?} is undefined", name),
+                        ))
+                    }
                 }
             }
         },

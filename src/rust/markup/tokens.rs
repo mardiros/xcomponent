@@ -131,6 +131,14 @@ impl ToHtml for XElement {
                     .downcast::<PyDict>()?
                     .clone();
 
+                if let Some(_) = py_template
+                    .getattr("params")?
+                    .downcast::<PyDict>()?
+                    .get_item("globals")?
+                {
+                    node_attrs.set_item("globals", globals.clone())?;
+                }
+
                 for (name, attrnode) in self.attrs() {
                     if let XNode::Expression(ref expression) = attrnode {
                         let node_attr_v = eval_expression(

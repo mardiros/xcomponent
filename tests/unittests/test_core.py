@@ -22,7 +22,7 @@ def test_component():
     )
     assert template.params == {"text": str}
 
-    assert catalog.render("<H1 text='Hello'/>", {}) == '<h1 class="5xl">Hello</h1>'
+    assert catalog.render("<H1 text='Hello'/>") == '<h1 class="5xl">Hello</h1>'
 
 
 def test_function():
@@ -33,4 +33,4 @@ def test_function():
 
     catalog.add_function("mod", modulo)
     catalog.add_component("Modulo", Modulo(1, 1), {"x": int, "y": int}, {})
-    assert catalog.render("<Modulo x={7} y={3} />", {}) == "1"
+    assert catalog.render("<Modulo x={7} y={3} />") == "1"

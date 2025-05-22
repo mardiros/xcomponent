@@ -38,7 +38,7 @@ def Home() -> str:
 def test_render_attrs_from_globals():
     rendered = catalog.render(
         "<Home/>",
-        {
+        globals={
             "pages": [
                 Page(title="foo", summary="This is foo"),
                 Page(title="bar", summary="This is bar"),

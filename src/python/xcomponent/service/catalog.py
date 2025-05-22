@@ -23,8 +23,8 @@ class Catalog:
         self.scanned: set[ModuleType] = set()
         self._catalog = XCatalog()
 
-    def render(self, content: str, params: dict[str, Any] | None = None) -> str:
-        return self._catalog.render(content, params or {})
+    def render(self, content: str, **params: dict[str, Any]) -> str:
+        return self._catalog.render(content, **params)
 
     def register_template(
         self,
@@ -81,7 +81,7 @@ class Catalog:
                             break
                 for key, typ in template.params.items():
                     if typ is XNode:
-                        kwargs[key] = self._catalog.render(kwargs[key], {})
+                        kwargs[key] = self._catalog.render(kwargs[key])
 
                 return self._catalog.render_node(template.node, kwargs, {})
 

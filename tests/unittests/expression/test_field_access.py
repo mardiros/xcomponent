@@ -45,7 +45,8 @@ def Page(head: XNode):
 
 def test_render_nested_property():
     assert catalog.render(
-        "<Page head={<HtmlHead title={dummy.title}/>}/>", {"dummy": DummyObject()}
+        "<Page head={<HtmlHead title={dummy.title}/>}/>",
+        globals={"dummy": DummyObject()},
     ) == (
         "<html><head><title>a dummy title</title></head>"
         "<body><div>Dummy</div></body></html>"

@@ -25,7 +25,7 @@ def test_render_globals():
     assert (
         catalog.render(
             '<SidebarItem title="settings" route_name="account-settings"/>',
-            {"route_path": {"account-settings": "/account/settings"}},
+            globals={"route_path": {"account-settings": "/account/settings"}},
         )
         == '<li><a href="/account/settings">settings</a></li>'
     )
@@ -34,7 +34,7 @@ def test_render_globals():
 def test_render_globals_nested():
     assert catalog.render(
         "<Sidebar/>",
-        {
+        globals={
             "route_path": {
                 "home": "/",
                 "account-settings": "/account/settings",

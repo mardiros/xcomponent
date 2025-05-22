@@ -1,3 +1,8 @@
+## 0.1.10  -  2025-05-22
+
+* Implement comments in expression using /* this is a comment */ 
+* Bug fix on PyAny evaluation while props drilling
+
 ## 0.1.9  -  2025-05-21
 
 * Remove debug logging 

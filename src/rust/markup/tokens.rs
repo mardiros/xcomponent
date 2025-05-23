@@ -4,7 +4,7 @@ use pyo3::{prelude::*, types::PyDict};
 
 use crate::{
     catalog::XCatalog,
-    context::{Literal, RenderContext},
+    context::{Literal, LiteralKey, RenderContext},
     expression::ast::eval::eval_expression,
 };
 
@@ -146,9 +146,17 @@ impl ToHtml for XElement {
                     node_attrs.set_item("children", childchildren)?;
                 }
 
-                context.push(node_attrs)?;
-                result.push_str(catalog.render_node(py, &node, context)?.as_str());
-                context.pop();
+                let gblk = LiteralKey::Str("globals".to_string());
+                let mut shadow_context = RenderContext::new();
+                if let Some(glb) = context.get(&gblk) {
+                    shadow_context.insert(gblk, glb.clone());
+                }
+                shadow_context.push(node_attrs)?;
+                result.push_str(
+                    catalog
+                        .render_node(py, &node, &mut shadow_context)?
+                        .as_str(),
+                );
             }
             None => {
                 debug!("Rendering final element <{}/>", self.name);

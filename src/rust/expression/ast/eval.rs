@@ -218,6 +218,7 @@ pub fn eval_ast<'py>(
                 Some(Literal::Dict(v)) => Ok(Literal::Dict(v.clone())),
                 Some(Literal::Object(v)) => Ok(Literal::Object(v.clone())),
                 Some(Literal::XNode(ref node)) => {
+
                     let resp = catalog.render_node(py, node, context);
                     resp.map(|markup| Literal::Str(markup))
                 }

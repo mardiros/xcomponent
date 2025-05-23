@@ -4,7 +4,8 @@ use pyo3::{prelude::*, types::PyDict};
 
 use crate::{
     catalog::XCatalog,
-    expression::ast::{eval::eval_expression, model::Literal},
+    context::{Literal, LiteralKey, RenderContext},
+    expression::ast::eval::eval_expression,
 };
 
 pub trait ToHtml {
@@ -12,8 +13,7 @@ pub trait ToHtml {
         &self,
         py: Python<'py>,
         catalog: &XCatalog,
-        params: Bound<'py, PyDict>,
-        globals: Bound<'py, PyDict>,
+        context: &mut RenderContext,
     ) -> PyResult<String>;
 }
 
@@ -57,16 +57,11 @@ impl ToHtml for XFragment {
         &self,
         py: Python<'py>,
         catalog: &XCatalog,
-        params: Bound<'py, PyDict>,
-        globals: Bound<'py, PyDict>,
+        context: &mut RenderContext,
     ) -> PyResult<String> {
         let mut result = String::new();
         for child in self.children() {
-            result.push_str(
-                child
-                    .to_html(py, catalog, params.clone(), globals.clone())?
-                    .as_str(),
-            )
+            result.push_str(child.to_html(py, catalog, context)?.as_str())
         }
         Ok(result)
     }
@@ -117,8 +112,7 @@ impl ToHtml for XElement {
         &self,
         py: Python<'py>,
         catalog: &XCatalog,
-        params: Bound<'py, PyDict>,
-        globals: Bound<'py, PyDict>,
+        context: &mut RenderContext,
     ) -> PyResult<String> {
         let mut result = String::new();
         match catalog.get(py, self.name()) {
@@ -131,33 +125,15 @@ impl ToHtml for XElement {
                     .downcast::<PyDict>()?
                     .clone();
 
-                if let Some(_) = py_template
-                    .getattr("params")?
-                    .downcast::<PyDict>()?
-                    .get_item("globals")?
-                {
-                    node_attrs.set_item("globals", globals.clone())?;
-                }
-
                 for (name, attrnode) in self.attrs() {
                     if let XNode::Expression(ref expression) = attrnode {
-                        let node_attr_v = eval_expression(
-                            py,
-                            expression.expression(),
-                            &catalog,
-                            params.clone(),
-                            globals.clone(),
-                        )?;
+                        let node_attr_v =
+                            eval_expression(py, expression.expression(), &catalog, context)?;
                         node_attrs.set_item(name, node_attr_v.into_py(py))?;
                     } else {
                         node_attrs.set_item(
                             name,
-                            Literal::Str(catalog.render_node(
-                                py,
-                                &attrnode,
-                                PyDict::new(py),
-                                globals.clone(),
-                            )?),
+                            Literal::Str(catalog.render_node(py, &attrnode, context)?),
                         )?;
                     }
                 }
@@ -165,20 +141,22 @@ impl ToHtml for XElement {
                 if self.children().len() > 0 {
                     let mut childchildren = String::new();
                     for child in self.children() {
-                        childchildren.push_str(
-                            child
-                                .to_html(py, catalog, params.clone(), globals.clone())?
-                                .as_str(),
-                        )
+                        childchildren.push_str(child.to_html(py, catalog, context)?.as_str())
                     }
                     node_attrs.set_item("children", childchildren)?;
                 }
 
+                let gblk = LiteralKey::Str("globals".to_string());
+                let mut shadow_context = RenderContext::new();
+                if let Some(glb) = context.get(&gblk) {
+                    shadow_context.insert(gblk, glb.clone());
+                }
+                shadow_context.push(node_attrs)?;
                 result.push_str(
                     catalog
-                        .render_node(py, &node, node_attrs, globals.clone())?
+                        .render_node(py, &node, &mut shadow_context)?
                         .as_str(),
-                )
+                );
             }
             None => {
                 debug!("Rendering final element <{}/>", self.name);
@@ -186,30 +164,18 @@ impl ToHtml for XElement {
                 for (name, node) in self.attrs() {
                     let attr = match node {
                         XNode::Expression(ref expr) => {
-                            let v = eval_expression(
-                                py,
-                                expr.expression(),
-                                &catalog,
-                                params.clone(),
-                                globals.clone(),
-                            )?;
+                            let v = eval_expression(py, expr.expression(), &catalog, context)?;
                             match v {
                                 Literal::Bool(false) => "".to_string(),
                                 Literal::Bool(true) => format!(" {}", name),
                                 _ => {
-                                    let value = catalog.render_node(
-                                        py,
-                                        &node,
-                                        params.clone(),
-                                        globals.clone(),
-                                    )?;
+                                    let value = catalog.render_node(py, &node, context)?;
                                     format!(" {}=\"{}\"", name, value)
                                 }
                             }
                         }
                         _ => {
-                            let value =
-                                catalog.render_node(py, &node, params.clone(), globals.clone())?;
+                            let value = catalog.render_node(py, &node, context)?;
                             format!(" {}=\"{}\"", name, value)
                         }
                     };
@@ -218,11 +184,7 @@ impl ToHtml for XElement {
                 if self.children().len() > 0 {
                     result.push_str(">");
                     for child in self.children() {
-                        result.push_str(
-                            child
-                                .to_html(py, catalog, params.clone(), globals.clone())?
-                                .as_str(),
-                        )
+                        result.push_str(child.to_html(py, catalog, context)?.as_str())
                     }
                     result.push_str(format!("</{}>", self.name).as_str());
                 } else {
@@ -263,8 +225,7 @@ impl ToHtml for XDocType {
         &self,
         _: Python<'py>,
         _: &XCatalog,
-        _: Bound<'py, PyDict>,
-        _: Bound<'py, PyDict>,
+        _: &mut RenderContext,
     ) -> PyResult<String> {
         Ok(format!("{}", self.doctype()))
     }
@@ -299,8 +260,7 @@ impl ToHtml for XComment {
         &self,
         _: Python<'py>,
         _: &XCatalog,
-        _: Bound<'py, PyDict>,
-        _: Bound<'py, PyDict>,
+        _: &mut RenderContext,
     ) -> PyResult<String> {
         Ok(format!(
             "<!--{}-->",
@@ -338,8 +298,7 @@ impl ToHtml for XText {
         &self,
         _: Python<'py>,
         _: &XCatalog,
-        _: Bound<'py, PyDict>,
-        _: Bound<'py, PyDict>,
+        _: &mut RenderContext,
     ) -> PyResult<String> {
         return Ok(html_escape::encode_text(self.text()).to_string());
     }
@@ -372,16 +331,9 @@ impl XExpression {
         &self,
         py: Python<'py>,
         catalog: &XCatalog,
-        params: Bound<'py, PyDict>,
-        globals: Bound<'py, PyDict>,
+        context: &mut RenderContext,
     ) -> PyResult<Literal> {
-        eval_expression(
-            py,
-            self.expression(),
-            catalog,
-            params.clone(),
-            globals.clone(),
-        )
+        eval_expression(py, self.expression(), catalog, context)
     }
 }
 
@@ -390,13 +342,12 @@ impl ToHtml for XExpression {
         &self,
         py: Python<'py>,
         catalog: &XCatalog,
-        params: Bound<'py, PyDict>,
-        globals: Bound<'py, PyDict>,
+        context: &mut RenderContext,
     ) -> PyResult<String> {
         info!("Evaluating expression {}", self.expression());
-        debug!("{:?}", params.clone());
-        let res = self.to_literal(py, catalog, params.clone(), globals.clone())?;
-        res.to_html(py, catalog, params, globals)
+        debug!("{:?}", context);
+        let res = self.to_literal(py, catalog, context)?;
+        res.to_html(py, catalog, context)
     }
 }
 
@@ -526,16 +477,15 @@ impl ToHtml for XNode {
         &self,
         py: Python<'py>,
         catalog: &XCatalog,
-        params: Bound<'py, PyDict>,
-        globals: Bound<'py, PyDict>,
+        context: &mut RenderContext,
     ) -> PyResult<String> {
         match self {
-            XNode::Fragment(f) => f.to_html(py, catalog, params, globals),
-            XNode::Element(e) => e.to_html(py, catalog, params, globals),
-            XNode::DocType(d) => d.to_html(py, catalog, params, globals),
-            XNode::Text(t) => t.to_html(py, catalog, params, globals),
-            XNode::Comment(c) => c.to_html(py, catalog, params, globals),
-            XNode::Expression(e) => e.to_html(py, catalog, params, globals),
+            XNode::Fragment(f) => f.to_html(py, catalog, context),
+            XNode::Element(e) => e.to_html(py, catalog, context),
+            XNode::DocType(d) => d.to_html(py, catalog, context),
+            XNode::Text(t) => t.to_html(py, catalog, context),
+            XNode::Comment(c) => c.to_html(py, catalog, context),
+            XNode::Expression(e) => e.to_html(py, catalog, context),
         }
     }
 }

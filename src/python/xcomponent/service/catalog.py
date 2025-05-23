@@ -6,6 +6,7 @@ from types import ModuleType
 from typing import Callable, Any, overload
 
 from xcomponent.xcore import (
+    RenderContext,
     XCatalog,
     XNode,
 )
@@ -81,8 +82,9 @@ class Catalog:
                     if typ is XNode:
                         kwargs[key] = self._catalog.render(kwargs[key])
 
-                globals = kwargs.pop("globals", {})
-                return self._catalog.render_node(template.node, kwargs, globals)
+                context = RenderContext()
+                context.push(kwargs)
+                return self._catalog.render_node(template.node, context)
 
             self.register_template(component_name or fn.__name__, fn)
             return render

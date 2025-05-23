@@ -3,10 +3,11 @@ use std::slice::Iter;
 use pyo3::exceptions::PySyntaxError;
 use pyo3::prelude::*;
 
-use super::model::{Literal, AST};
-
-use crate::expression::tokens::ExpressionToken;
-use crate::expression::tokens::PostfixOp;
+use crate::context::Literal;
+use crate::expression::{
+    ast::model::AST,
+    tokens::{ExpressionToken, PostfixOp},
+};
 
 pub fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
     let ast = match tok {

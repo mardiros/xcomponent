@@ -10,8 +10,6 @@ from xcomponent.xcore import (
     XNode,
 )
 
-VENUSIAN_CATEGORY = "xcomponent"
-
 Component = Callable[..., str]
 Function = Callable[..., Any]
 

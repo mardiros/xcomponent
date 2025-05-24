@@ -20,7 +20,7 @@ on:
   pull_request:
     paths:
       # And when we change this workflow itself...
-      - .github/workflows/publish-docs.yml
+      - .github/workflows/publish-doc.yml
       - "docs/**"
       - "mkdocs.yml"
       - "pyproject.toml"

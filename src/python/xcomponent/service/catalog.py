@@ -50,18 +50,18 @@ class Catalog:
         """
         return self._catalog.render(content, **params)
 
-    def register_template(
+    def register_component(
         self,
         component_name: str,
-        params: Component,
+        component: Component,
     ) -> None:
         """
         Register a template.
 
-        :param name: the name of the template.
-        :param handler: function called when a step in a scenario match the pattern.
+        :param component_name: the name of the component.
+        :param component: function called when a step in a scenario match the pattern.
         """
-        signature = inspect.signature(params)
+        signature = inspect.signature(component)
 
         kwargs: dict[str, Any] = {}
         parameters: dict[str, type | Any] = {}
@@ -76,7 +76,7 @@ class Catalog:
             else:
                 parameters[name] = Any
 
-        template = params(**kwargs)
+        template = component(**kwargs)
         self._catalog.add_component(component_name, template, parameters, defaults)
 
     @overload
@@ -114,7 +114,7 @@ class Catalog:
                 context.push(kwargs)
                 return self._catalog.render_node(template.node, context)
 
-            self.register_template(component_name or fn.__name__, fn)
+            self.register_component(component_name or fn.__name__, fn)
             return render
 
         if isinstance(name, Callable):

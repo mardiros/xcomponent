@@ -39,10 +39,15 @@ jobs:
         run: uv sync --group docs
       - name: build docs
         run: uv run mkdocs build
+      - name: upload site directory
+        uses: actions/upload-artifact@v3
+        with:
+          name: site-artifact
+          path: site/
 
   deploy:
     needs: build
-    if: ${{ github.event.inputs.dry-run != 'true' }}
+    if: ${{ !inputs.dry-run }}
     runs-on: ubuntu-latest
 
     permissions:
@@ -55,6 +60,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      - name: download site directory
+        uses: actions/download-artifact@v4
+        with:
+          name: site-artifact
+          path: site/
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

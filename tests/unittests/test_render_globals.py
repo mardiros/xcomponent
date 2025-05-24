@@ -1,47 +1,49 @@
 from typing import Any
-from xcomponent import Catalog
-
+from xcomponent import Catalog, XNode
 
 catalog = Catalog()
 
 
 @catalog.component
-def SidebarItem(title: str, route_name: str, globals: Any) -> str:
+def Layout(head: XNode, children: XNode) -> str:
     return """
-        <li><a href={globals.route_path[route_name]}>{title}</a></li>
+        <>
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    {head}
+                </head>
+                <body>
+                    {children}
+                </body>
+            </html>
+        </>
     """
 
 
 @catalog.component
-def Sidebar() -> str:
+def HtmlHead(globals: Any) -> str:
     return """
-        <ul>
-            <SidebarItem title="home" route_name="home" />
-            <SidebarItem title="settings" route_name="account-settings" />
-        </ul>
+        <>
+            <title>{globals.title}</title>
+            {if globals.description {<meta name="description" content={globals.description}/>}}
+            <meta charset="UTF-8"/>
+        </>
     """
 
 
-def test_render_globals():
-    assert (
-        catalog.render(
-            '<SidebarItem title="settings" route_name="account-settings"/>',
-            globals={"route_path": {"account-settings": "/account/settings"}},
-        )
-        == '<li><a href="/account/settings">settings</a></li>'
-    )
+@catalog.component()
+def HelloWebPage(globals: Any) -> str:
+    return """
+      <Layout head={<HtmlHead />}>
+          <h1>Hello, world!"</h1>
+      </Layout>
+    """
 
 
-def test_render_globals_nested():
-    assert catalog.render(
-        "<Sidebar/>",
-        globals={
-            "route_path": {
-                "home": "/",
-                "account-settings": "/account/settings",
-            }
-        },
-    ) == (
-        '<ul><li><a href="/">home</a></li>'
-        '<li><a href="/account/settings">settings</a></li></ul>'
+def test_catalog_render():
+    assert HelloWebPage(globals={"title": "my title", "description": ""}) == (
+        "<!DOCTYPE html><html><head><title>my title</title>"
+        '<meta charset="UTF-8"/>'
+        '</head><body><h1>Hello, world!"</h1></body></html>'
     )

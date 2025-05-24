@@ -11,8 +11,7 @@ install:
 
 doc:
     uv sync --group dev --group docs
-    cd docs && uv run make html
-    xdg-open docs/build/html/index.html
+    uv run mkdocs serve
 
 cleandoc:
     rm -rf docs/build

@@ -40,38 +40,13 @@ jobs:
       - name: build docs
         run: uv run mkdocs build
       - name: upload site directory
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages
-          path: site/**
-
-  test-docs:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: download site directory
-        uses: actions/download-artifact@v4
-        with:
-          name: github-pages
-      - name: Prepare artifact
-        run: |
-          ls -l
-
-          find . -type l
-
-          find . -type f -links +1
-
-          # Check size
-          size=$(du -s . | cut -f1)
-          max=$((10 * 1024 * 1024))  # 10 GB in KB
-          if [ "$size" -ge "$max" ]; then
-            echo "Artifact too large: $(du -sh .)"
-            exit 1
-          fi
+          path: site/
 
   deploy:
-    needs: test-docs
-    if: ${{ !inputs.dry-run }}
+    needs: build
     runs-on: ubuntu-latest
 
     permissions:
@@ -88,4 +63,5 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
         with:
-          name: github-pages
+          artifact_name: github-pages
+          preview: ${{ inputs.dry-run }}

@@ -45,8 +45,31 @@ jobs:
           name: github-pages
           path: site/**
 
+  test-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: download site directory
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+      - name: Prepare artifact
+        run: |
+          ls -l
+
+          find . -type l
+
+          find . -type f -links +1
+
+          # Check size
+          size=$(du -s ./artifact_dir | cut -f1)
+          max=$((10 * 1024 * 1024))  # 10 GB in KB
+          if [ "$size" -ge "$max" ]; then
+            echo "Artifact too large: $(du -sh ./artifact_dir)"
+            exit 1
+          fi
+
   deploy:
-    needs: build
+    needs: test-docs
     if: ${{ !inputs.dry-run }}
     runs-on: ubuntu-latest
 
@@ -63,3 +86,5 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          name: github-pages

@@ -40,10 +40,10 @@ jobs:
       - name: build docs
         run: uv run mkdocs build
       - name: upload site directory
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: site-artifact
-          path: site/
+          path: site/**
 
   deploy:
     needs: build

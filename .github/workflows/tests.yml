@@ -9,6 +9,13 @@ on:
       - 'v*'  # Ignore pushes of tags starting with "v" (i.e., release tags)
   pull_request:
     branches: [main]
+    paths:
+      # And when we change this workflow itself...
+      - .github/workflows/tests.yml
+      - 'src/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'uv.lock'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:

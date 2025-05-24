@@ -1,3 +1,7 @@
+## 0.2.1  -  2025-05-24
+
+* Deploy a documentation 
+
 ## 0.2.0  -  2025-05-22
 
 * Breaking changes: Now the catalog.render takes a kwargs for parameters, 

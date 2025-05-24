@@ -62,10 +62,10 @@ jobs:
           find . -type f -links +1
 
           # Check size
-          size=$(du -s ./artifact_dir | cut -f1)
+          size=$(du -s . | cut -f1)
           max=$((10 * 1024 * 1024))  # 10 GB in KB
           if [ "$size" -ge "$max" ]; then
-            echo "Artifact too large: $(du -sh ./artifact_dir)"
+            echo "Artifact too large: $(du -sh .)"
             exit 1
           fi
 

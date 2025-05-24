@@ -46,6 +46,7 @@ jobs:
           path: site/**
 
   test-docs:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: download site directory

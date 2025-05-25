@@ -11,10 +11,11 @@ install:
 
 doc:
     uv sync --group dev --group docs
-    uv run mkdocs serve
+    cd docs && uv run make html
+    xdg-open docs/build/html/index.html
 
 cleandoc:
-    rm -rf docs/build
+    cd docs && uv run make clean
     rm -rf docs/source/develop
 
 test: unittest

@@ -31,22 +31,28 @@ Changelog = "https://mardiros.github.io/xcomponent/user/changelog.html"
 
 [project.optional-dependencies]
 docs = [
-  "furo >=2024.5.6",
-  "linkify-it-py >=2.0.3,<3",
-  "myst-parser >=4.0.0,<5",
-  "sphinx >=7.0.1,<8",
-  "sphinx-autodoc2 >=0.5.0,<1",
+    "furo >=2024.5.6",
+    "linkify-it-py >=2.0.3,<3",
+    "myst-parser >=4.0.0,<5",
+    "sphinx >=7.0.1,<8",
+    "sphinx-autodoc2 >=0.5.0,<1",
 ]
 
 [dependency-groups]
 dev = ["pytest >=8.3.5,<9"]
 docs = [
-  "furo >=2024.5.6",
-  "linkify-it-py >=2.0.3,<3",
-  "myst-parser >=4.0.0,<5",
-  "sphinx >=7.0.1,<8",
-  "sphinx-autodoc2 >=0.5.0,<1",
+    "furo >=2024.5.6",
+    "linkify-it-py >=2.0.3,<3",
+    "myst-parser >=4.0.0,<5",
+    "sphinx >=7.0.1,<8",
+    "sphinx-autodoc2 >=0.5.0,<1",
 ]
+
+[tool.pyright]
+include = ["src/python", "test"]
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false
+venvPath = ".venv"
 
 [tool.maturin]
 bindings = "pyo3"

@@ -18,6 +18,31 @@ pub enum ExpType {
 pub struct OperatorErr;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub enum UnaryOperator {
+    Not,
+}
+
+impl FromStr for UnaryOperator {
+    type Err = OperatorErr;
+
+    fn from_str(op: &str) -> Result<Self, Self::Err> {
+        match op {
+            "not" => Ok(UnaryOperator::Not),
+            _ => Err(OperatorErr),
+        }
+    }
+}
+
+impl fmt::Display for UnaryOperator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let op = match self {
+            UnaryOperator::Not => "not",
+        };
+        write!(f, "{}", op)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Operator {
     Add,
     Sub,
@@ -88,6 +113,10 @@ pub enum PostfixOp {
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExpressionToken {
     BinaryExpression(Vec<ExpressionToken>),
+    UnaryExpression {
+        op: UnaryOperator,
+        expr: Box<ExpressionToken>,
+    },
     Ident(String),
     Operator(Operator),
     String(String),
@@ -118,6 +147,9 @@ impl std::fmt::Display for ExpressionToken {
                     "{}",
                     children.iter().map(|v| v.to_string()).collect::<String>()
                 )
+            }
+            ExpressionToken::UnaryExpression { op, expr } => {
+                write!(f, "{} {}", op, expr)
             }
             ExpressionToken::Ident(ident) => {
                 write!(f, "{}", ident)

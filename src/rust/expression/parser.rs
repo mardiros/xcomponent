@@ -9,7 +9,7 @@ use pyo3::PyErr;
 use crate::expression::tokens::ExpressionToken;
 use crate::markup::parser::parse_markup;
 
-use super::tokens::PostfixOp;
+use super::tokens::{PostfixOp, UnaryOperator};
 
 #[derive(Parser)]
 #[grammar = "rust/expression/grammar.pest"]
@@ -63,6 +63,18 @@ fn parse_expression_token(pair: Pair<Rule>) -> Result<ExpressionToken, String> {
                 tokens.push(parse_expression_token(p)?);
             }
             Ok(ExpressionToken::BinaryExpression(tokens))
+        }
+        Rule::unary_expression => {
+            let mut inner = pair.into_inner();
+
+            // Since the rule is: "not" ~ binary_expression
+            // We don't need to parse the "not" token explicitly; it's implicit in the rule
+            let expr = parse_expression_token(inner.next().unwrap())?;
+
+            Ok(ExpressionToken::UnaryExpression {
+                op: UnaryOperator::Not,
+                expr: Box::new(expr),
+            })
         }
         Rule::if_expression => {
             let mut inner = pair.into_inner();

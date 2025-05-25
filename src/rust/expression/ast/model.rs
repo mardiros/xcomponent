@@ -1,11 +1,15 @@
 use crate::context::Literal;
-use crate::expression::tokens::Operator;
+use crate::expression::tokens::{Operator, UnaryOperator};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub enum AST {
     Variable(String),
     Literal(Literal),
+    Unary {
+        op: UnaryOperator,
+        expr: Box<AST>,
+    },
     Binary {
         left: Box<AST>,
         op: Operator,

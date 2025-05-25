@@ -35,16 +35,16 @@ from its parent; the parent must pass context as attributes.
 There are three kinds of context:
 
 - The catalog, where components and functions are registered. It is context-less,
-meaning that, like nodes, they are reused from one rendering to another as static.
+  meaning that, like nodes, they are reused from one rendering to another as static.
 
 - Then, during a rendering, a global context can be passed to have data shared
-by all the nodes without having to do what we call "props drilling"—passing variables
-from parent to child using attribute variables.
-The global context is not static; it is global for a given rendering.
+  by all the nodes without having to do what we call "props drilling"—passing variables
+  from parent to child using attribute variables.
+  The global context is not static; it is global for a given rendering.
 
 - Properties which are local to a component. In that case, the variables of the
-component are purely local; they are the parameters of the function of the template,
-except the globals one, which has to be declared too.
+  component are purely local; they are the parameters of the function of the template,
+  except the globals one, which has to be declared too.
 
 ### Building a web page
 
@@ -172,7 +172,6 @@ produce an XNode; it will produce a string.
     The resulting HTML from the rendering will have all whitespace characters removed.
     There is no option to generate pretty HTML.
 
-
 ### Using globals
 
 At the moment, to avoid props drilling, there is no solution like a hook context.
@@ -231,11 +230,10 @@ assert HelloWebPage(globals={"title": "my title", "description": ""}) == (
 
 !!! important
 
-  The description is passed as an empty string and is mandatory.
-  There is no native null/None value, and the access to `globals.description`
-  will raise a KeyError if it is not present.
-  There is no undefined value like in JavaScript either.
-
+The description is passed as an empty string and is mandatory.
+There is no native null/None value, and the access to `globals.description`
+will raise a KeyError if it is not present.
+There is no undefined value like in JavaScript either.
 
 XComponent is still in its early stages and should offer solutions for this.
 A good alternative would be to use **a type with dataclasses or pydantic for the
@@ -311,15 +309,15 @@ def HelloWorld(names: dict[str, str]) -> str:
 
 ### Operators
 
-| Type  | +      | -        | *        | /      |
-|-------|--------|----------|----------|--------|
-| bool  | add    | subtract | multiply | divide |
-| int   | add    | subtract | multiply | divide |
-| str   | concat | n/a      | repeat   | n/a    |
-| UUID  | n/a    | n/a      | n/a      | n/a    |
-| dict  | n/a    | n/a      | n/a      | n/a    |
-| list  | n/a    | n/a      | n/a      | n/a    |
-| any   | n/a    | n/a      | n/a      | n/a    |
+| Type | +      | -        | \*       | /      |
+| ---- | ------ | -------- | -------- | ------ |
+| bool | add    | subtract | multiply | divide |
+| int  | add    | subtract | multiply | divide |
+| str  | concat | n/a      | repeat   | n/a    |
+| UUID | n/a    | n/a      | n/a      | n/a    |
+| dict | n/a    | n/a      | n/a      | n/a    |
+| list | n/a    | n/a      | n/a      | n/a    |
+| any  | n/a    | n/a      | n/a      | n/a    |
 
 Due to the nature of booleans in Python, bools are integers 0 and 1, so operations between booleans and integers are permitted.
 
@@ -329,9 +327,7 @@ Strings can be multiplied by an integer, like in Python, to produce a repeated s
 
 All types support Python truthy/falsey values.
 
-The operators are `and` and `or`.
-
-The "not" operator is not implemented (yet).
+The operators include `and` and `or`. The `not` operator is used to reverse a condition.
 
 Parentheses are not implemented.
 
@@ -340,7 +336,7 @@ Python functions can be registered to mitigate or implement complex binary opera
 #### Comparison Operators
 
 | `==`   | `!=`       | `>=`                  | `<=`               | `>`          | `<`       |
-|--------|------------|-----------------------|--------------------|--------------|-----------|
+| ------ | ---------- | --------------------- | ------------------ | ------------ | --------- |
 | equals | not equals | greater than or equal | less than or equal | greater than | less than |
 
 ### If Syntax
@@ -376,3 +372,13 @@ Example:
 ```
 
 Blocks can contain other expressions or self-closed markup only as a design choice.
+
+````{important}
+this is not python code, you can do
+```jsx
+{
+ /* ❌ this is wrong */
+ if x in my_list { <hr/> }
+}
+```
+````

@@ -4,7 +4,8 @@ __pycache__/
 build/
 dist/
 wheels/
-site/
+docs/source/develop/
+!docs/source/develop/.gitkeep
 *.egg-info
 
 # Virtual environments

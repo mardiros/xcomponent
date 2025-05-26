@@ -11,6 +11,13 @@ use crate::expression::{
 
 pub fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
     let ast = match tok {
+        ExpressionToken::UnaryExpression { op, expr } => {
+            let inner = token_to_ast(expr)?;
+            Ok(AST::Unary {
+                op: op.clone(),
+                expr: Box::new(inner),
+            })
+        }
         ExpressionToken::BinaryExpression(ex) => Ok(parse(ex.as_slice())?),
         ExpressionToken::String(s) => Ok(AST::Literal(Literal::Str(s.to_string()))),
         // ExpressionToken::Uuid(s) => Ok(AST::Literal(Literal::Uuid(s.to_string()))),

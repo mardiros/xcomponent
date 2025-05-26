@@ -11,7 +11,7 @@ use crate::catalog::XCatalog;
 use crate::context::{Literal, LiteralKey, RenderContext, Truthy};
 use crate::expression::ast::model::AST;
 use crate::expression::ast::parse::parse;
-use crate::expression::tokens::ExpressionToken;
+use crate::expression::tokens::{ExpressionToken, UnaryOperator};
 use crate::expression::{parser::tokenize, tokens::Operator};
 use crate::markup::tokens::ToHtml;
 
@@ -186,6 +186,16 @@ pub fn eval_ast<'py>(
     match ast {
         AST::Literal(lit) => Ok(lit.clone()),
 
+        AST::Unary { op, expr } => {
+            let value = eval_ast(py, expr, catalog, context)?;
+            match (op, value) {
+                (UnaryOperator::Not, Literal::Bool(b)) => Ok(Literal::Bool(!b)),
+                (UnaryOperator::Not, other) => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
+                    format!("Cannot apply 'not' to {:?}", other),
+                )),
+            }
+        }
+
         AST::Binary { left, op, right } => {
             let l = eval_ast(py, left, catalog, context)?;
             let r = eval_ast(py, right, catalog, context)?;
@@ -218,7 +228,6 @@ pub fn eval_ast<'py>(
                 Some(Literal::Dict(v)) => Ok(Literal::Dict(v.clone())),
                 Some(Literal::Object(v)) => Ok(Literal::Object(v.clone())),
                 Some(Literal::XNode(ref node)) => {
-
                     let resp = catalog.render_node(py, node, context);
                     resp.map(|markup| Literal::Str(markup))
                 }

@@ -25,6 +25,11 @@ def IfNotElseStmt(a: bool, b: str, c: str) -> str:
     return """<p>{ if not a { b } else { c } }</p>"""
 
 
+@catalog.component
+def IfListStmt(a: list[str], b: str) -> str:
+    return """<p>{if a { for x in a { a } } else { b } }</p>"""
+
+
 @pytest.mark.parametrize(
     "result,expected",
     [
@@ -36,6 +41,8 @@ def IfNotElseStmt(a: bool, b: str, c: str) -> str:
         pytest.param(IfNotStmt(True, "Yes"), "<p></p>"),
         pytest.param(IfNotElseStmt(True, "No", "Yes"), "<p>Yes</p>"),
         pytest.param(IfNotElseStmt(False, "No", "Yes"), "<p>No</p>"),
+        pytest.param(IfListStmt(["a"], "b"), "<p>a</p>"),
+        pytest.param(IfListStmt([], "b"), "<p>b</p>"),
     ],
 )
 def test_if(result: str, expected: str):

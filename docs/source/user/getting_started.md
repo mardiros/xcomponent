@@ -267,7 +267,8 @@ Every other type is kept as a Python type and can be consumed with all their met
 
 String objects can be enclosed by double quotes or single quotes.
 
-Boolean values are `true` and `false`, like in JavaScript, Rust, and many languages, except Python.
+Boolean values are `true` and `false`, like in JavaScript, Rust, and many languages,
+except Python.
 
 ### Functions
 
@@ -297,7 +298,8 @@ def HelloWorld(names: list[str]) -> str:
 
 ### Dict and Object Attributes
 
-To access a dictionary or an attribute of any Python object, the `.` must be used, or the `[]` can be used like in JavaScript.
+To access a dictionary or an attribute of any Python object, the `.` must be used,
+or the `[]` can be used like in JavaScript.
 
 There is no distinction between accessing dictionary keys and object attributes.
 
@@ -319,7 +321,8 @@ def HelloWorld(names: dict[str, str]) -> str:
 | list | n/a    | n/a      | n/a      | n/a    |
 | any  | n/a    | n/a      | n/a      | n/a    |
 
-Due to the nature of booleans in Python, bools are integers 0 and 1, so operations between booleans and integers are permitted.
+Due to the nature of booleans in Python, bools are integers 0 and 1, so operations
+between booleans and integers are permitted.
 
 Strings can be multiplied by an integer, like in Python, to produce a repeated string.
 

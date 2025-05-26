@@ -6,7 +6,6 @@
 :maxdepth: 1
 :caption: Users Documentation:
 
-user/index
 user/getting_started
 user/changelog
 ```

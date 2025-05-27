@@ -1,3 +1,9 @@
+## 0.3.0  -  2025-05-27
+
+* Implement `not` operator.
+* Fix binary operation precedence.
+* Switch documentation from mkdocs to sphinx.
+
 ## 0.2.1  -  2025-05-24
 
 * Deploy a documentation 

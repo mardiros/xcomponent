@@ -20,7 +20,7 @@ call_arg = _{ kw_arg | pos_arg }
 pos_arg = { expression }
 kw_arg = { ident ~ whitespace* ~ "=" ~ whitespace* ~ expression }
 
-primary = _{ component | ident | string | integer | boolean }
+primary = _{ "(" ~ expression ~ ")" | component | ident | string | integer | boolean }
 component = { "<" ~ (!"/>" ~ ANY)* ~ "/>" }
 
 operator = { "+" | "-" | "*" | "/" | "and" | "or" | "==" | "!=" | ">=" | "<=" | ">" | "<" }

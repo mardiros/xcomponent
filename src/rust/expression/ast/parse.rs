@@ -9,16 +9,19 @@ use crate::expression::{
     tokens::{ExpressionToken, PostfixOp},
 };
 
-pub fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
+pub fn token_to_ast(tok: &ExpressionToken, min_prec: u8) -> Result<AST, PyErr> {
     let ast = match tok {
         ExpressionToken::UnaryExpression { op, expr } => {
-            let inner = token_to_ast(expr)?;
+            let inner = token_to_ast(expr, min_prec)?;
             Ok(AST::Unary {
                 op: op.clone(),
                 expr: Box::new(inner),
             })
         }
-        ExpressionToken::BinaryExpression(ex) => Ok(parse(ex.as_slice())?),
+        ExpressionToken::BinaryExpression(ex) => {
+            let mut exp = ex.clone();
+            Ok(parse(&mut exp, min_prec)?)
+        }
         ExpressionToken::String(s) => Ok(AST::Literal(Literal::Str(s.to_string()))),
         // ExpressionToken::Uuid(s) => Ok(AST::Literal(Literal::Uuid(s.to_string()))),
         ExpressionToken::Boolean(b) => Ok(AST::Literal(Literal::Bool(b.clone()))),
@@ -35,10 +38,10 @@ pub fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
             then_branch,
             else_branch,
         } => Ok(AST::IfStatement {
-            condition: token_to_ast(condition).map(|x| Box::new(x))?,
-            then_branch: token_to_ast(then_branch).map(|x| Box::new(x))?,
+            condition: token_to_ast(condition, min_prec).map(|x| Box::new(x))?,
+            then_branch: token_to_ast(then_branch, min_prec).map(|x| Box::new(x))?,
             else_branch: match else_branch {
-                Some(token) => Some(token_to_ast(token).map(|x| Box::new(x))?),
+                Some(token) => Some(token_to_ast(token, min_prec).map(|x| Box::new(x))?),
                 None => None,
             },
         }),
@@ -48,8 +51,8 @@ pub fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
             body,
         } => Ok(AST::ForStatement {
             ident: ident.clone(),
-            iterable: token_to_ast(iterable).map(|x| Box::new(x))?,
-            body: token_to_ast(body).map(|x| Box::new(x))?,
+            iterable: token_to_ast(iterable, min_prec).map(|x| Box::new(x))?,
+            body: token_to_ast(body, min_prec).map(|x| Box::new(x))?,
         }),
         // Comment produce a Noop
         ExpressionToken::Noop => Ok(AST::Literal(Literal::Str("".to_string()))),
@@ -61,7 +64,7 @@ pub fn token_to_ast(tok: &ExpressionToken) -> Result<AST, PyErr> {
     ast
 }
 
-pub fn get_left(iter: &mut Iter<ExpressionToken>) -> Result<AST, PyErr> {
+pub fn get_left(iter: &mut std::iter::Peekable<Iter<ExpressionToken>>) -> Result<AST, PyErr> {
     loop {
         let tok = iter
             .next()
@@ -69,63 +72,74 @@ pub fn get_left(iter: &mut Iter<ExpressionToken>) -> Result<AST, PyErr> {
         match tok {
             ExpressionToken::Noop => {}
             _ => {
-                return token_to_ast(&tok);
+                return token_to_ast(&tok, 0);
             }
         }
     }
 }
 
-pub fn parse_next(iter: &mut Iter<ExpressionToken>) -> Result<AST, PyErr> {
+fn get_next_token(
+    iter: &mut std::iter::Peekable<Iter<ExpressionToken>>,
+    min_prec: u8,
+) -> Result<AST, PyErr> {
     let mut left = get_left(iter)?;
-    while let Some(op_token) = iter.next() {
-        match op_token {
-            ExpressionToken::PostfixOp(op) => match op {
-                PostfixOp::Field(f) => left = AST::FieldAccess(Box::new(left), f.clone()),
-                PostfixOp::Index(i) => {
-                    left = AST::IndexAccess(Box::new(left), Box::new(token_to_ast(&i)?))
-                }
-                PostfixOp::Call { args, kwargs } => {
-                    left = AST::CallAccess {
-                        left: Box::new(left),
-                        args: args
-                            .into_iter()
-                            .map(|arg| -> Result<_, _> { token_to_ast(&arg) })
-                            .collect::<Result<_, _>>()?,
-                        kwargs: kwargs
-                            .into_iter()
-                            .map(|(k, v)| -> Result<(String, AST), PyErr> {
-                                Ok((k.clone(), token_to_ast(&v)?))
-                            })
-                            .collect::<Result<_, _>>()?,
-                    };
-                }
-            },
-            ExpressionToken::Operator(op) => {
-                let right = parse_next(iter)?;
 
+    while let Some(token) = iter.peek() {
+        match token {
+            ExpressionToken::Operator(op) if op.precedence() >= min_prec => {
+                let op = if let Some(ExpressionToken::Operator(op)) = iter.next() {
+                    op.clone()
+                } else {
+                    break;
+                };
+
+                let right = get_next_token(iter, op.precedence() + 1)?;
                 left = AST::Binary {
                     left: Box::new(left),
-                    op: op.clone(),
+                    op,
                     right: Box::new(right),
                 };
             }
+            ExpressionToken::PostfixOp(_) => {
+                let op = iter.next().unwrap(); // safe to consume
+                match op {
+                    ExpressionToken::PostfixOp(PostfixOp::Field(f)) => {
+                        left = AST::FieldAccess(Box::new(left), f.clone())
+                    }
+                    ExpressionToken::PostfixOp(PostfixOp::Index(i)) => {
+                        left =
+                            AST::IndexAccess(Box::new(left), Box::new(token_to_ast(&i, min_prec)?))
+                    }
+                    ExpressionToken::PostfixOp(PostfixOp::Call { args, kwargs }) => {
+                        left = AST::CallAccess {
+                            left: Box::new(left),
+                            args: args
+                                .into_iter()
+                                .map(|arg| -> Result<_, _> { token_to_ast(&arg, min_prec) })
+                                .collect::<Result<_, _>>()?,
+                            kwargs: kwargs
+                                .into_iter()
+                                .map(|(k, v)| -> Result<(String, AST), PyErr> {
+                                    Ok((k.clone(), token_to_ast(&v, min_prec)?))
+                                })
+                                .collect::<Result<_, _>>()?,
+                        };
+                    }
+                    _ => unreachable!(),
+                }
+            }
             ExpressionToken::Noop => {
-                // A rule that ignore comment
+                iter.next(); // consume and ignore
             }
-            _ => {
-                return Err(PySyntaxError::new_err(format!(
-                    "Operator expected, got {:?}",
-                    op_token,
-                )))
-            }
-        };
+            _ => break,
+        }
     }
 
     Ok(left)
 }
 
-pub fn parse(tokens: &[ExpressionToken]) -> Result<AST, PyErr> {
+pub fn parse(tokens: &[ExpressionToken], min_prec: u8) -> Result<AST, PyErr> {
     debug!(">>>> Parsing tokens :{:?}", tokens);
-    let mut iter = tokens.iter();
-    parse_next(&mut iter)
+    let mut iter = tokens.iter().peekable();
+    get_next_token(&mut iter, min_prec)
 }

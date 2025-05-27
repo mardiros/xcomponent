@@ -80,6 +80,19 @@ impl FromStr for Operator {
     }
 }
 
+impl Operator {
+    pub fn precedence(&self) -> u8 {
+        match self {
+            Operator::Or => 1,
+            Operator::And => 2,
+            Operator::Eq | Operator::Neq => 3,
+            Operator::Gt | Operator::Gte | Operator::Lt | Operator::Lte => 4,
+            Operator::Add | Operator::Sub => 5,
+            Operator::Mul | Operator::Div => 6,
+        }
+    }
+}
+
 impl fmt::Display for Operator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let op = match self {

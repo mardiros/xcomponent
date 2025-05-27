@@ -417,7 +417,7 @@ pub fn eval_expression<'py>(
     match token {
         ExpressionToken::Noop => Ok(Literal::Str("".to_string())),
         _ => {
-            let ast = parse(&[token])?;
+            let ast = parse(&[token], 0)?;
             eval_ast(py, &ast, catalog, context)
         }
     }

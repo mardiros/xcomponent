@@ -326,21 +326,33 @@ between booleans and integers are permitted.
 
 Strings can be multiplied by an integer, like in Python, to produce a repeated string.
 
+
 #### Binary Operators
 
 All types support Python truthy/falsey values.
 
 The operators include `and` and `or`. The `not` operator is used to reverse a condition.
 
-Parentheses are not implemented.
+Also, Python functions can be registered to mitigate or implement complex binary operations.
 
-Python functions can be registered to mitigate or implement complex binary operations.
 
 #### Comparison Operators
 
 | `==`   | `!=`       | `>=`                  | `<=`               | `>`          | `<`       |
 | ------ | ---------- | --------------------- | ------------------ | ------------ | --------- |
 | equals | not equals | greater than or equal | less than or equal | greater than | less than |
+
+
+
+#### Priority
+
+The priority of operators follows the mathematical order.
+Multiplication and division have the highest priority, followed by addition and
+subtraction, then greater than or equal to and less than or equal to, next are
+equals and not equals, followed by the and operator, and finally the or operator.
+
+The parenthesis, such as **( *condition* )** can be used to override the priority.
+
 
 ### If Syntax
 

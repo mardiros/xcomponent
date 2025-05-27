@@ -1,3 +1,7 @@
+## 0.3.1  -  2025-05-27
+
+* Fix PyPI classifiers 
+
 ## 0.3.0  -  2025-05-27
 
 * Implement `not` operator.

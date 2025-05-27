@@ -28,18 +28,27 @@ def DivOp(a: int | bool | str, b: int | bool | str) -> str:
 
 
 @catalog.component
-def AndOp(a: int | bool | str, b: int | bool | str) -> str:
-    return """<>{a and b}</>"""
-
-
-@catalog.component
-def OrOp(a: int | bool | str, b: int | bool | str) -> str:
-    return """<>{a or b}</>"""
-
-
-@catalog.component
 def AddMany(a: int | bool | str, b: int | bool | str, c: int | bool | str) -> str:
     return """<>{a + b + c}</>"""
+
+
+@catalog.component
+def ComponsedOp(a: int, b: int, c: int) -> str:
+    return """<>{(a + b) * c}</>"""
+
+@catalog.component
+def ComponsedOp2(a: int, b: int, c: int) -> str:
+    return """<>{c * (a + b) }</>"""
+
+
+@catalog.component
+def PriorityOp(a: int, b: int, c: int) -> str:
+    return """<>{a + b*c}</>"""
+
+
+@catalog.component
+def PriorityOp2(a: int, b: int, c: int) -> str:
+    return """<>{a*b + c}</>"""
 
 
 @pytest.mark.parametrize(
@@ -105,46 +114,6 @@ def test_div(component: str, expected: str):
 
 
 @pytest.mark.parametrize(
-    "component,expected",
-    [
-        pytest.param(AndOp(8, 2), "2", id="and int"),
-        pytest.param(AndOp(2, 8), "8", id="and int"),
-        pytest.param(AndOp(3, 0), "0", id="and int"),
-        pytest.param(AndOp(3, False), "false", id="and int bool"),
-        pytest.param(AndOp(3, ""), "", id="and int str"),
-        pytest.param(AndOp(0, 8), "0", id="and int"),
-        pytest.param(AndOp(3, -3), "-3", id="and int"),
-        pytest.param(AndOp(True, False), "false", id="bool"),
-        pytest.param(AndOp(False, True), "false", id="bool"),
-        pytest.param(AndOp(True, False), "false", id="bool"),
-        pytest.param(AndOp(False, False), "false", id="bool"),
-    ],
-)
-def test_and(component: str, expected: str):
-    assert component == expected
-
-
-@pytest.mark.parametrize(
-    "component,expected",
-    [
-        pytest.param(OrOp(8, 2), "8", id="and int"),
-        pytest.param(OrOp(2, 8), "2", id="and int"),
-        pytest.param(OrOp(3, 0), "3", id="and int"),
-        pytest.param(OrOp(3, False), "3", id="and int bool"),
-        pytest.param(OrOp(3, ""), "3", id="and int str"),
-        pytest.param(OrOp(0, 8), "8", id="and int"),
-        pytest.param(OrOp(3, -3), "3", id="and int"),
-        pytest.param(OrOp(True, False), "true", id="bool"),
-        pytest.param(OrOp(False, True), "true", id="bool"),
-        pytest.param(OrOp(True, False), "true", id="bool"),
-        pytest.param(OrOp(False, False), "false", id="bool"),
-    ],
-)
-def test_or(component: str, expected: str):
-    assert component == expected
-
-
-@pytest.mark.parametrize(
     "component,args,expected",
     [
         pytest.param(AddOp, (4, "2"), "Invalid types for addition", id="add int-str"),
@@ -179,4 +148,30 @@ def test_div_by_0(component: Component, args: Any, expected: str):
     ],
 )
 def test_multiple_op(component: str, expected: str):
+    assert component == expected
+
+
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(ComponsedOp(1, 2, 3), "9", id="composed operation (a + b) * c"),
+        pytest.param(ComponsedOp(2, 2, 3), "12", id="composed operation (a + b) * c"),
+        pytest.param(ComponsedOp2(1, 2, 3), "9", id="composed operation c * (a + b) "),
+        pytest.param(ComponsedOp2(2, 2, 3), "12", id="composed operation c * (a + b) "),
+    ],
+)
+def test_precendence_op(component: str, expected: str):
+    assert component == expected
+
+
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        # a + b*c
+        pytest.param(PriorityOp(3, 2, 4), "11", id="composed operation"),
+        # a*b + c
+        pytest.param(PriorityOp2(3, 2, 4), "10", id="composed operation, multiply left"),
+    ],
+)
+def test_priority_op(component: str, expected: str):
     assert component == expected

@@ -36,6 +36,7 @@ def AddMany(a: int | bool | str, b: int | bool | str, c: int | bool | str) -> st
 def ComponsedOp(a: int, b: int, c: int) -> str:
     return """<>{(a + b) * c}</>"""
 
+
 @catalog.component
 def ComponsedOp2(a: int, b: int, c: int) -> str:
     return """<>{c * (a + b) }</>"""
@@ -170,7 +171,9 @@ def test_precendence_op(component: str, expected: str):
         # a + b*c
         pytest.param(PriorityOp(3, 2, 4), "11", id="composed operation"),
         # a*b + c
-        pytest.param(PriorityOp2(3, 2, 4), "10", id="composed operation, multiply left"),
+        pytest.param(
+            PriorityOp2(3, 2, 4), "10", id="composed operation, multiply left"
+        ),
     ],
 )
 def test_priority_op(component: str, expected: str):

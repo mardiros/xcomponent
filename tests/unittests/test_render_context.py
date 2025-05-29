@@ -1,6 +1,6 @@
 import pytest
 
-from xcomponent import Catalog, XNode
+from xcomponent import Catalog
 
 catalog = Catalog()
 

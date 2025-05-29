@@ -98,8 +98,10 @@ class Catalog:
 
         def decorator(fn: Component):
             @wraps(fn)
-            def render(*args, **kwargs):
+            def render(*args: Any, **kwargs: Any) -> str:
                 template = self._catalog.get(component_name or fn.__name__)
+                context = RenderContext()
+                context.push(template.defaults)
                 if args:
                     for i, key in enumerate(template.params.keys()):
                         if i < len(args):
@@ -110,7 +112,6 @@ class Catalog:
                     if typ is XNode:
                         kwargs[key] = self._catalog.render(kwargs[key])
 
-                context = RenderContext()
                 context.push(kwargs)
                 return self._catalog.render_node(template.node, context)
 

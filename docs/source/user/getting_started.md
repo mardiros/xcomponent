@@ -228,12 +228,9 @@ assert HelloWebPage(globals={"title": "my title", "description": ""}) == (
 )
 ```
 
-!!! important
 
 The description is passed as an empty string and is mandatory.
-There is no native null/None value, and the access to `globals.description`
-will raise a KeyError if it is not present.
-There is no undefined value like in JavaScript either.
+The access to `globals.description` will raise a KeyError if it is not present.
 
 XComponent is still in its early stages and should offer solutions for this.
 A good alternative would be to use **a type with dataclasses or pydantic for the
@@ -256,6 +253,7 @@ Access to methods and properties is tied to the Python GIL.
 
 Native Types:
 
+- None
 - str
 - int
 - bool
@@ -269,6 +267,9 @@ String objects can be enclosed by double quotes or single quotes.
 
 Boolean values are `true` and `false`, like in JavaScript, Rust, and many languages,
 except Python.
+
+None value is render has an empty string for a XNode, and completely remove
+the rendering of attributes.
 
 ### Functions
 

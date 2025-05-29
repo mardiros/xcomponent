@@ -108,11 +108,11 @@ def HelloWebPage(title: str) -> str:
     """
 ```
 
-!!! important
-
-    The head attribute cannot be a markup; it must be a single closed tag-only
-    component.
-    This limitation is currently a design choice to avoid code complexity.
+```{important}
+The head attribute cannot be a markup; it must be a single closed tag-only
+component.
+This limitation is currently a design choice to avoid code complexity.
+```
 
 The title here must be passed to the layout in order for the layout to pass it
 on to the HTML head component.
@@ -167,10 +167,10 @@ directly is cleaner and easier to write with proper type checking. However, if t
 component has XNode parameters, this becomes untrue. The component will not
 produce an XNode; it will produce a string.
 
-!!! note
-
-    The resulting HTML from the rendering will have all whitespace characters removed.
-    There is no option to generate pretty HTML.
+```{note}
+The resulting HTML from the rendering will have all whitespace characters removed.
+There is no option to generate pretty HTML.
+```
 
 ### Using globals
 

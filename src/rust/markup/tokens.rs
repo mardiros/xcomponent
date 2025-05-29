@@ -115,6 +115,7 @@ impl ToHtml for XElement {
         context: &mut RenderContext,
     ) -> PyResult<String> {
         let mut result = String::new();
+
         match catalog.get(py, self.name()) {
             Some(py_template) => {
                 debug!("Rendering template {}", py_template);
@@ -123,7 +124,7 @@ impl ToHtml for XElement {
                 let node_attrs = py_template
                     .getattr("defaults")?
                     .downcast::<PyDict>()?
-                    .clone();
+                    .copy()?;
 
                 for (name, attrnode) in self.attrs() {
                     if let XNode::Expression(ref expression) = attrnode {
@@ -166,6 +167,7 @@ impl ToHtml for XElement {
                         XNode::Expression(ref expr) => {
                             let v = eval_expression(py, expr.expression(), &catalog, context)?;
                             match v {
+                                Literal::None(()) => "".to_string(),
                                 Literal::Bool(false) => "".to_string(),
                                 Literal::Bool(true) => format!(" {}", name),
                                 _ => {

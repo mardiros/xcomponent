@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::fmt;
 
 use pyo3::exceptions::PyTypeError;
-use pyo3::types::{PyBool, PyDict, PyInt, PyList, PyString};
+use pyo3::marker::Python;
+use pyo3::types::{PyBool, PyDict, PyInt, PyList, PyNone, PyString};
 use pyo3::{prelude::*, BoundObject, IntoPyObjectExt};
 
 use crate::catalog::XCatalog;
@@ -93,6 +94,7 @@ impl Clone for PyObj {
 
 #[derive(Debug, Clone, IntoPyObject)]
 pub enum Literal {
+    None(()),
     Bool(bool),
     Int(isize),
     Str(String),
@@ -112,6 +114,8 @@ impl Literal {
             return Ok(Literal::Bool(v.extract::<bool>()?));
         } else if let Ok(v) = value.downcast::<PyInt>() {
             return Ok(Literal::Int(v.extract::<isize>()?));
+        } else if let Ok(_) = value.downcast::<PyNone>() {
+            return Ok(Literal::None(()));
         } else if let Ok(v) = value.extract::<XNode>() {
             return Ok(Literal::XNode(v));
         } else if let Ok(seq) = value.downcast::<PyList>() {
@@ -138,6 +142,7 @@ impl Literal {
     }
     pub fn into_py<'py>(&self, py: Python<'py>) -> pyo3::Bound<'py, PyAny> {
         let ret = match self {
+            Literal::None(_) => Python::None(py).into_pyobject(py).unwrap().into_any(),
             Literal::Bool(v) => v // wtf
                 .into_pyobject(py)
                 .unwrap()
@@ -179,6 +184,7 @@ impl Literal {
 impl Truthy for Literal {
     fn is_truthy(&self) -> bool {
         match self {
+            Literal::None(_s) => false,
             Literal::Bool(bool) => bool.clone(),
             Literal::Int(i) => *i != 0,
             Literal::Str(s) => !s.is_empty(),
@@ -213,6 +219,7 @@ impl ToHtml for Literal {
     ) -> PyResult<String> {
         debug!("Rendering {:?}", self);
         match self {
+            Literal::None(_) => Ok("".to_string()),
             Literal::Bool(b) => Ok(format!("{}", b)),
             Literal::Int(i) => Ok(format!("{}", i)),
             Literal::Str(s) => Ok(format!("{}", s)),

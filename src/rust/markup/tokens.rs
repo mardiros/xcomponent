@@ -115,6 +115,7 @@ impl ToHtml for XElement {
         context: &mut RenderContext,
     ) -> PyResult<String> {
         let mut result = String::new();
+
         match catalog.get(py, self.name()) {
             Some(py_template) => {
                 debug!("Rendering template {}", py_template);

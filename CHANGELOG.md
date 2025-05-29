@@ -1,3 +1,7 @@
+## 0.3.2  -  2025-05-29
+
+* Authorize hiphen in attribute names 
+
 ## 0.3.1  -  2025-05-27
 
 * Fix PyPI classifiers 

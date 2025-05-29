@@ -1,3 +1,9 @@
+## 0.4.0  -  2025-05-30
+
+* Add support of None type.
+* Fix default values that must never mutate.
+* Fix default values while rendering using function call.
+
 ## 0.3.2  -  2025-05-29
 
 * Authorize hiphen in attribute names 

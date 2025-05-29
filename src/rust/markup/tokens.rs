@@ -123,7 +123,7 @@ impl ToHtml for XElement {
                 let node_attrs = py_template
                     .getattr("defaults")?
                     .downcast::<PyDict>()?
-                    .clone();
+                    .copy()?;
 
                 for (name, attrnode) in self.attrs() {
                     if let XNode::Expression(ref expression) = attrnode {

@@ -219,6 +219,7 @@ pub fn eval_ast<'py>(
         AST::Variable(name) => {
             let val = context.get(&LiteralKey::Str(name.clone())).cloned();
             match val {
+                Some(Literal::None(_)) => Ok(Literal::None(())),
                 Some(Literal::Bool(v)) => Ok(Literal::Bool(v.clone())),
                 Some(Literal::Int(v)) => Ok(Literal::Int(v.clone())),
                 Some(Literal::Str(v)) => Ok(Literal::Str(v.clone())),

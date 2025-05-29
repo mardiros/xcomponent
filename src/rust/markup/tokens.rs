@@ -166,6 +166,7 @@ impl ToHtml for XElement {
                         XNode::Expression(ref expr) => {
                             let v = eval_expression(py, expr.expression(), &catalog, context)?;
                             match v {
+                                Literal::None(()) => "".to_string(),
                                 Literal::Bool(false) => "".to_string(),
                                 Literal::Bool(true) => format!(" {}", name),
                                 _ => {

@@ -126,7 +126,11 @@ impl XCatalog {
         Ok(())
     }
 
-    pub fn get<'py>(&'py self, py: Python<'py>, name: &'py str) -> Option<&Bound<'py, XTemplate>> {
+    pub fn get<'py>(
+        &'py self,
+        py: Python<'py>,
+        name: &'py str,
+    ) -> Option<&'py Bound<'py, XTemplate>> {
         self.components.get(name).map(|node| node.bind(py))
     }
 

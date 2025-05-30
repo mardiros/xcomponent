@@ -171,7 +171,7 @@ impl XCatalog {
             PyDict::new(py)
         };
         let mut context = RenderContext::new();
-        context.push(params)?;
+        context.push(py, params)?;
 
         self.render_node(py, &node, &mut context)
     }

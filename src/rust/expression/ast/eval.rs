@@ -259,11 +259,11 @@ pub fn eval_ast<'py>(
                         field, map
                     )))
                 }
-                Literal::Object(o) => Python::with_gil(|py| {
+                Literal::Object(o) => {
                     // only string here. maybe callable
                     let item = o.obj().getattr(py, field)?.into_bound(py);
-                    Literal::downcast(item)
-                }),
+                    Literal::downcast(py, item)
+                }
                 _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
                     "Cannot access field '{}' on non-object",
                     field
@@ -300,7 +300,7 @@ pub fn eval_ast<'py>(
                     }
                     _ => Err(PyTypeError::new_err(format!("{:?}", key))),
                 },
-                Literal::Object(o) => Python::with_gil(|py| {
+                Literal::Object(o) => {
                     let item = match key {
                         Literal::Int(idx) => {
                             // FIXME, add len call here for negatif index
@@ -312,8 +312,8 @@ pub fn eval_ast<'py>(
                         }
                         _ => Err(PyTypeError::new_err(format!("Index access{:?}", key))),
                     }?;
-                    Literal::downcast(item)
-                }),
+                    Literal::downcast(py, item)
+                }
                 _ => Err(PyErr::new::<PyTypeError, _>(format!(
                     "Cannot access index '{:?}' on non-object",
                     base
@@ -342,11 +342,11 @@ pub fn eval_ast<'py>(
             match base {
                 Literal::Callable(ident) => {
                     let res = catalog.call(py, ident.as_str(), &py_args, &py_kwargs)?;
-                    Literal::downcast(res)
+                    Literal::downcast(py, res)
                 }
                 Literal::Object(o) => Python::with_gil(|py| {
                     let res = o.obj().call(py, py_args, Some(&py_kwargs))?;
-                    Literal::downcast(res.into_bound(py))
+                    Literal::downcast(py, res.into_bound(py))
                 }),
                 _ => Err(PyAttributeError::new_err(format!(
                     "{:?} is not callable",

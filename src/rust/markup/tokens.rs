@@ -152,7 +152,7 @@ impl ToHtml for XElement {
                 if let Some(glb) = context.get(&gblk) {
                     shadow_context.insert(gblk, glb.clone());
                 }
-                shadow_context.push(node_attrs)?;
+                shadow_context.push(py, node_attrs)?;
                 result.push_str(
                     catalog
                         .render_node(py, &node, &mut shadow_context)?

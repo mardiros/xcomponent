@@ -32,8 +32,10 @@ impl fmt::Display for LiteralKey {
 }
 
 impl LiteralKey {
-    pub fn downcast<'py>(value: Bound<'py, PyAny>) -> Result<Self, PyErr> {
-        if let Ok(v) = value.downcast::<PyInt>() {
+    pub fn downcast<'py>(py: Python<'py>, value: Bound<'py, PyAny>) -> Result<Self, PyErr> {
+        if let Ok(v) = value.downcast::<LiteralKey>() {
+            return Ok(v.as_unbound().extract(py).unwrap());
+        } else if let Ok(v) = value.downcast::<PyInt>() {
             return Ok(LiteralKey::Int(v.extract::<isize>()?));
         } else if let Ok(v) = value.downcast::<PyString>() {
             return Ok(LiteralKey::Str(v.to_string()));
@@ -107,7 +109,7 @@ pub enum Literal {
 }
 
 impl Literal {
-    pub fn downcast<'py>(value: Bound<'py, PyAny>) -> Result<Self, PyErr> {
+    pub fn downcast<'py>(py: Python<'py>, value: Bound<'py, PyAny>) -> Result<Self, PyErr> {
         if let Ok(v) = value.downcast::<PyString>() {
             return Ok(Literal::Str(v.to_string()));
         } else if let Ok(v) = value.downcast::<PyBool>() {
@@ -121,14 +123,14 @@ impl Literal {
         } else if let Ok(seq) = value.downcast::<PyList>() {
             let mut items = Vec::with_capacity(seq.len());
             for item in seq.iter() {
-                items.push(Literal::downcast(item)?);
+                items.push(Literal::downcast(py, item)?);
             }
             Ok(Literal::List(items))
         } else if let Ok(dict) = value.downcast::<PyDict>() {
             let mut map = HashMap::new();
             for (k, v) in dict {
-                let key: LiteralKey = LiteralKey::downcast(k)?;
-                let val: Literal = Literal::downcast(v)?;
+                let key: LiteralKey = LiteralKey::downcast(py, k)?;
+                let val: Literal = Literal::downcast(py, v)?;
                 map.insert(key, val);
             }
             Ok(Literal::Dict(map))
@@ -278,9 +280,9 @@ impl RenderContext {
         Self { stack: vec![] }
     }
 
-    pub fn push<'py>(&mut self, params: Bound<'py, PyDict>) -> PyResult<()> {
+    pub fn push<'py>(&mut self, py: Python<'py>, params: Bound<'py, PyDict>) -> PyResult<()> {
         let anyparams: Bound<'py, PyAny> = params.extract()?;
-        if let Literal::Dict(d) = Literal::downcast(anyparams)? {
+        if let Literal::Dict(d) = Literal::downcast(py, anyparams)? {
             self.stack.push(d);
             Ok(())
         } else {

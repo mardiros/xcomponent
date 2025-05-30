@@ -28,9 +28,15 @@ def Form(
     "component,expected",
     [
         pytest.param(catalog.render("<Form />"), "<form></form>", id="drop-none"),
-        pytest.param(Form(), "<form></form>", id="drop-none"),
+        pytest.param(Form(), "<form></form>", id="render-component"),
         pytest.param(
-            catalog.render("<Form><input/></Form>"), "<form><input/></form>", id="drop-none"
+            catalog.render("<Form><input/></Form>"),
+            "<form><input/></form>",
+            id="drop-none",
+        ),
+        pytest.param(Form("post"), '<form method="post"></form>', id="add-args"),
+        pytest.param(
+            Form(method="post"), '<form method="post"></form>', id="add-kwargs"
         ),
     ],
 )

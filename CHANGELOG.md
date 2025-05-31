@@ -1,3 +1,11 @@
+## 0.5.0  -  2025-05-31
+
+* Improve html attributes supports.
+  * hyphen can be used in markup language and is bound
+    to underscore variable in python.
+  * attribute for is bound to for_
+  * attribute class is bount to class_
+
 ## 0.4.1  -  2025-05-30
 
 * Fix nested dict key 

@@ -20,7 +20,7 @@ call_arg = _{ kw_arg | pos_arg }
 pos_arg = { expression }
 kw_arg = { ident ~ whitespace* ~ "=" ~ whitespace* ~ expression }
 
-primary = _{ "(" ~ expression ~ ")" | component | ident | string | integer | boolean }
+primary = _{ "(" ~ expression ~ ")" | component | string | integer | boolean | ident }
 component = { "<" ~ (!"/>" ~ ANY)* ~ "/>" }
 
 operator = { "+" | "-" | "*" | "/" | "and" | "or" | "==" | "!=" | ">=" | "<=" | ">" | "<" }
@@ -28,9 +28,10 @@ boolean = { "true" | "false" }
 integer = @{ (ASCII_DIGIT | "_")+ }
 string = @{ "\"" ~ (escape_sequence | !("\"" | "\\") ~ ANY)* ~ "\"" }
 
-keyword = { "for" | "in" | "if" | "else" | "not" | operator | boolean | "{" | "}" | "[" | "]" }
+keyword = { "for" | "in" | "if" | "else" | "not" | "and" | "or" }
 
-ident = { !keyword ~ ident_raw }
+keyword_spaced = { keyword ~ (whitespace+ | ".") }
+ident = { !keyword_spaced ~ ident_raw }
 ident_raw = _{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
 whitespace = _{ " " | "\t" | "\n" | "\r" | comment_expression }

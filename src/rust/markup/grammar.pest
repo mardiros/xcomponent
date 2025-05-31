@@ -25,7 +25,7 @@ comment   = { "<!--" ~ (!"-->" ~ ANY)* ~ "-->" }
 expression = { "{" ~ (expression | (!"}" ~ ANY))* ~ "}" }
 
 ident = @{ ASCII_ALPHANUMERIC ~ (ASCII_ALPHANUMERIC | "_" )* }
-attr_name = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
+attr_name = @{ (ASCII_ALPHA | "_" ) ~ (ASCII_ALPHANUMERIC | "_" | "-" | ":" | "." )* }
 attr_value = @{ string_literal_quote | string_literal_doublequote | expression }
 
 string_literal_doublequote = _{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }

@@ -38,6 +38,16 @@ def Form(
         pytest.param(
             Form(method="post"), '<form method="post"></form>', id="add-kwargs"
         ),
+        pytest.param(
+            catalog.render("<Form hx_target='/ajax'><input/></Form>"),
+            '<form hx-target="/ajax"><input/></form>',
+            id="drop-none",
+        ),
+        pytest.param(
+            catalog.render("<Form hx-target='/ajax'><input/></Form>"),
+            '<form hx-target="/ajax"><input/></form>',
+            id="drop-none",
+        ),
     ],
 )
 def test_render_form(component: str, expected: str):

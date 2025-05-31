@@ -24,6 +24,21 @@ def Form(
     """
 
 
+@catalog.component
+def Label(
+    for_: str | None = None,
+    class_: str | None = None,
+) -> str:
+    return """
+        <label
+            for={for_}
+            class={class_}
+            >
+            { children }
+        </label>
+    """
+
+
 @pytest.mark.parametrize(
     "component,expected",
     [
@@ -41,12 +56,23 @@ def Form(
         pytest.param(
             catalog.render("<Form hx_target='/ajax'><input/></Form>"),
             '<form hx-target="/ajax"><input/></form>',
-            id="drop-none",
+            id="forward hx_target",
         ),
         pytest.param(
             catalog.render("<Form hx-target='/ajax'><input/></Form>"),
             '<form hx-target="/ajax"><input/></form>',
-            id="drop-none",
+            id="forward hx-target",
+        ),
+        # we don't test multiple attributes since rust hashmap are not ordered
+        pytest.param(
+            catalog.render("<Form><Label class='p-4'>Name:</Label></Form>"),
+            '<form><label class="p-4">Name:</label></form>',
+            id="forward class and for",
+        ),
+        pytest.param(
+            catalog.render("<Form><Label for='name'>Name:</Label></Form>"),
+            '<form><label for="name">Name:</label></form>',
+            id="forward class and for",
         ),
     ],
 )

@@ -91,10 +91,13 @@ class Catalog:
         """
         Decorator to register a template with its schema parameters.
 
-        :param name: optional name for the component, by default, it is the function name.
+        :param name: optional name for the component, by default,
+                     it is the function name.
         :return: A function that render the component without global variable supports.
         """
-        component_name = name.__name__ if isinstance(name, Callable) else name
+        component_name: str = (
+            name.__name__ if isinstance(name, Callable) else name  # type: ignore
+        )
 
         def decorator(fn: Component):
             @wraps(fn)
@@ -118,7 +121,7 @@ class Catalog:
             self.register_component(component_name or fn.__name__, fn)
             return render
 
-        if isinstance(name, Callable):
+        if callable(name):
             return decorator(name)
         else:
             return decorator
@@ -139,7 +142,7 @@ class Catalog:
         :param name: name of the function in case it is the parametrized function
         :return: the decorated method.
         """
-        if isinstance(name, Callable):
+        if callable(name):
             self._catalog.add_function(name.__name__, name)
             return name
 

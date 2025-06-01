@@ -18,7 +18,10 @@ cleandoc:
     cd docs && uv run make clean
     rm -rf docs/source/develop
 
-test: typecheck unittest
+test: lint typecheck unittest
+
+lint:
+    uv run ruff check .
 
 typecheck:
     uv run mypy src/python

@@ -52,7 +52,7 @@ docs = [
 ]
 
 [tool.pyright]
-include = ["src/python", "test"]
+include = ["src/python", "tests"]
 typeCheckingMode = "strict"
 reportMissingTypeStubs = false
 venvPath = ".venv"

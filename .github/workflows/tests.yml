@@ -39,6 +39,10 @@ jobs:
       - name: Build tarball
         run: uv build
 
-      - name: "Test sdist"
+      - name: "Check types"
+        run: |
+          uv run mypy src/python
+
+      - name: "Run unit tests"
         run: |
           uv run pytest -sxv

@@ -613,7 +613,7 @@ provides-extras = ["docs"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "mypy", specifier = ">=1.16.0" },
+    { name = "mypy", specifier = ">=1.16.0,<2" },
     { name = "pytest", specifier = ">=8.3.5,<9" },
 ]
 docs = [

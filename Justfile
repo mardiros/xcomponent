@@ -18,8 +18,10 @@ cleandoc:
     cd docs && uv run make clean
     rm -rf docs/source/develop
 
-test: unittest
+test: typecheck unittest
 
+typecheck:
+    uv run mypy src/python
 
 unittest testsuite=default_testsuite: develop
     uv run pytest -sxv {{testsuite}}

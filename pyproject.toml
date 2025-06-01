@@ -39,7 +39,10 @@ docs = [
 ]
 
 [dependency-groups]
-dev = ["pytest >=8.3.5,<9"]
+dev = [
+    "mypy >=1.16.0,<2",
+    "pytest >=8.3.5,<9",
+]
 docs = [
     "furo >=2024.5.6",
     "linkify-it-py >=2.0.3,<3",

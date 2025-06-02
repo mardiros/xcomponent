@@ -1,3 +1,9 @@
+## 0.5.1  -  2025-06-02
+
+* Preserve empty string in markup such as stript tag to render
+* Fix rendering of json in attributes such as hx-vals
+* Check mypy in the CI
+
 ## 0.5.0  -  2025-05-31
 
 * Improve html attributes supports.

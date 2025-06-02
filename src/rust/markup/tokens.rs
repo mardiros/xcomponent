@@ -107,6 +107,23 @@ impl XElement {
     }
 }
 
+#[inline]
+fn render_attr<'py>(
+    py: Python<'py>,
+    catalog: &XCatalog,
+    node: &XNode,
+    name: &str,
+    context: &mut RenderContext,
+) -> PyResult<String> {
+    let value = catalog.render_node(py, &node, context)?;
+    let attr = if value.contains('"') {
+        format!(" {}='{}'", name, value.replace('\'', "\\'"))
+    } else {
+        format!(" {}=\"{}\"", name, value)
+    };
+    Ok(attr)
+}
+
 impl ToHtml for XElement {
     fn to_html<'py>(
         &self,
@@ -174,16 +191,10 @@ impl ToHtml for XElement {
                                 Literal::None(()) => "".to_string(),
                                 Literal::Bool(false) => "".to_string(),
                                 Literal::Bool(true) => format!(" {}", name),
-                                _ => {
-                                    let value = catalog.render_node(py, &node, context)?;
-                                    format!(" {}=\"{}\"", name, value)
-                                }
+                                _ => render_attr(py, catalog, &node, name.as_str(), context)?,
                             }
                         }
-                        _ => {
-                            let value = catalog.render_node(py, &node, context)?;
-                            format!(" {}=\"{}\"", name, value)
-                        }
+                        _ => render_attr(py, catalog, &node, name.as_str(), context)?,
                     };
                     result.push_str(format!("{}", attr).as_str());
                 }

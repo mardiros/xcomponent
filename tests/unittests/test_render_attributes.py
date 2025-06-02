@@ -39,6 +39,13 @@ def Label(
     """
 
 
+@catalog.component
+def Button(hx_vals: str) -> str:
+    return """
+    <button hx-vals={hx_vals}>Submit</button>
+    """
+
+
 @pytest.mark.parametrize(
     "component,expected",
     [
@@ -77,4 +84,18 @@ def Label(
     ],
 )
 def test_render_form(component: str, expected: str):
+    assert component == expected
+
+
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(
+            catalog.render("""<Button hx-vals='{"a":"A"}' />"""),
+            """<button hx-vals='{"a":"A"}'>Submit</button>""",
+            id="forward class and for",
+        )
+    ],
+)
+def test_render_double_quote_in_quote(component: str, expected: str):
     assert component == expected

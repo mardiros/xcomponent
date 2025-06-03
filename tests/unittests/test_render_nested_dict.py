@@ -1,22 +1,24 @@
 import pytest
-from xcomponent import Catalog
-
-catalog = Catalog()
+from xcomponent import Catalog, Component
 
 
-@catalog.component
-def HelloWorld(person: dict[str, str]):
-    return """
-        <>Hello { person.nick or "World" }</>
-    """
+@pytest.fixture(autouse=True)
+def HelloWorld(catalog: Catalog):
+    @catalog.component
+    def HelloWorld(person: dict[str, str]):
+        return """
+            <>Hello { person.nick or "World" }</>
+        """
+
+    return HelloWorld
 
 
-@pytest.mark.parametrize(
-    "component",
-    [
-        catalog.render("<HelloWorld person={person} />", person={"nick": ""}),
-        HelloWorld({"nick": ""}),
-    ],
-)
-def test_render_nested_dict(component: str):
-    assert component == "Hello World"
+def test_render_nested_dict(catalog: Catalog):
+    assert (
+        catalog.render("<HelloWorld person={person} />", person={"nick": ""})
+        == "Hello World"
+    )
+
+
+def test_render_nested_dict_func(HelloWorld: Component):
+    assert HelloWorld({"nick": ""}) == "Hello World"

@@ -144,10 +144,11 @@ impl ToHtml for XElement {
                     .copy()?;
 
                 for (name, attrnode) in self.attrs() {
-                    let name = name
-                        .replace('-', "_")
-                        .replace("class", "class_")
-                        .replace("for", "for_");
+                    let name = match name.as_str() {
+                        "class" => "class_".to_string(),
+                        "for" => "for_".to_string(),
+                        _ => name.replace('-', "_"),
+                    };
                     if let XNode::Expression(ref expression) = attrnode {
                         let node_attr_v =
                             eval_expression(py, expression.expression(), &catalog, context)?;

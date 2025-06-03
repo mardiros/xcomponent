@@ -1,22 +1,21 @@
 import pytest
+
 from xcomponent import Catalog
 
-catalog = Catalog()
 
+@pytest.fixture(autouse=True)
+def components(catalog: Catalog):
+    @catalog.component(name="HelloWorld1")
+    def hello_world(name="world"):
+        return "<>Hello {name}</>"
 
-@catalog.component(name="HelloWorld1")
-def hello_world(name="world"):
-    return "<>Hello {name}</>"
+    @catalog.component()
+    def HelloWorld2(name="world"):
+        return "<>Hello {name}</>"
 
-
-@catalog.component()
-def HelloWorld2(name="world"):
-    return "<>Hello {name}</>"
-
-
-@catalog.component
-def HelloWorld3(name="world"):
-    return "<>Hello {name}</>"
+    @catalog.component
+    def HelloWorld3(name="world"):
+        return "<>Hello {name}</>"
 
 
 @pytest.mark.parametrize(
@@ -27,5 +26,5 @@ def HelloWorld3(name="world"):
         pytest.param("<HelloWorld3/>", id="implicit"),
     ],
 )
-def test_named_component(markup: str):
+def test_named_component(catalog: Catalog, markup: str):
     assert catalog.render(markup) == "Hello world"

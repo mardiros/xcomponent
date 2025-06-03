@@ -1,6 +1,7 @@
 from typing import Any
 from urllib.parse import urlencode
 from xcomponent import Catalog
+import pytest
 
 
 class Request:
@@ -8,27 +9,25 @@ class Request:
         return f"/{route_name}?{urlencode(kwargs)}"
 
 
-catalog = Catalog()
+@pytest.fixture(autouse=True)
+def components(catalog: Catalog):
+    @catalog.component
+    def SidebarItem(title: str, route_name: str, globals: Any) -> str:
+        return """
+            <li><a href={globals.request.route_path(route_name, foo="bar")}>{title}</a></li>
+        """
+
+    @catalog.component
+    def Sidebar() -> str:
+        return """
+            <ul>
+                <SidebarItem title="home" route_name="home" />
+                <SidebarItem title="settings" route_name="account-settings" />
+            </ul>
+        """
 
 
-@catalog.component
-def SidebarItem(title: str, route_name: str, globals: Any) -> str:
-    return """
-        <li><a href={globals.request.route_path(route_name, foo="bar")}>{title}</a></li>
-    """
-
-
-@catalog.component
-def Sidebar() -> str:
-    return """
-        <ul>
-            <SidebarItem title="home" route_name="home" />
-            <SidebarItem title="settings" route_name="account-settings" />
-        </ul>
-    """
-
-
-def test_render_globals():
+def test_render_globals(catalog: Catalog):
     assert (
         catalog.render(
             '<SidebarItem title="settings" route_name="account-settings"/>',
@@ -38,7 +37,7 @@ def test_render_globals():
     )
 
 
-def test_render_globals_nested():
+def test_render_globals_nested(catalog: Catalog):
     assert catalog.render(
         "<Sidebar/>",
         globals={"request": Request()},

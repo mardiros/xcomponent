@@ -14,7 +14,11 @@ def catalog() -> Catalog:
 
 @pytest.fixture()
 def globals() -> Mapping[str, str]:
-    return {}
+    return {
+        "RADIO_DIV_CLASS": "RADIO_DIV_CLASS",
+        "RADIO_INPUT_CLASS": "RADIO_INPUT_CLASS",
+        "RADIO_LABEL_CLASS": "RADIO_LABEL_CLASS",
+    }
 
 
 @pytest.fixture()

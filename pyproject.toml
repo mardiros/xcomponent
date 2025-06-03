@@ -53,6 +53,8 @@ docs = [
 ]
 
 [tool.pyright]
+autoSearchPaths = false
+extraPaths = ["src/python"]
 include = ["src/python", "tests"]
 typeCheckingMode = "strict"
 reportMissingTypeStubs = false

@@ -2,6 +2,7 @@ from typing import Literal
 from xcomponent import Catalog, XNode
 
 import pytest
+import bs4
 
 catalog = Catalog()
 
@@ -43,6 +44,34 @@ def Label(
 def Button(hx_vals: str) -> str:
     return """
     <button hx-vals={hx_vals}>Submit</button>
+    """
+
+
+@catalog.component
+def Radio(
+    globals: dict[str, str],
+    label: str,
+    name: str,
+    value: str,
+    id: str | None = None,
+    checked: bool = False,
+    disabled: bool = False,
+    onclick: str | None = None,
+    div_class: str | None = None,
+    class_: str | None = None,
+    label_class: str | None = None,
+) -> str:
+    return """
+    <div class={div_class or globals.RADIO_DIV_CLASS}>
+        <input type="radio" name={name} id={id} value={value}
+            class={class_ or globals.RADIO_INPUT_CLASS}
+            onclick={onclick}
+            checked={checked}
+            disabled={disabled} />
+        <Label for={id} class={label_class or globals.RADIO_LABEL_CLASS}>
+            {label}
+        </Label>
+    </div>
     """
 
 
@@ -99,3 +128,31 @@ def test_render_form(component: str, expected: str):
 )
 def test_render_double_quote_in_quote(component: str, expected: str):
     assert component == expected
+
+
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(
+            catalog.render(
+                """
+                <Radio name="n" value="v"
+                    label="lbl" class="radio" label-class="lbl" div-class="d" />
+                """,
+                globals={
+                    "RADIO_DIV_CLASS": "RADIO_DIV_CLASS",
+                    "RADIO_INPUT_CLASS": "RADIO_INPUT_CLASS",
+                    "RADIO_LABEL_CLASS": "RADIO_LABEL_CLASS",
+                },
+            ),
+            '<div class="d"><input type="radio" name="n" class="radio" value="v"/>'
+            '<label class="lbl">lbl</label></div>',
+            id="dont alter suffixed by class",
+        )
+    ],
+)
+def test_render_suffixed_class(component: str, expected: str):
+    soup = bs4.BeautifulSoup(component, "html.parser")
+    expected_soup = bs4.BeautifulSoup(expected, "html.parser")
+
+    assert next(soup.children) == next(expected_soup.children)

@@ -1,16 +1,20 @@
+## 0.5.2  -  2025-06-03
+
+* Hotfix component havin attributes'name containing python reserved keyword. 
+
 ## 0.5.1  -  2025-06-02
 
-* Preserve empty string in markup such as stript tag to render
-* Fix rendering of json in attributes such as hx-vals
-* Check mypy in the CI
+* Preserve empty string in markup such as stript tag to render.
+* Fix rendering of json in attributes such as hx-vals.
+* Check mypy in the CI.
 
 ## 0.5.0  -  2025-05-31
 
 * Improve html attributes supports.
   * hyphen can be used in markup language and is bound
     to underscore variable in python.
-  * attribute for is bound to for_
-  * attribute class is bount to class_
+  * attribute for is bound to for_.
+  * attribute class is bount to class_.
 
 ## 0.4.1  -  2025-05-30
 

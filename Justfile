@@ -7,7 +7,13 @@ develop:
     uv run maturin develop
 
 install:
-    uv sync --group dev
+    uv sync --group dev --frozen
+
+update:
+    uv sync --group dev --group docs
+
+upgrade:
+    uv sync --group dev --group docs --upgrade
 
 doc:
     uv sync --group dev --group docs

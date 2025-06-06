@@ -401,6 +401,11 @@ pub fn eval_ast<'py>(
                 ))),
             }
         }
+        AST::LetStatement { ident, expr } => {
+            let value = eval_ast(py, expr, catalog, context)?;
+            context.insert_current(LiteralKey::Str(ident.clone()), value);
+            Ok(Literal::Str("".to_string()))
+        }
     }
 }
 

@@ -148,6 +148,10 @@ pub enum ExpressionToken {
         iterable: Box<ExpressionToken>,
         body: Box<ExpressionToken>,
     },
+    LetExpression {
+        ident: String,
+        expr: Box<ExpressionToken>,
+    },
     Noop,
 }
 
@@ -200,6 +204,7 @@ impl std::fmt::Display for ExpressionToken {
                 iterable,
                 body,
             } => write!(f, "for {} in {} {{ {} }}", ident, iterable, body),
+            ExpressionToken::LetExpression { ident, expr } => write!(f, "let {} = {}", ident, expr),
             ExpressionToken::Noop => write!(f, ""), // ??
         }
     }

@@ -115,6 +115,14 @@ fn parse_expression_token(pair: Pair<Rule>) -> Result<ExpressionToken, String> {
                 body,
             })
         }
+        Rule::let_expression => {
+            let mut inner = pair.into_inner();
+            let ident = inner.next().unwrap().as_str().to_string();
+            let expr_expr = inner.next().unwrap();
+            let expr = Box::new(parse_expression_token(expr_expr)?);
+
+            Ok(ExpressionToken::LetExpression { ident, expr })
+        }
         Rule::ident => {
             let content = pair.as_str();
             debug!("Pushing ident {}", content);

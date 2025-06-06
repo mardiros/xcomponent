@@ -32,4 +32,8 @@ pub enum AST {
         iterable: Box<AST>,
         body: Box<AST>,
     },
+    LetStatement {
+        ident: String,
+        expr: Box<AST>,
+    },
 }

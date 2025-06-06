@@ -1,8 +1,8 @@
-expression = { for_expression | if_expression | binary_expression | comment_expression }
+expression = { for_expression | if_expression | let_expression | binary_expression | comment_expression }
 
 binary_expression = { comment_expression* ~ whitespace* ~ term ~ (whitespace* ~ operator ~ whitespace* ~ term)* }
 
-term = _{ for_expression | if_expression | unary_expression | postfix }
+term = _{ for_expression | if_expression | let_expression | unary_expression | postfix }
 
 unary_expression = { "not" ~ whitespace+ ~ binary_expression }
 
@@ -28,7 +28,7 @@ boolean = { "true" | "false" }
 integer = @{ (ASCII_DIGIT | "_")+ }
 string = @{ "\"" ~ (escape_sequence | !("\"" | "\\") ~ ANY)* ~ "\"" }
 
-keyword = { "for" | "in" | "if" | "else" | "not" | "and" | "or" }
+keyword = { "for" | "in" | "if" | "else" | "not" | "and" | "or" | "let" }
 
 keyword_spaced = { keyword ~ (whitespace+ | ".") }
 ident = { !keyword_spaced ~ ident_raw }
@@ -42,6 +42,8 @@ if_expression = {
 }
 
 for_expression = { "for" ~ whitespace+ ~ ident ~ whitespace+ ~ "in" ~ whitespace+ ~ expression ~ whitespace* ~ block }
+
+let_expression = { "let" ~ whitespace+ ~ ident ~ whitespace* ~ "=" ~ whitespace* ~ expression }
 
 block = { whitespace* ~"{" ~ whitespace* ~ expression ~ whitespace* ~ "}" ~ whitespace* }
 comment_expression = _{ "/*" ~ comment ~ "*/" }

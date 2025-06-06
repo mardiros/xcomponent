@@ -302,6 +302,9 @@ impl RenderContext {
         d.insert(key, value);
         self.stack.push(d);
     }
+    pub fn insert_current(&mut self, key: LiteralKey, value: Literal) {
+        self.stack.last_mut().unwrap().insert(key, value);
+    }
     pub fn get(&self, key: &LiteralKey) -> Option<&Literal> {
         self.stack.iter().rev().find_map(|scope| scope.get(key))
     }

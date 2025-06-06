@@ -1,3 +1,8 @@
+## 0.6.0  -  2025-06-06
+
+* Add a let keyword in order to set variable in expression.
+* Add support of string methods on expression. 
+
 ## 0.5.2  -  2025-06-03
 
 * Hotfix component havin attributes'name containing python reserved keyword. 

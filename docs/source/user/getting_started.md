@@ -267,8 +267,8 @@ String objects can be enclosed by double quotes or single quotes.
 Boolean values are `true` and `false`, like in JavaScript, Rust, and many languages,
 except Python.
 
-None value is render has an empty string for a XNode, and completely remove
-the rendering of attributes.
+None value is render has an empty string for a XNode, and is used to remove
+the rendering of tag attributes.
 
 ### Functions
 
@@ -285,6 +285,20 @@ def HelloWorld(name: str) -> str:
 ```
 
 When the functions are called, the simple types are cast to Python types.
+
+````{node}
+
+It is possible to call the str methods directly in the XComponent expression.
+
+The capitalized function was a simple exemple for function explanation.
+
+```python
+@catalog.component
+def HelloWorld(name: str) -> str:
+    return """<>{"Hello " + name.capitalize()}</>"""
+```
+
+````
 
 ### List Index
 

@@ -264,10 +264,10 @@ pub fn eval_ast<'py>(
                     let item = o.obj().getattr(py, field)?.into_bound(py);
                     Literal::downcast(py, item)
                 }
-                _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
-                    "Cannot access field '{}' on non-object",
-                    field
-                ))),
+                _ => {
+                    let item = base.into_py(py).getattr(field)?;
+                    Literal::downcast(py, item)
+                }
             }
         }
 

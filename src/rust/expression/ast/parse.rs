@@ -54,6 +54,11 @@ pub fn token_to_ast(tok: &ExpressionToken, min_prec: u8) -> Result<AST, PyErr> {
             iterable: token_to_ast(iterable, min_prec).map(|x| Box::new(x))?,
             body: token_to_ast(body, min_prec).map(|x| Box::new(x))?,
         }),
+
+        ExpressionToken::LetExpression { ident, expr } => Ok(AST::LetStatement {
+            ident: ident.clone(),
+            expr: token_to_ast(expr, min_prec).map(|x| Box::new(x))?,
+        }),
         // Comment produce a Noop
         ExpressionToken::Noop => Ok(AST::Literal(Literal::Str("".to_string()))),
         _ => Err(PySyntaxError::new_err(format!(

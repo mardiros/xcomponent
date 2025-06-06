@@ -228,7 +228,6 @@ assert HelloWebPage(globals={"title": "my title", "description": ""}) == (
 )
 ```
 
-
 The description is passed as an empty string and is mandatory.
 The access to `globals.description` will raise a KeyError if it is not present.
 
@@ -241,7 +240,7 @@ proper documentation.
 
 Everything in the Markup that has been enclosed by curly braces is an expression.
 An expression enables the dynamic rendering of a page, using variables,
-`if` statements, `for` statements, and operators.
+`if` statements, `for` statements, `let` statements, and operators.
 
 ### Types
 
@@ -327,7 +326,6 @@ between booleans and integers are permitted.
 
 Strings can be multiplied by an integer, like in Python, to produce a repeated string.
 
-
 #### Binary Operators
 
 All types support Python truthy/falsey values.
@@ -336,14 +334,11 @@ The operators include `and` and `or`. The `not` operator is used to reverse a co
 
 Also, Python functions can be registered to mitigate or implement complex binary operations.
 
-
 #### Comparison Operators
 
 | `==`   | `!=`       | `>=`                  | `<=`               | `>`          | `<`       |
 | ------ | ---------- | --------------------- | ------------------ | ------------ | --------- |
 | equals | not equals | greater than or equal | less than or equal | greater than | less than |
-
-
 
 #### Priority
 
@@ -352,8 +347,7 @@ Multiplication and division have the highest priority, followed by addition and
 subtraction, then greater than or equal to and less than or equal to, next are
 equals and not equals, followed by the and operator, and finally the or operator.
 
-The parenthesis, such as **( *condition* )** can be used to override the priority.
-
+The parenthesis, such as **( _condition_ )** can be used to override the priority.
 
 ### If Syntax
 
@@ -398,3 +392,30 @@ this is not python code, you can do
 }
 ```
 ````
+
+### Let Syntax
+
+The `let` keywork let you declare new constant in the component.
+
+The expression cannot have multiple statement separated by indentation or semicolum.
+Since the expression language is minimal, an other expression can be used to display
+a variable that has been set, or reuse it to do a condition.
+The variable will be local to the component.
+Says differently, the `let` keyword declare constant scoped by component.
+
+The `let` syntax is like the Rust syntax.
+It means that the binary expression is affected to the variable.
+
+Example:
+
+```jsx
+{/* simple let statement */}
+{ let x = 42 }
+{/* display the value */}
+{x}
+
+{/* if statement with else */}
+{let y = if (x >= 1) {"Yes"} else {"No"}}
+{/* display the value */}
+{y}
+```

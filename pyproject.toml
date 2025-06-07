@@ -34,7 +34,7 @@ docs = [
     "furo >=2024.5.6",
     "linkify-it-py >=2.0.3,<3",
     "myst-parser >=4.0.0,<5",
-    "sphinx >=7.0.1,<8",
+    "sphinx >=8.0.0,<9",
     "sphinx-autodoc2 >=0.5.0,<1",
 ]
 
@@ -48,7 +48,7 @@ docs = [
     "furo >=2024.5.6",
     "linkify-it-py >=2.0.3,<3",
     "myst-parser >=4.0.0,<5",
-    "sphinx >=7.0.1,<8",
+    "sphinx >=8.0.0,<9",
     "sphinx-autodoc2 >=0.5.0,<1",
 ]
 

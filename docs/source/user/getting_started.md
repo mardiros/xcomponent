@@ -379,7 +379,7 @@ Example:
 { if elements > 0 { <Elements elements={elements} /> } else { <Empty/>} }
 ```
 
-Blocks can contain other expressions or self-closed markup only as a design choice.
+Blocks can contain other expressions or markup.
 
 ### For Syntax
 
@@ -395,7 +395,7 @@ Example:
 {for k in my_dict { <Item key={k} value={my_dict[k]}/>}}
 ```
 
-Blocks can contain other expressions or self-closed markup only as a design choice.
+Blocks can contain other expressions or markup.
 
 ````{important}
 this is not python code, you can do

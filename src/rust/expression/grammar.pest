@@ -21,7 +21,6 @@ pos_arg = { expression }
 kw_arg = { ident ~ whitespace* ~ "=" ~ whitespace* ~ expression }
 
 primary = _{ "(" ~ expression ~ ")" | component | string | integer | boolean | ident }
-component = { "<" ~ (!"/>" ~ ANY)* ~ "/>" }
 
 operator = { "+" | "-" | "*" | "/" | "and" | "or" | "==" | "!=" | ">=" | "<=" | ">" | "<" }
 boolean = { "true" | "false" }
@@ -48,3 +47,29 @@ let_expression = { "let" ~ whitespace+ ~ ident ~ whitespace* ~ "=" ~ whitespace*
 block = { whitespace* ~"{" ~ whitespace* ~ expression ~ whitespace* ~ "}" ~ whitespace* }
 comment_expression = _{ "/*" ~ comment ~ "*/" }
 comment = { (!"*/" ~ ANY)* }
+
+component = { markup_element | markup_fragment }
+markup_node      = _{ markup_element | markup_fragment | markup_comment | markup_text }
+markup_element   = _{ markup_self_closing_element | markup_normal_element }
+
+markup_normal_element = {
+    markup_open_tag ~ markup_node* ~ markup_close_tag
+}
+
+markup_self_closing_element = _{ "<" ~ markup_ident ~ (whitespace* ~ markup_attribute)* ~ whitespace* ~ "/>" }
+markup_open_tag             = _{ "<" ~ markup_ident ~ (whitespace* ~ markup_attribute)* ~ whitespace* ~ ">" }
+markup_close_tag = @{ "</" ~ markup_ident ~ ">" }
+
+markup_fragment = _{ markup_open_fragment ~ markup_node* ~ markup_close_fragment }
+markup_open_fragment = _{ "<>" }
+markup_close_fragment = _{ "</>" }
+markup_attribute = _{ markup_attr_name ~ ("=" ~ markup_attr_value)? }
+markup_comment   = _{ "<!--" ~ (!"-->" ~ ANY)* ~ "-->" }
+markup_expression = _{ "{" ~ (markup_expression | (!"}" ~ ANY))* ~ "}" }
+
+markup_ident = @{ ASCII_ALPHANUMERIC ~ (ASCII_ALPHANUMERIC | "_" )* }
+markup_attr_name = @{ (ASCII_ALPHA | "_" ) ~ (ASCII_ALPHANUMERIC | "_" | "-" | ":" | "." )* }
+markup_attr_value = @{ markup_string_literal_quote | markup_string_literal_doublequote | markup_expression }
+markup_string_literal_doublequote = _{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+markup_string_literal_quote = _{ "'" ~ (!"'" ~ ANY)* ~ "'" }
+markup_text = @{ (!("<" | "{") ~ ANY)+ }

@@ -30,6 +30,21 @@ def IfListStmt(a: list[str], b: str) -> str:
     return """<p>{if a { for x in a { a } } else { b } }</p>"""
 
 
+@catalog.component
+def Haha():
+    return "<p>Ha ha!</p>"
+
+
+@catalog.component
+def IfSelfClosedComponent(a: bool) -> str:
+    return """<>{if a { <Haha /> } }</>"""
+
+
+@catalog.component
+def IfComponent(a: bool) -> str:
+    return """<>{if a { <p>Ha ha!</p> } }</>"""
+
+
 @pytest.mark.parametrize(
     "result,expected",
     [
@@ -43,6 +58,10 @@ def IfListStmt(a: list[str], b: str) -> str:
         pytest.param(IfNotElseStmt(False, "No", "Yes"), "<p>No</p>"),
         pytest.param(IfListStmt(["a"], "b"), "<p>a</p>"),
         pytest.param(IfListStmt([], "b"), "<p>b</p>"),
+        pytest.param(IfSelfClosedComponent(True), "<p>Ha ha!</p>"),
+        pytest.param(IfSelfClosedComponent(False), ""),
+        pytest.param(IfComponent(True), "<p>Ha ha!</p>"),
+        pytest.param(IfComponent(False), ""),
     ],
 )
 def test_if(result: str, expected: str):

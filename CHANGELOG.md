@@ -1,3 +1,8 @@
+## 0.6.1  -  2025-06-13
+
+* Authorize full markup inside statement instead of self closed element only.
+* Upgrade sphinx version. 
+
 ## 0.6.0  -  2025-06-06
 
 * Add a let keyword in order to set variable in expression.

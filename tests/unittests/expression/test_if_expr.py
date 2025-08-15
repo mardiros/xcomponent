@@ -45,6 +45,21 @@ def IfComponent(a: bool) -> str:
     return """<>{if a { <p>Ha ha!</p> } }</>"""
 
 
+@catalog.component
+def Hint(text: str | None = None) -> str:
+    return """
+    <>
+    {
+        if text {
+            <span>
+                {text}
+            </span>
+        }
+    }
+    </>
+    """
+
+
 @pytest.mark.parametrize(
     "result,expected",
     [
@@ -62,6 +77,8 @@ def IfComponent(a: bool) -> str:
         pytest.param(IfSelfClosedComponent(False), ""),
         pytest.param(IfComponent(True), "<p>Ha ha!</p>"),
         pytest.param(IfComponent(False), ""),
+        pytest.param(Hint(), ""),
+        pytest.param(Hint("I exist"), "<span>I exist</span>"),
     ],
 )
 def test_if(result: str, expected: str):

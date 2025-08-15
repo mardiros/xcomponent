@@ -49,7 +49,7 @@ comment_expression = _{ "/*" ~ comment ~ "*/" }
 comment = { (!"*/" ~ ANY)* }
 
 component = { markup_element | markup_fragment }
-markup_node      = _{ markup_element | markup_fragment | markup_comment | markup_text }
+markup_node = _{ markup_element | markup_fragment | markup_comment | markup_text | markup_expression }
 markup_element   = _{ markup_self_closing_element | markup_normal_element }
 
 markup_normal_element = {
@@ -65,7 +65,7 @@ markup_open_fragment = _{ "<>" }
 markup_close_fragment = _{ "</>" }
 markup_attribute = _{ markup_attr_name ~ ("=" ~ markup_attr_value)? }
 markup_comment   = _{ "<!--" ~ (!"-->" ~ ANY)* ~ "-->" }
-markup_expression = _{ "{" ~ (markup_expression | (!"}" ~ ANY))* ~ "}" }
+markup_expression = _{ "{" ~ whitespace* ~ expression ~ whitespace* ~ "}" }
 
 markup_ident = @{ ASCII_ALPHANUMERIC ~ (ASCII_ALPHANUMERIC | "_" )* }
 markup_attr_name = @{ (ASCII_ALPHA | "_" ) ~ (ASCII_ALPHANUMERIC | "_" | "-" | ":" | "." )* }

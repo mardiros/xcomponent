@@ -1,3 +1,7 @@
+## 0.6.2  -  2025-08-15
+
+* Fix nested var in if stmt 
+
 ## 0.6.1  -  2025-06-13
 
 * Authorize full markup inside statement instead of self closed element only.

@@ -190,6 +190,8 @@ pub fn eval_ast<'py>(
             let value = eval_ast(py, expr, catalog, context)?;
             match (op, value) {
                 (UnaryOperator::Not, Literal::Bool(b)) => Ok(Literal::Bool(!b)),
+                (UnaryOperator::Not, Literal::Int(i)) => Ok(Literal::Bool(i == 0)),
+                (UnaryOperator::Not, Literal::Str(s)) => Ok(Literal::Bool(s.len() == 0)),
                 (UnaryOperator::Not, other) => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
                     format!("Cannot apply 'not' to {:?}", other),
                 )),

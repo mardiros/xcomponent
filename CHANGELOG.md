@@ -1,3 +1,7 @@
+## 0.6.3  -  2025-08-30
+
+* Implement not operator for str and int 
+
 ## 0.6.2  -  2025-08-15
 
 * Fix nested var in if stmt 

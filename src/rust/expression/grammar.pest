@@ -1,75 +1,32 @@
-expression = { for_expression | if_expression | let_expression | binary_expression | comment_expression }
+whitespace = _{ " " | "\t" | "\n" | "\r" }
 
-binary_expression = { comment_expression* ~ whitespace* ~ term ~ (whitespace* ~ operator ~ whitespace* ~ term)* }
+document = _{ SOI ~ (fragment | element) ~ EOI }
+node     = _{ doctype | element | expression | fragment | comment | text }
 
-term = _{ for_expression | if_expression | let_expression | unary_expression | postfix }
+element = _{ self_closing_element | normal_element }
 
-unary_expression = { "not" ~ whitespace+ ~ binary_expression }
-
-postfix = _{ primary ~ (postfix_op)* }
-postfix_op = _{ field | index | call }
-
-field = { "." ~ ident }
-index = { "[" ~ expression ~ "]" }
-call = {
-    "(" ~ whitespace* ~ call_args? ~ whitespace* ~ ")"
+normal_element = {
+    open_tag ~ node* ~ close_tag
 }
 
-call_args = _{ call_arg ~ (whitespace* ~ "," ~ whitespace* ~ call_arg)* }
-call_arg = _{ kw_arg | pos_arg }
-pos_arg = { expression }
-kw_arg = { ident ~ whitespace* ~ "=" ~ whitespace* ~ expression }
+self_closing_element =  { "<" ~ ident ~ (whitespace* ~ attribute)* ~ whitespace* ~ "/>" }
+open_tag             =  { "<" ~ ident ~ (whitespace* ~ attribute)* ~ whitespace* ~ ">" }
+close_tag            = @{ "</" ~ ident ~ ">" }
 
-primary = _{ "(" ~ expression ~ ")" | component | string | integer | boolean | ident }
+fragment       = { open_fragment ~ node* ~ close_fragment }
+open_fragment  = { "<>" }
+close_fragment = { "</>" }
 
-operator = { "+" | "-" | "*" | "/" | "and" | "or" | "==" | "!=" | ">=" | "<=" | ">" | "<" }
-boolean = { "true" | "false" }
-integer = @{ (ASCII_DIGIT | "_")+ }
-string = @{ "\"" ~ (escape_sequence | !("\"" | "\\") ~ ANY)* ~ "\"" }
+doctype    = @{ "<!DOCTYPE" ~ (!">" ~ ANY)* ~ ">" }
+attribute  =  { attr_name ~ ("=" ~ attr_value)? }
+comment    =  { "<!--" ~ (!"-->" ~ ANY)* ~ "-->" }
+expression =  { "{" ~ (expression | (!"}" ~ ANY))* ~ "}" }
 
-keyword = { "for" | "in" | "if" | "else" | "not" | "and" | "or" | "let" }
+ident      = @{ ASCII_ALPHANUMERIC ~ (ASCII_ALPHANUMERIC | "_")* }
+attr_name  = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" | "-" | ":" | ".")* }
+attr_value = @{ string_literal_quote | string_literal_doublequote | expression }
 
-keyword_spaced = { keyword ~ (whitespace+ | ".") }
-ident = { !keyword_spaced ~ ident_raw }
-ident_raw = _{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+string_literal_doublequote = _{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+string_literal_quote       = _{ "'" ~ (!"'" ~ ANY)* ~ "'" }
 
-whitespace = _{ " " | "\t" | "\n" | "\r" | comment_expression }
-escape_sequence = { "\\" ~ ( "\"" | "\\" | "n" | "t" | "r" ) }
-
-if_expression = {
-    "if " ~ whitespace* ~ binary_expression ~ whitespace* ~ block ~ (whitespace* ~ "else" ~ whitespace* ~ block )?
-}
-
-for_expression = { "for" ~ whitespace+ ~ ident ~ whitespace+ ~ "in" ~ whitespace+ ~ expression ~ whitespace* ~ block }
-
-let_expression = { "let" ~ whitespace+ ~ ident ~ whitespace* ~ "=" ~ whitespace* ~ expression }
-
-block = { whitespace* ~"{" ~ whitespace* ~ expression ~ whitespace* ~ "}" ~ whitespace* }
-comment_expression = _{ "/*" ~ comment ~ "*/" }
-comment = { (!"*/" ~ ANY)* }
-
-component = { markup_element | markup_fragment }
-markup_node = _{ markup_element | markup_fragment | markup_comment | markup_text | markup_expression }
-markup_element   = _{ markup_self_closing_element | markup_normal_element }
-
-markup_normal_element = {
-    markup_open_tag ~ markup_node* ~ markup_close_tag
-}
-
-markup_self_closing_element = _{ "<" ~ markup_ident ~ (whitespace* ~ markup_attribute)* ~ whitespace* ~ "/>" }
-markup_open_tag             = _{ "<" ~ markup_ident ~ (whitespace* ~ markup_attribute)* ~ whitespace* ~ ">" }
-markup_close_tag = @{ "</" ~ markup_ident ~ ">" }
-
-markup_fragment = _{ markup_open_fragment ~ markup_node* ~ markup_close_fragment }
-markup_open_fragment = _{ "<>" }
-markup_close_fragment = _{ "</>" }
-markup_attribute = _{ markup_attr_name ~ ("=" ~ markup_attr_value)? }
-markup_comment   = _{ "<!--" ~ (!"-->" ~ ANY)* ~ "-->" }
-markup_expression = _{ "{" ~ whitespace* ~ expression ~ whitespace* ~ "}" }
-
-markup_ident = @{ ASCII_ALPHANUMERIC ~ (ASCII_ALPHANUMERIC | "_" )* }
-markup_attr_name = @{ (ASCII_ALPHA | "_" ) ~ (ASCII_ALPHANUMERIC | "_" | "-" | ":" | "." )* }
-markup_attr_value = @{ markup_string_literal_quote | markup_string_literal_doublequote | markup_expression }
-markup_string_literal_doublequote = _{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
-markup_string_literal_quote = _{ "'" ~ (!"'" ~ ANY)* ~ "'" }
-markup_text = @{ (!("<" | "{") ~ ANY)+ }
+text = @{ (!("<" | "{") ~ ANY)+ }

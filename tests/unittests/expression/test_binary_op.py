@@ -1,7 +1,7 @@
-from typing import Any
+from typing import Any, Literal
 import pytest
 
-from xcomponent import Catalog
+from xcomponent import Catalog, XNode
 from xcomponent.service.catalog import Component
 
 catalog = Catalog()
@@ -10,6 +10,33 @@ catalog = Catalog()
 @catalog.component
 def AddOp(a: int | bool | str, b: int | bool | str) -> str:
     return """<>{a + b}</>"""
+
+
+@catalog.component
+def Button(
+    children: XNode,
+    type: Literal["submit", "button", "reset"] = "submit",
+    id: str | None = None,
+    name: str = "action",
+    value: str = "submit",
+    hx_target: str | None = None,
+) -> str:
+    return """
+    <button
+        type={type}
+        name={name}
+        value={value}
+        id={id}
+        hx-target={hx_target}
+        >
+        {children}
+    </button>
+    """
+
+
+@catalog.component
+def ExprAttr(id: str) -> str:
+    return """<Button id={id} name={id + "-btn"} hx-target={'#' + id}>X</Button>"""
 
 
 @catalog.component
@@ -66,6 +93,26 @@ def PriorityOp2(a: int, b: int, c: int) -> str:
 )
 def test_add(component: str, expected: str):
     assert component == expected
+
+
+
+@pytest.mark.parametrize(
+    "component,expected",
+    [
+        pytest.param(AddOp(4, 2), "6", id="add int"),
+        pytest.param(AddOp(13, 5), "18", id="add int-2"),
+        pytest.param(AddOp(True, 2), "3", id="add bool and int"),
+        pytest.param(AddOp(True, False), "1", id="add true-false"),
+        pytest.param(AddOp(False, False), "0", id="add false-false"),
+        pytest.param(AddOp(True, True), "2", id="add true-true"),
+        pytest.param(AddOp("1", "2"), "12", id="concat str"),
+
+    ],
+)
+def test_add_attr(component: str, expected: str):
+    resp = ExprAttr("close")
+    assert 'hx-target="#close"' in resp
+    assert 'name="close-btn"' in resp
 
 
 @pytest.mark.parametrize(

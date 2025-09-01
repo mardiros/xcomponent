@@ -144,7 +144,7 @@ fn parse_expression_token(pair: Pair<Rule>) -> Result<ExpressionToken, String> {
             Ok(ExpressionToken::Boolean(value))
         }
         Rule::string => {
-            let value = pair.as_str().trim_matches('"');
+            let value = pair.as_str().trim_matches(|c| c == '"' || c == '\'');
             debug!("Pushing string {}", value);
             Ok(ExpressionToken::String(value.to_string()))
         }

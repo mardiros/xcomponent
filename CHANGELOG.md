@@ -1,3 +1,7 @@
+## 0.6.4  -  2025-09-01
+
+* Fix expression that starts with a string 
+
 ## 0.6.3  -  2025-08-30
 
 * Implement not operator for str and int 

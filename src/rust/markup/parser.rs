@@ -7,7 +7,9 @@ use pest::iterators::{Pair, Pairs};
 use pest::Parser;
 use pest_derive::Parser;
 
-use crate::markup::tokens::{XComment, XDocType, XElement, XExpression, XFragment, XNode, XText};
+use crate::markup::tokens::{
+    XComment, XDocType, XElement, XExpression, XFragment, XNode, XScriptElement, XText,
+};
 
 #[derive(Parser)]
 #[grammar = "rust/markup/grammar.pest"]
@@ -32,16 +34,28 @@ fn parse_node(pair: Pair<Rule>) -> Option<XNode> {
             let open_tag = inner.next().unwrap();
             let (name, attrs) = parse_open_tag(open_tag);
 
-            let mut children = parse_nodes(inner);
-            // we make the distinctions between self closing element
-            // and normal element from the user input, we must ensure that
-            // the normal element are still rendered as normal element since
-            // it is a user choice.
-            if children.len() == 0 {
-                children.push(XNode::Text(XText::new("".to_string())));
-            }
+            match name.as_str() {
+                "script" | "style" => {
+                    let body = inner.as_str();
+                    Some(XNode::ScriptElement(XScriptElement::new(
+                        name,
+                        attrs,
+                        body.to_string(),
+                    )))
+                }
+                _ => {
+                    let mut children = parse_nodes(inner);
+                    // we make the distinctions between self closing element
+                    // and normal element from the user input, we must ensure that
+                    // the normal element are still rendered as normal element since
+                    // it is a user choice.
+                    if children.len() == 0 {
+                        children.push(XNode::Text(XText::new("".to_string())));
+                    }
 
-            Some(XNode::Element(XElement::new(name, attrs, children)))
+                    Some(XNode::Element(XElement::new(name, attrs, children)))
+                }
+            }
         }
         Rule::fragment => {
             debug!("Pushing fragment");

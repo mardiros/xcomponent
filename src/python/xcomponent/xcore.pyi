@@ -6,6 +6,7 @@ from collections.abc import Mapping, Callable
 
 class NodeType(Enum):
     Element = "Element"
+    ScriptElement = "ScriptElement"
     Comment = "Comment"
     Text = "Text"
     Expression = "Expression"
@@ -27,6 +28,19 @@ class XElement:
     def __init__(
         self, name: str, attrs: dict[str, XNode], children: list[XNode]
     ) -> None: ...
+
+
+class XScriptElement:
+    name: str
+    attrs: dict[str, XNode]
+    body: str
+
+    __match_args__ = ("name", "attrs", "body")
+
+    def __init__(
+        self, name: str, attrs: dict[str, XNode], body: str
+    ) -> None: ...
+
 
 class XText:
     text: str
@@ -55,6 +69,8 @@ class XNode:
     def Fragment(fragment: XFragment, /) -> XNode: ...
     @staticmethod
     def Element(element: XElement, /) -> XNode: ...
+    @staticmethod
+    def ScriptElement(element: XScriptElement, /) -> XNode: ...
     @staticmethod
     def Comment(text: XComment) -> XNode: ...
     @staticmethod

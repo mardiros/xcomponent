@@ -22,6 +22,7 @@ pub trait ToHtml {
 pub enum NodeType {
     DocType,
     Fragment,
+    ScriptElement,
     Element,
     Expression,
     Text,
@@ -63,6 +64,65 @@ impl ToHtml for XFragment {
         for child in self.children() {
             result.push_str(child.to_html(py, catalog, context)?.as_str())
         }
+        Ok(result)
+    }
+}
+
+#[pyclass(eq)]
+#[derive(Debug, Clone, PartialEq)]
+pub struct XScriptElement {
+    name: String,
+    attrs: HashMap<String, XNode>,
+    body: String,
+}
+#[pymethods]
+impl XScriptElement {
+    #[new]
+    pub fn new(name: String, attrs: HashMap<String, XNode>, body: String) -> Self {
+        XScriptElement { name, attrs, body }
+    }
+
+    #[getter]
+    fn name(&self) -> &str {
+        self.name.as_str()
+    }
+
+    #[getter]
+    fn attrs(&self) -> HashMap<String, XNode> {
+        self.attrs.clone()
+    }
+
+    #[getter]
+    fn body(&self) -> &str {
+        self.body.as_str()
+    }
+
+    #[classattr]
+    fn __match_args__() -> (&'static str, &'static str, &'static str) {
+        ("name", "attrs", "body")
+    }
+}
+
+impl ToHtml for XScriptElement {
+    fn to_html<'py>(
+        &self,
+        _py: Python<'py>,
+        _catalog: &XCatalog,
+        _context: &mut RenderContext,
+    ) -> PyResult<String> {
+        let mut result = String::new();
+
+        let joined_attrs = self
+            .attrs()
+            .iter()
+            .map(|(k, v)| format!(" {}=\"{}\"", k, v.__repr__()))
+            .collect::<String>();
+
+        result.push_str(format!("<{}{}>", self.name(), joined_attrs).as_str());
+        result.push_str(format!("{}", self.body()).as_str());
+        // The body ends wigh the closing tag, we don't need to add it.
+        // result.push_str(format!("</{}>", self.name()).as_str());
+
         Ok(result)
     }
 }
@@ -373,6 +433,7 @@ impl ToHtml for XExpression {
 #[derive(Debug, Clone, PartialEq)]
 pub enum XNode {
     Fragment(XFragment),
+    ScriptElement(XScriptElement),
     Element(XElement),
     DocType(XDocType),
     Text(XText),
@@ -403,6 +464,17 @@ impl std::fmt::Display for XNode {
                     write!(f, "</{}>", name)
                 }
             }
+            XNode::ScriptElement(XScriptElement { name, attrs, body }) => {
+                let joined_attrs = attrs
+                    .iter()
+                    .map(|(k, v)| format!(" {}=\"{}\"", k, v.__repr__()))
+                    .collect::<String>();
+
+                write!(f, "<{}{}>", name, joined_attrs)?;
+                write!(f, "{}", body)?;
+                write!(f, "</{}>", name)
+            }
+
             XNode::Fragment(XFragment { children }) => {
                 write!(
                     f,
@@ -424,6 +496,7 @@ impl XNode {
     fn kind(&self) -> NodeType {
         match self {
             XNode::Fragment(_) => NodeType::Fragment,
+            XNode::ScriptElement(_) => NodeType::ScriptElement,
             XNode::Element(_) => NodeType::Element,
             XNode::DocType(_) => NodeType::DocType,
             XNode::Text(_) => NodeType::Text,
@@ -443,6 +516,12 @@ impl XNode {
     pub fn unwrap(&self, py: Python<'_>) -> PyObject {
         match self {
             XNode::Fragment(children) => children
+                .clone()
+                .into_pyobject(py)
+                .unwrap()
+                .into_any()
+                .unbind(),
+            XNode::ScriptElement(element) => element
                 .clone()
                 .into_pyobject(py)
                 .unwrap()
@@ -500,6 +579,7 @@ impl ToHtml for XNode {
         match self {
             XNode::Fragment(f) => f.to_html(py, catalog, context),
             XNode::Element(e) => e.to_html(py, catalog, context),
+            XNode::ScriptElement(e) => e.to_html(py, catalog, context),
             XNode::DocType(d) => d.to_html(py, catalog, context),
             XNode::Text(t) => t.to_html(py, catalog, context),
             XNode::Comment(c) => c.to_html(py, catalog, context),

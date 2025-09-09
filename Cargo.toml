@@ -1,6 +1,6 @@
 [package]
 name = "xcore"
-version = "0.6.4"
+version = "0.6.5"
 authors = ["Guillaume Gauvrit <guillaume@gauvr.it>"]
 edition = "2021"
 description = "JSX-like for python using maturin/pyo3 and pest."

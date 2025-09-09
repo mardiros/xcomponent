@@ -1,3 +1,7 @@
+## 0.6.5  -  2025-09-09
+
+* Fix string quote that are wrongly evaluated and eaten by the parser. 
+
 ## 0.6.4  -  2025-09-01
 
 * Fix expression that starts with a string 

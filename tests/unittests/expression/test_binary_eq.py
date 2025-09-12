@@ -40,14 +40,17 @@ def Lte(a: int | bool | str, b: int | bool | str) -> str:
     [
         pytest.param(Eq(4, 2), "false", id="int-false"),
         pytest.param(Eq(5, 5), "true", id="int-true"),
+        pytest.param(Eq(4, None), "false", id="int-None"),
         pytest.param(Eq(True, 2), "false", id="bool and int-false"),
         pytest.param(Eq(True, 1), "true", id="bool and int-true"),
         pytest.param(Eq(False, 0), "true", id="bool and int-true"),
+        pytest.param(Eq(False, None), "false", id="bool-None"),
         pytest.param(Eq(True, False), "false", id="true-false"),
         pytest.param(Eq(False, False), "true", id="false-false"),
         pytest.param(Eq(True, True), "true", id="add true-true"),
         pytest.param(Eq("1", "2"), "false", id="str-false"),
         pytest.param(Eq("1", "1"), "true", id="str-true"),
+        pytest.param(Eq("", None), "false", id="str-None"),
     ],
 )
 def test_eq(component: str, expected: str):
@@ -59,14 +62,17 @@ def test_eq(component: str, expected: str):
     [
         pytest.param(Neq(4, 2), "true", id="int-true"),
         pytest.param(Neq(5, 5), "false", id="int-false"),
+        pytest.param(Neq(5, None), "true", id="int-None"),
         pytest.param(Neq(True, 2), "true", id="bool and int-true"),
         pytest.param(Neq(True, 1), "false", id="bool and int-false"),
+        pytest.param(Neq(True, None), "true", id="bool-None"),
         pytest.param(Neq(False, 0), "false", id="bool and int-false"),
         pytest.param(Neq(True, False), "true", id="true-false is true"),
         pytest.param(Neq(False, False), "false", id="false-false is false"),
         pytest.param(Neq(True, True), "false", id="add true-true is true"),
         pytest.param(Neq("1", "2"), "true", id="str-true"),
         pytest.param(Neq("1", "1"), "false", id="str-false"),
+        pytest.param(Neq("1", None), "true", id="str-None"),
     ],
 )
 def test_neq(component: str, expected: str):

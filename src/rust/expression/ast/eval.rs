@@ -22,9 +22,10 @@ fn eval_add(l: Literal, r: Literal) -> PyResult<Literal> {
         (Literal::Bool(a), Literal::Int(b)) => Ok(Literal::Int(a as isize + b)),
         (Literal::Bool(a), Literal::Bool(b)) => Ok(Literal::Int(a as isize + b as isize)),
         (Literal::Str(a), Literal::Str(b)) => Ok(Literal::Str(a + &b)),
-        _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "Invalid types for addition",
-        )),
+        (a, b) => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+            "Cannot add {:?} + {:?}, type mismatch",
+            a, b
+        ))),
     }
 }
 
@@ -34,9 +35,10 @@ fn eval_sub(l: Literal, r: Literal) -> PyResult<Literal> {
         (Literal::Int(a), Literal::Bool(b)) => Ok(Literal::Int(a - b as isize)),
         (Literal::Bool(a), Literal::Int(b)) => Ok(Literal::Int(a as isize - b)),
         (Literal::Bool(a), Literal::Bool(b)) => Ok(Literal::Int(a as isize - b as isize)),
-        _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "Invalid types for subtraction",
-        )),
+        (a, b) => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+            "Cannot substract {:?} - {:?}, type mismatch",
+            a, b
+        ))),
     }
 }
 
@@ -52,9 +54,10 @@ fn eval_mul(l: Literal, r: Literal) -> PyResult<Literal> {
             "".to_string()
         })),
         (Literal::Str(a), Literal::Bool(b)) => Ok(Literal::Str(a.repeat(b as usize))),
-        _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "Invalid types for multiplication",
-        )),
+        (a, b) => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+            "Cannot multiply {:?} * {:?}, type mismatch",
+            a, b
+        ))),
     }
 }
 
@@ -88,9 +91,10 @@ fn eval_div(l: Literal, r: Literal) -> PyResult<Literal> {
                 Ok(Literal::Int(a as isize / b as isize))
             }
         }
-        _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "Invalid types for division",
-        )),
+        (a, b) => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+            "Cannot divide {:?} / {:?}, type mismatch",
+            a, b
+        ))),
     }
 }
 
@@ -112,26 +116,28 @@ fn eval_or(l: Literal, r: Literal) -> PyResult<Literal> {
     }
 }
 
-fn eval_raw_eq(l: Literal, r: Literal) -> PyResult<bool> {
+fn eval_raw_eq(l: Literal, r: Literal, op: String) -> PyResult<bool> {
     match (l, r) {
         (Literal::Int(a), Literal::Int(b)) => Ok(a == b),
         (Literal::Int(a), Literal::Bool(b)) => Ok(a == b as isize),
         (Literal::Bool(a), Literal::Int(b)) => Ok(a as isize == b),
         (Literal::Bool(a), Literal::Bool(b)) => Ok(a == b),
         (Literal::Str(a), Literal::Str(b)) => Ok(a == b),
+        (Literal::None(()), _) => Ok(false),
+        (_, Literal::None(())) => Ok(false),
         (a, b) => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
-            "Cannot compare {:?} == {:?}, type mismatch",
-            a, b
+            "Cannot compare {:?} {} {:?}, type mismatch",
+            a, op, b
         ))),
     }
 }
 
 fn eval_eq(l: Literal, r: Literal) -> PyResult<Literal> {
-    return eval_raw_eq(l, r).map(|b| Literal::Bool(b));
+    return eval_raw_eq(l, r, "==".to_string()).map(|b| Literal::Bool(b));
 }
 
 fn eval_neq(l: Literal, r: Literal) -> PyResult<Literal> {
-    return eval_raw_eq(l, r).map(|b| Literal::Bool(!b));
+    return eval_raw_eq(l, r, "!=".to_string()).map(|b| Literal::Bool(!b));
 }
 
 fn eval_raw_gt(l: Literal, r: Literal) -> PyResult<bool> {

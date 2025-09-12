@@ -162,8 +162,18 @@ def test_div(component: str, expected: str):
 @pytest.mark.parametrize(
     "component,args,expected",
     [
-        pytest.param(AddOp, (4, "2"), "Invalid types for addition", id="add int-str"),
-        pytest.param(SubOp, ("1", "2"), "Invalid types for subtraction", id="sub str"),
+        pytest.param(
+            AddOp,
+            (4, "2"),
+            'Cannot add Int(4) + Str("2"), type mismatch',
+            id="add int-str",
+        ),
+        pytest.param(
+            SubOp,
+            ("1", "2"),
+            'Cannot substract Str("1") - Str("2"), type mismatch',
+            id="sub str",
+        ),
     ],
 )
 def test_type_error(component: Component, args: Any, expected: str):

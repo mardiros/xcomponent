@@ -119,9 +119,10 @@ fn eval_raw_eq(l: Literal, r: Literal) -> PyResult<bool> {
         (Literal::Bool(a), Literal::Int(b)) => Ok(a as isize == b),
         (Literal::Bool(a), Literal::Bool(b)) => Ok(a == b),
         (Literal::Str(a), Literal::Str(b)) => Ok(a == b),
-        _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "Invalid types for equality",
-        )),
+        (a, b) => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+            "Cannot compare {:?} == {:?}, type mismatch",
+            a, b
+        ))),
     }
 }
 
@@ -140,9 +141,10 @@ fn eval_raw_gt(l: Literal, r: Literal) -> PyResult<bool> {
         (Literal::Bool(a), Literal::Int(b)) => Ok(a as isize > b),
         (Literal::Bool(a), Literal::Bool(b)) => Ok(a > b),
         (Literal::Str(a), Literal::Str(b)) => Ok(a > b),
-        _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "Invalid types for comparison",
-        )),
+        (a, b) => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+            "Cannot compare {:?} > {:?}, type mismatch",
+            a, b
+        ))),
     }
 }
 
@@ -153,9 +155,10 @@ fn eval_raw_lt(l: Literal, r: Literal) -> PyResult<bool> {
         (Literal::Bool(a), Literal::Int(b)) => Ok((a as isize) < b),
         (Literal::Bool(a), Literal::Bool(b)) => Ok(a < b),
         (Literal::Str(a), Literal::Str(b)) => Ok(a < b),
-        _ => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(
-            "Invalid types for comparison",
-        )),
+        (a, b) => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(
+            "Cannot compare {:?} < {:?}, type mismatch",
+            a, b
+        ))),
     }
 }
 

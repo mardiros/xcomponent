@@ -1,3 +1,8 @@
+## 0.6.6  -  2025-09-12
+
+* Add support of None for == operator.
+* Improve error message for binary operators.
+
 ## 0.6.5  -  2025-09-09
 
 * Fix string quote that are wrongly evaluated and eaten by the parser. 

@@ -29,7 +29,6 @@ class XElement:
         self, name: str, attrs: dict[str, XNode], children: list[XNode]
     ) -> None: ...
 
-
 class XScriptElement:
     name: str
     attrs: dict[str, XNode]
@@ -37,10 +36,7 @@ class XScriptElement:
 
     __match_args__ = ("name", "attrs", "body")
 
-    def __init__(
-        self, name: str, attrs: dict[str, XNode], body: str
-    ) -> None: ...
-
+    def __init__(self, name: str, attrs: dict[str, XNode], body: str) -> None: ...
 
 class XText:
     text: str

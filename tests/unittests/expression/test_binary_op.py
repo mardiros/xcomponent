@@ -95,7 +95,6 @@ def test_add(component: str, expected: str):
     assert component == expected
 
 
-
 @pytest.mark.parametrize(
     "component,expected",
     [
@@ -106,7 +105,6 @@ def test_add(component: str, expected: str):
         pytest.param(AddOp(False, False), "0", id="add false-false"),
         pytest.param(AddOp(True, True), "2", id="add true-true"),
         pytest.param(AddOp("1", "2"), "12", id="concat str"),
-
     ],
 )
 def test_add_attr(component: str, expected: str):

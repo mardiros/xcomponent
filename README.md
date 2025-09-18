@@ -5,7 +5,7 @@
 XComponent is a template engine, inspired by JSX, to embed template in Python.
 
 It diverge from all existing Python template engine since all the templates
-must be written in Python code.
+must be written inside the Python code.
 
 This is a design decision and a matter of preference for the locality of behavior.
 
@@ -36,10 +36,10 @@ catalog.render("<HelloWorld name='Bob'/>")
 Using XComponent, templates are stored in a catalog of components, and then
 they can be rendered to HTML.
 
-All components can be reused in other component in order to build an HTML document
+All components can be reused in other components in order to build an HTML document
 at the end.
 
 Using curly brace let's have a friendly expression language, inspired by Python,
-JSX and rust.
+JSX and Rust.
 
 [Getting started ?](https://mardiros.github.io/xcomponent/)

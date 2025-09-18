@@ -1,7 +1,7 @@
 [project]
 name = "xcomponent"
 version = "0.6.6"
-description = "A component base template engige - inspired by JSX"
+description = "An embeded component base template engine - inspired by JSX"
 readme = "README.md"
 authors = [{ name = "Guillaume Gauvrit", email = "guillaume@gauvr.it" }]
 license = { text = "MIT" }

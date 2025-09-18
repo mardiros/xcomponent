@@ -236,6 +236,15 @@ A good alternative would be to use **a type with dataclasses or pydantic for the
 globals**, ensuring all declared fields have an appropriate default value and
 proper documentation.
 
+### Using scripts and style
+
+HTML tags `<script>` and `<style>` have a special rendering in xcomponent;
+**they can't contains any variable or expression**.
+Says differently, it is not possible to generate a javascript function within
+a XComponent expression. **The content of the `<script>` and `<style>` markup
+tag is copied from the template at rendering, not interpreted**.
+
+
 ## XComponent Expression
 
 Everything in the Markup that has been enclosed by curly braces is an expression.

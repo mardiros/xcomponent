@@ -1,6 +1,6 @@
 [project]
 name = "xcomponent"
-version = "0.6.6"
+version = "0.6.7"
 description = "An embeded component base template engine - inspired by JSX"
 readme = "README.md"
 authors = [{ name = "Guillaume Gauvrit", email = "guillaume@gauvr.it" }]

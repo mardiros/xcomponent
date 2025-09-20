@@ -1,3 +1,7 @@
+## 0.6.7  -  2025-09-20
+
+* Fix behavior for None == None and None != None. 
+
 ## 0.6.6  -  2025-09-12
 
 * Add support of None for == operator.

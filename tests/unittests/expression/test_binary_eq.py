@@ -51,6 +51,7 @@ def Lte(a: int | bool | str, b: int | bool | str) -> str:
         pytest.param(Eq("1", "2"), "false", id="str-false"),
         pytest.param(Eq("1", "1"), "true", id="str-true"),
         pytest.param(Eq("", None), "false", id="str-None"),
+        pytest.param(Eq(None, None), "true", id="None-None"),
     ],
 )
 def test_eq(component: str, expected: str):
@@ -73,6 +74,7 @@ def test_eq(component: str, expected: str):
         pytest.param(Neq("1", "2"), "true", id="str-true"),
         pytest.param(Neq("1", "1"), "false", id="str-false"),
         pytest.param(Neq("1", None), "true", id="str-None"),
+        pytest.param(Neq(None, None), "false", id="None-None"),
     ],
 )
 def test_neq(component: str, expected: str):

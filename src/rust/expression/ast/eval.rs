@@ -123,6 +123,7 @@ fn eval_raw_eq(l: Literal, r: Literal, op: String) -> PyResult<bool> {
         (Literal::Bool(a), Literal::Int(b)) => Ok(a as isize == b),
         (Literal::Bool(a), Literal::Bool(b)) => Ok(a == b),
         (Literal::Str(a), Literal::Str(b)) => Ok(a == b),
+        (Literal::None(()), Literal::None(())) => Ok(true),
         (Literal::None(()), _) => Ok(false),
         (_, Literal::None(())) => Ok(false),
         (a, b) => Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>(format!(

@@ -26,7 +26,7 @@ jobs:
           path: dist
           merge-multiple: true
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
 
       - uses: actions/download-artifact@v4
         name: download artifacts

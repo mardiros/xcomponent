@@ -1,3 +1,9 @@
+## 0.6.9  -  2025-10-04
+
+* Drop wheel for i686 for windows 11 for python 3.9,3.10 and 3.11 since
+  it does not build anymore.
+* Update python setup to v6
+
 ## 0.6.8  -  2025-10-04
 
 * Authorize trailing comma on function call

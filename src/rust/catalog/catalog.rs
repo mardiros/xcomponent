@@ -102,7 +102,12 @@ impl XCatalog {
         params: Py<PyDict>,
         defaults: Py<PyDict>,
     ) -> PyResult<()> {
-        let node = parse_markup(template)?;
+        let node = parse_markup(template).map_err(|e| {
+            pyo3::exceptions::PyValueError::new_err(format!(
+                "Cannot parse component <{}/>:\n    {}",
+                name, e
+            ))
+        })?;
         let py_node = Py::new(py, node)?;
         let template = XTemplate::new(py_node, params, defaults);
         info!("Registering node {}", name);

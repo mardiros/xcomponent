@@ -155,7 +155,7 @@ fn parse_expression_token(pair: Pair<Rule>) -> Result<ExpressionToken, String> {
             debug!("Pushing component {}", raw);
             parse_markup(raw)
                 .map(|n| ExpressionToken::XNode(n))
-                .map_err(|e| format!("Syntax error need {}", e))
+                .map_err(|e| format!("Syntax error: {}", e))
         }
         Rule::comment => {
             debug!("Ignoring comment");

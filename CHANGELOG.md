@@ -1,3 +1,8 @@
+## 0.6.8  -  2025-10-04
+
+* Authorize trailing comma on function call
+* Improve error display on markup error. (Display the component name)
+
 ## 0.6.7  -  2025-09-20
 
 * Fix behavior for None == None and None != None. 

@@ -13,7 +13,7 @@ field = { "." ~ ident }
 index = { "[" ~ expression ~ "]" }
 call  = { "(" ~ whitespace* ~ call_args? ~ whitespace* ~ ")" }
 
-call_args = _{ call_arg ~ (whitespace* ~ "," ~ whitespace* ~ call_arg)* }
+call_args = _{ call_arg ~ (whitespace* ~ "," ~ whitespace* ~ call_arg)* ~ ","? }
 call_arg  = _{ kw_arg | pos_arg }
 pos_arg   =  { expression }
 kw_arg    =  { ident ~ whitespace* ~ "=" ~ whitespace* ~ expression }

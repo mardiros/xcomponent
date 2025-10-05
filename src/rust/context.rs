@@ -193,19 +193,13 @@ impl Truthy for Literal {
             Literal::Uuid(_) => true,
             Literal::XNode(_) => true,
             Literal::Callable(_) => true,
-            Literal::Object(o) => {
-                Python::with_gil(|py| {
-                    match o
-                        .obj()
-                        .into_pyobject(py)
-                        .unwrap()
-                        .call_method("__bool__", (), None)
-                    {
-                        Ok(b) => b.extract::<bool>().unwrap(),
-                        Err(_) => false, // or panic/log
-                    }
-                })
-            }
+            Literal::Object(o) => Python::with_gil(|py| {
+                let builtins = PyModule::import(py, "builtins").unwrap();
+                let boolcls = builtins.getattr("bool").unwrap();
+                let v = o.obj().into_pyobject(py).unwrap();
+                let ret: bool = boolcls.call1((v,)).unwrap().extract().unwrap();
+                ret
+            }),
             Literal::List(items) => !items.is_empty(),
             Literal::Dict(d) => !d.is_empty(),
         }

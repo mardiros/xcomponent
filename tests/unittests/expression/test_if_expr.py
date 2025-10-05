@@ -1,3 +1,4 @@
+from typing_extensions import Any
 import pytest
 
 from xcomponent import Catalog
@@ -41,7 +42,7 @@ def IfSelfClosedComponent(a: bool) -> str:
 
 
 @catalog.component
-def IfComponent(a: bool) -> str:
+def IfComponent(a: Any) -> str:
     return """<>{if a { <p>Ha ha!</p> } }</>"""
 
 
@@ -83,6 +84,8 @@ def Hint(text: str | None = None) -> str:
         pytest.param(IfSelfClosedComponent(False), ""),
         pytest.param(IfComponent(True), "<p>Ha ha!</p>"),
         pytest.param(IfComponent(False), ""),
+        pytest.param(IfComponent(object()), "<p>Ha ha!</p>"),
+        pytest.param(IfComponent(None), ""),
         pytest.param(Hint(), ""),
         pytest.param(Hint("I exist"), "<span>I exist</span>"),
     ],

@@ -1,8 +1,12 @@
+## 0.6.10  -  2025-10-05
+
+* Fix truthy comparison for any python objects. 
+
 ## 0.6.9  -  2025-10-04
 
 * Drop wheel for i686 for windows 11 for python 3.9,3.10 and 3.11 since
   it does not build anymore.
-* Update python setup to v6
+* Update python setup to v6.
 
 ## 0.6.8  -  2025-10-04
 

@@ -45,7 +45,10 @@ class Catalog:
         Render the given markup.
 
         :param content: The markup to render
-        :param params: Global variables that does not need to do props drilling.
+        :param params: rendering context.
+            the special key "globals" of the rendering context is passed
+            to all children during the rendering, other variable requires
+            a "props drilling".
         :return: the rendered template.
         """
         return self._catalog.render(content, **params)

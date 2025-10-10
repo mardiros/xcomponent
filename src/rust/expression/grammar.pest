@@ -24,10 +24,15 @@ operator = { "+" | "-" | "*" | "/" | "and" | "or" | "==" | "!=" | ">=" | "<=" | 
 
 boolean =  { "true" | "false" }
 integer = @{ (ASCII_DIGIT | "_")+ }
-string  = @{
+dedent_string  = @{
+    "\"\"\"" ~ (escape_sequence | !("\"\"\"" | "\\") ~ ANY)* ~ "\"\"\""
+  | "'''"   ~ (escape_sequence | !("'''" | "\\") ~ ANY)* ~ "'''"
+}
+normal_string  = @{
     ("\"" ~ (escape_sequence | !("\"" | "\\") ~ ANY)* ~ "\"")
   | ("'" ~ (escape_sequence | !("'" | "\\") ~ ANY)* ~ "'")
 }
+string = _{ dedent_string | normal_string }
 
 keyword        = { "for" | "in" | "if" | "else" | "not" | "and" | "or" | "let" }
 keyword_spaced = { keyword ~ (whitespace+ | ".") }

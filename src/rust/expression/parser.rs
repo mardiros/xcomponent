@@ -143,7 +143,39 @@ fn parse_expression_token(pair: Pair<Rule>) -> Result<ExpressionToken, String> {
             debug!("Pushing boolean {}", value);
             Ok(ExpressionToken::Boolean(value))
         }
-        Rule::string => {
+        Rule::dedent_string => {
+            let value = pair.as_str();
+            let mut vstr = value[3..value.len() - 3].to_string();
+            if vstr.starts_with('\n') {
+                let lines: Vec<&str> = vstr[1..].split('\n').collect();
+                if !lines.is_empty() {
+                    // Find the minimum leading whitespace from non-empty lines
+                    let min_lpad = lines
+                        .iter()
+                        .filter(|line| !line.trim().is_empty())
+                        .map(|line| line.chars().take_while(|c| c.is_whitespace()).count())
+                        .min()
+                        .unwrap_or(0);
+
+                    // Dedent all lines by min_lpad
+                    let dedented_lines: Vec<String> = lines
+                        .iter()
+                        .map(|line| {
+                            if line.chars().take_while(|c| c.is_whitespace()).count() >= min_lpad {
+                                line[min_lpad..].to_string()
+                            } else {
+                                line.to_string()
+                            }
+                        })
+                        .collect();
+                    vstr = dedented_lines.join("\n");
+                }
+            }
+
+            debug!("Pushing dedent string {}", vstr);
+            Ok(ExpressionToken::String(vstr))
+        }
+        Rule::normal_string => {
             let value = pair.as_str();
             let vstr = value[1..value.len() - 1].to_string();
             debug!("Pushing string {}", vstr);

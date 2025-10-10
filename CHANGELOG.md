@@ -1,3 +1,7 @@
+## 0.7.0  -  2025-10-10
+
+* Release triple quote string with auto dedent.
+
 ## 0.6.10  -  2025-10-05
 
 * Fix truthy comparison for any python objects. 

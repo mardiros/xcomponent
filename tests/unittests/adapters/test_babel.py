@@ -83,6 +83,56 @@ def markup(raw: str):
             ],
             id="ngettext",
         ),
+        pytest.param(
+            """
+            {
+                globals.dgettext(
+                    'domain',
+                    'multi domain extracted',
+                )
+            }
+            """,
+            [
+                (1, "", "multi domain extracted", ""),
+            ],
+            id="dgettext",
+        ),
+        pytest.param(
+            """
+            {
+                globals.dngettext(
+                    'domain',
+                    'multi domain extracted',
+                    'multi domain plural extracted',
+                    42
+                )
+            }
+            """,
+            [
+                (1, "", "multi domain extracted", ""),
+                (1, "", "multi domain plural extracted", ""),
+            ],
+            id="dngettext",
+        ),
+        pytest.param(
+            """
+            {
+                globals.dngettext(
+                    'the go game. neigher the verb nor the programing language.',
+                    'go',
+                )
+            }
+            """,
+            [
+                (
+                    1,
+                    "",
+                    "go",
+                    "",
+                ),
+            ],
+            id="pgettext",
+        ),
     ],
 )
 def test_extract_from_markup(markup: XNode, expected: list[ExtractionInfo]):

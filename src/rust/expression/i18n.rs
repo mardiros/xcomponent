@@ -17,20 +17,41 @@ fn extract_from_ast(ast: AST) -> Vec<String> {
             kwargs: _,
         } => match *left {
             AST::FieldAccess(_, s) => {
-                if s == "gettext" {
-                    match args.first() {
+                match s.as_str() {
+                    "gettext" => match args.first() {
                         Some(AST::Literal(Literal::Str(v))) => res.push(v.clone()),
                         _ => (),
+                    },
+                    "ngettext" => {
+                        match args.first() {
+                            Some(AST::Literal(Literal::Str(v))) => res.push(v.clone()),
+                            _ => (),
+                        }
+                        match args.get(1) {
+                            Some(AST::Literal(Literal::Str(v))) => res.push(v.clone()),
+                            _ => (),
+                        }
                     }
-                } else if s == "ngettext" {
-                    match args.first() {
-                        Some(AST::Literal(Literal::Str(v))) => res.push(v.clone()),
-                        _ => (),
+                    "dgettext" => {
+                        // FIXME we shoud ignore if the domain (first arg) is not ours.
+                        match args.get(1) {
+                            Some(AST::Literal(Literal::Str(v))) => res.push(v.clone()),
+                            _ => (),
+                        }
                     }
-                    match args.get(1) {
-                        Some(AST::Literal(Literal::Str(v))) => res.push(v.clone()),
-                        _ => (),
+                    "dngettext" => {
+                        // FIXME we shoud ignore if the domain (first arg) is not ours.
+                        match args.get(1) {
+                            Some(AST::Literal(Literal::Str(v))) => res.push(v.clone()),
+                            _ => (),
+                        }
+                        match args.get(2) {
+                            Some(AST::Literal(Literal::Str(v))) => res.push(v.clone()),
+                            _ => (),
+                        }
                     }
+                    "pgettext" => {}
+                    _ => {}
                 }
             }
             _ => {}

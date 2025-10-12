@@ -612,6 +612,7 @@ docs = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "babel" },
     { name = "bs4" },
     { name = "mypy" },
     { name = "pytest" },
@@ -636,6 +637,7 @@ provides-extras = ["docs"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "babel", specifier = ">=2.17.0,<3.0.0" },
     { name = "bs4", specifier = ">=0.0.2" },
     { name = "mypy", specifier = ">=1.16.0,<2" },
     { name = "pytest", specifier = ">=8.3.5,<9" },

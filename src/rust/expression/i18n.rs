@@ -22,6 +22,15 @@ fn extract_from_ast(ast: AST) -> Vec<String> {
                         Some(AST::Literal(Literal::Str(v))) => res.push(v.clone()),
                         _ => (),
                     }
+                } else if s == "ngettext" {
+                    match args.first() {
+                        Some(AST::Literal(Literal::Str(v))) => res.push(v.clone()),
+                        _ => (),
+                    }
+                    match args.get(1) {
+                        Some(AST::Literal(Literal::Str(v))) => res.push(v.clone()),
+                        _ => (),
+                    }
                 }
             }
             _ => {}

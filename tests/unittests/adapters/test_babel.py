@@ -64,6 +64,25 @@ def markup(raw: str):
             ],
             id="nested",
         ),
+        pytest.param(
+            """
+            {
+                globals.ngettext(
+                    '''
+                    a singular text
+                    ''',
+                    '''
+                    a plural text
+                    ''',
+                )
+            }
+            """,
+            [
+                (1, "", "a singular text\n", ""),
+                (1, "", "a plural text\n", ""),
+            ],
+            id="ngettext",
+        ),
     ],
 )
 def test_extract_from_markup(markup: XNode, expected: list[ExtractionInfo]):

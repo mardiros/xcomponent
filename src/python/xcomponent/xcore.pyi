@@ -61,6 +61,7 @@ class XExpression:
 
 class XNode:
     """Represent a node in the markup."""
+
     @staticmethod
     def Fragment(fragment: XFragment, /) -> XNode: ...
     @staticmethod
@@ -79,6 +80,14 @@ class XNode:
     def __eq__(self, other: object) -> bool: ...
     def unwrap(self) -> XFragment | XElement | XComment | XText | XExpression: ...
 
+def parse_markup(raw: str) -> XNode:
+    """
+    Parse the given markup and return the root XNode.
+
+    If the raw template is not valid, then a ValueError exception is raised,
+    with an invalid markup hint message.
+    """
+
 class XTemplate:
     node: XNode
     params: Mapping[str, type | Any]
@@ -86,6 +95,7 @@ class XTemplate:
 
 class XCatalog:
     """Catalog of templates en functions."""
+
     def __init__(self) -> None: ...
     def add_component(
         self,

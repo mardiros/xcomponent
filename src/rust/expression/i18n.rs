@@ -40,7 +40,13 @@ pub enum MessageKind {
         context: String,
         singular: String,
         plural: String,
-    }
+    },
+    Dnpgettext {
+        domain: String,
+        context: String,
+        singular: String,
+        plural: String,
+    },
 }
 
 #[pyclass]
@@ -204,7 +210,7 @@ fn extract_from_ast(ast: AST) -> Vec<ExtractedMessage> {
                         )),
                         _ => (),
                     }
-                },
+                }
                 "npgettext" => {
                     let context = match args.first() {
                         Some(AST::Literal(Literal::Str(v))) => v.clone(),
@@ -228,12 +234,40 @@ fn extract_from_ast(ast: AST) -> Vec<ExtractedMessage> {
                         _ => (),
                     }
                 }
+                "dnpgettext" => {
+                    let domain = match args.first() {
+                        Some(AST::Literal(Literal::Str(v))) => v.clone(),
+                        _ => "".to_owned(),
+                    };
+                    let context = match args.get(1) {
+                        Some(AST::Literal(Literal::Str(v))) => v.clone(),
+                        _ => "".to_owned(),
+                    };
+                    let singular = match args.get(2) {
+                        Some(AST::Literal(Literal::Str(v))) => v.clone(),
+                        _ => "".to_owned(),
+                    };
+                    match args.get(3) {
+                        Some(AST::Literal(Literal::Str(v))) => res.push(ExtractedMessage::new(
+                            0,
+                            s.clone(),
+                            MessageKind::Dnpgettext {
+                                domain,
+                                context,
+                                singular,
+                                plural: v.clone(),
+                            },
+                            Vec::new(),
+                        )),
+                        _ => (),
+                    }
+                }
                 _ => {}
             },
             _ => {}
         },
         _ => {
-            error!("??? {:?}", ast);
+            warn!("Ignoring {:?} while extracting messages", ast);
         }
     }
     res

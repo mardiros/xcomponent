@@ -25,7 +25,7 @@ def extract_from_markup(node: XNode, offset: int) -> Iterator[ExtractionInfo]:
             for child in children:
                 for nfo in extract_from_markup(child, offset):
                     yield nfo
-        case XElement(name, attrs, children):
+        case XElement(_, attrs, children):
             for child in attrs.values():
                 for nfo in extract_from_markup(child, offset):
                     yield nfo
@@ -96,6 +96,18 @@ def extract_from_markup(node: XNode, offset: int) -> Iterator[ExtractionInfo]:
                             offset + msg.lineno,
                             msg.funcname,
                             (
+                                msg.message.context,
+                                msg.message.singular,
+                                msg.message.plural,
+                            ),
+                            msg.comments,
+                        )
+                    case "dnpgettext":
+                        yield (
+                            offset + msg.lineno,
+                            msg.funcname,
+                            (
+                                msg.message.domain,
                                 msg.message.context,
                                 msg.message.singular,
                                 msg.message.plural,

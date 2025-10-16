@@ -178,6 +178,7 @@ empty_comment: list[str] = []
                     "goat for the animal, not the greatest.",
                     "the {number} goat",
                     "the {number} goats",
+                    number
                 )
             }
             """,
@@ -194,6 +195,33 @@ empty_comment: list[str] = []
                 ),
             ],
             id="npgettext",
+        ),
+        pytest.param(
+            """
+            {
+                globals.dnpgettext(
+                    "domain",
+                    "goat for the greatest of all times.",
+                    "the {number} goat",
+                    "the {number} goats",
+                    number
+                )
+            }
+            """,
+            [
+                (
+                    1,
+                    "dnpgettext",
+                    (
+                        "domain",
+                        "goat for the greatest of all times.",
+                        "the {number} goat",
+                        "the {number} goats",
+                    ),
+                    empty_comment,
+                ),
+            ],
+            id="dnpgettext",
         ),
     ],
 )

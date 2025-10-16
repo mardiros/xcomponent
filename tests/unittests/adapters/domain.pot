@@ -1,0 +1,51 @@
+# Translations template for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-10-16 19:09+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: tests/unittests/adapters/test_babel.py:20
+#: tests/unittests/adapters/test_babel.py:38
+#: tests/unittests/adapters/test_babel.py:53
+msgid "a small text"
+msgstr ""
+
+#: tests/unittests/adapters/test_babel.py:25
+msgid "a multiline text\n"
+msgstr ""
+
+#: tests/unittests/adapters/test_babel.py:53
+msgid "a small desc"
+msgstr ""
+
+#: tests/unittests/adapters/test_babel.py:71
+msgid "a singular text\n"
+msgid_plural "a plural text\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: tests/unittests/adapters/test_babel.py:94
+#: tests/unittests/adapters/test_babel.py:108
+msgid "multi domain extracted"
+msgid_plural "multi domain plural extracted"
+msgstr[0] ""
+msgstr[1] ""
+
+#: tests/unittests/adapters/test_babel.py:133
+msgctxt "the go game. neigher the verb nor the programing language."
+msgid "go"
+msgstr ""
+

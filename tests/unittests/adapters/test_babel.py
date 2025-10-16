@@ -10,12 +10,15 @@ def markup(raw: str):
     return parse_markup(f"<>{raw}</>")
 
 
+empty_comment: list[str] = []
+
+
 @pytest.mark.parametrize(
     "raw,expected",
     [
         pytest.param(
             "{globals.gettext('a small text')}",
-            [(1, "", "a small text", "")],
+            [(1, "gettext", "a small text", empty_comment)],
             id="small",
         ),
         pytest.param(
@@ -28,7 +31,7 @@ def markup(raw: str):
                 )
             }
             """,
-            [(1, "", "a multiline text\n", "")],
+            [(1, "gettext", "a multiline text\n", empty_comment)],
             id="multiline",
         ),
         pytest.param(
@@ -43,7 +46,7 @@ def markup(raw: str):
                 </span>
             </div>
             """,
-            [(1, "", "a small text", "")],
+            [(1, "gettext", "a small text", empty_comment)],
             id="nested",
         ),
         pytest.param(
@@ -59,8 +62,8 @@ def markup(raw: str):
             </div>
             """,
             [
-                (1, "", "a small desc", ""),
-                (1, "", "a small text", ""),
+                (1, "gettext", "a small desc", empty_comment),
+                (1, "gettext", "a small text", empty_comment),
             ],
             id="nested",
         ),
@@ -78,8 +81,12 @@ def markup(raw: str):
             }
             """,
             [
-                (1, "", "a singular text\n", ""),
-                (1, "", "a plural text\n", ""),
+                (
+                    1,
+                    "ngettext",
+                    ("a singular text\n", "a plural text\n"),
+                    empty_comment,
+                ),
             ],
             id="ngettext",
         ),
@@ -93,7 +100,7 @@ def markup(raw: str):
             }
             """,
             [
-                (1, "", "multi domain extracted", ""),
+                (1, "dgettext", ("domain", "multi domain extracted"), empty_comment),
             ],
             id="dgettext",
         ),
@@ -109,15 +116,23 @@ def markup(raw: str):
             }
             """,
             [
-                (1, "", "multi domain extracted", ""),
-                (1, "", "multi domain plural extracted", ""),
+                (
+                    1,
+                    "dngettext",
+                    (
+                        "domain",
+                        "multi domain extracted",
+                        "multi domain plural extracted",
+                    ),
+                    empty_comment,
+                ),
             ],
             id="dngettext",
         ),
         pytest.param(
             """
             {
-                globals.dngettext(
+                globals.pgettext(
                     'the go game. neigher the verb nor the programing language.',
                     'go',
                 )
@@ -126,12 +141,59 @@ def markup(raw: str):
             [
                 (
                     1,
-                    "",
-                    "go",
-                    "",
+                    "pgettext",
+                    (
+                        "the go game. neigher the verb nor the programing language.",
+                        "go",
+                    ),
+                    empty_comment,
                 ),
             ],
             id="pgettext",
+        ),
+        # pytest.param(
+        #     """
+        #     {
+        #         globals.dpgettext(
+        #             'domain',
+        #             'the verb to go.',
+        #             'go',
+        #         )
+        #     }
+        #     """,
+        #     [
+        #         (
+        #             1,
+        #             "dpgettext",
+        #             ("domain", "the verb to go.", "go"),
+        #             empty_comment,
+        #         ),
+        #     ],
+        #     id="dpgettext",
+        # ),
+        pytest.param(
+            """
+            {
+                globals.npgettext(
+                    "goat for the animal, not the greatest.",
+                    "the {number} goat",
+                    "the {number} goats",
+                )
+            }
+            """,
+            [
+                (
+                    1,
+                    "npgettext",
+                    (
+                        "goat for the animal, not the greatest.",
+                        "the {number} goat",
+                        "the {number} goats",
+                    ),
+                    empty_comment,
+                ),
+            ],
+            id="npgettext",
         ),
     ],
 )

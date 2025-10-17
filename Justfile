@@ -10,7 +10,7 @@ install:
     uv sync --group dev --frozen
 
 update:
-    uv sync --group dev --group docs
+    uv sync --group dev --group docs --group functest
 
 upgrade:
     uv sync --group dev --group docs --upgrade
@@ -25,6 +25,17 @@ cleandoc:
     rm -rf docs/source/develop
 
 test: lint typecheck unittest
+
+
+functest_update_catalog:
+    uv run pybabel extract --keyword dpgettext:2c,3 --keyword dnpgettext:2c,3,4 -F tests/functionals/i18n/babel.ini --input-dirs tests/functionals/ -o tests/functionals/i18n/mydomain.pot
+    # uv run pybabel init -D mydomain -i tests/functionals/i18n/mydomain.pot -l fr -o tests/functionals/i18n/fr.po
+    # uv run pybabel
+    uv run pybabel update -d mydomain -i tests/functionals/i18n/mydomain.pot -l fr -o tests/functionals/i18n/fr.po
+    uv run pybabel compile -l fr -D mydomain -i tests/functionals/i18n/fr.po -o tests/functionals/i18n/fr.mo
+
+functest: functest_update_catalog
+    uv run pytest tests/functionals
 
 lint:
     uv run ruff check .

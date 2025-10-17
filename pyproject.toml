@@ -52,6 +52,10 @@ docs = [
     "sphinx >=8.0.0,<9",
     "sphinx-autodoc2 >=0.5.0,<1",
 ]
+functest = ["fastlifeweb >=0.28,<1"]
+
+[project.entry-points."babel.extractors"]
+xcomponent = "xcomponent.:extract_xcomponent"
 
 [tool.pyright]
 autoSearchPaths = false

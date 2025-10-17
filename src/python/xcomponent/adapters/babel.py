@@ -140,7 +140,6 @@ def extract_xtemplate(
              tuples
     :rtype: ``iterator``
     """
-    breakpoint()
     encoding = options.get("encoding", "UTF-8")
 
     def next_line():

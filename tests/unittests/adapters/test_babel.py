@@ -151,26 +151,26 @@ empty_comment: list[str] = []
             ],
             id="pgettext",
         ),
-        # pytest.param(
-        #     """
-        #     {
-        #         globals.dpgettext(
-        #             'domain',
-        #             'the verb to go.',
-        #             'go',
-        #         )
-        #     }
-        #     """,
-        #     [
-        #         (
-        #             1,
-        #             "dpgettext",
-        #             ("domain", "the verb to go.", "go"),
-        #             empty_comment,
-        #         ),
-        #     ],
-        #     id="dpgettext",
-        # ),
+        pytest.param(
+            """
+            {
+                globals.dpgettext(
+                    'domain',
+                    'the verb to go.',
+                    'go',
+                )
+            }
+            """,
+            [
+                (
+                    1,
+                    "dpgettext",
+                    ("domain", "the verb to go.", "go"),
+                    empty_comment,
+                ),
+            ],
+            id="dpgettext",
+        ),
         pytest.param(
             """
             {

@@ -1,3 +1,7 @@
+## 0.8.0  -  2025-10-18
+
+* Implement extractor for babel in order to get easy i18n support. 
+
 ## 0.7.0  -  2025-10-10
 
 * Release triple quote string with auto dedent.

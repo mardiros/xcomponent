@@ -284,6 +284,9 @@ fn extract_from_ast(ast: AST) -> PyResult<Vec<ExtractedMessage>> {
         } => {
             res.extend(extract_from_ast(*body.clone())?);
         }
+        AST::LetStatement { ident: _, expr } => {
+            res.extend(extract_from_ast(*expr.clone())?);
+        }
         AST::Literal(Literal::XNode(XNode::Element(node))) => {
             for child in node.attrs().values() {
                 if let XNode::Expression(expr) = child {

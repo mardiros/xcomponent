@@ -333,6 +333,23 @@ empty_comment: list[str] = []
             ],
             id="nested diamon",
         ),
+        pytest.param(
+            """
+            <BaseLayout>
+            { let trad = globals.gettext("here we go") }
+                <A href="/">{trad}</A>
+            </BaseLayout>
+            """,
+            [
+                (
+                    1,
+                    "gettext",
+                    "here we go",
+                    empty_comment,
+                ),
+            ],
+            id="let",
+        ),
     ],
 )
 def test_extract_from_markup(markup: XNode, expected: list[ExtractionInfo]):

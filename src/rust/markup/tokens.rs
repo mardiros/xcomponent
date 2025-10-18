@@ -157,7 +157,7 @@ impl XElement {
     }
 
     #[getter]
-    fn children(&self) -> Vec<XNode> {
+    pub fn children(&self) -> Vec<XNode> {
         self.children.clone()
     }
 
@@ -396,7 +396,7 @@ impl XExpression {
     }
 
     #[getter]
-    fn expression(&self) -> &str {
+    pub fn expression(&self) -> &str {
         self.expression.as_str()
     }
 

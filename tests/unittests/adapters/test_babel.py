@@ -223,6 +223,90 @@ empty_comment: list[str] = []
             ],
             id="dnpgettext",
         ),
+        pytest.param(
+            """
+            <BaseLayout>
+            {
+                if authenticated {
+                  <A href={globals.request.route_path('sign_out')} hx-disable>
+                    {globals.pgettext("Sign out header link", "Sign Out")}
+                  </A>
+                }
+            }
+            </BaseLayout>
+            """,
+            [
+                (
+                    1,
+                    "pgettext",
+                    (
+                        "Sign out header link",
+                        "Sign Out",
+                    ),
+                    empty_comment,
+                ),
+            ],
+            id="nested if",
+        ),
+        pytest.param(
+            """
+            <BaseLayout>
+            {
+                if authenticated {
+                  <A href={globals.request.route_path('sign_out')} hx-disable>
+                    {globals.pgettext("Sign out header link", "Sign Out")}
+                  </A>
+                }
+                else {
+                <A href={globals.request.route_path('sign_in')} hx-disable>
+                  {globals.pgettext("Sign in header link", "Sign in")}
+                </A>
+                }
+            }
+            </BaseLayout>
+            """,
+            [
+                (
+                    1,
+                    "pgettext",
+                    (
+                        "Sign out header link",
+                        "Sign Out",
+                    ),
+                    empty_comment,
+                ),
+                (
+                    1,
+                    "pgettext",
+                    (
+                        "Sign in header link",
+                        "Sign in",
+                    ),
+                    empty_comment,
+                ),
+            ],
+            id="nested if-else",
+        ),
+        pytest.param(
+            """
+            <BaseLayout>
+            {
+                for item in menu {
+                    <span>{globals.gettext("item {item}",item=item)}</span>
+                }
+            }
+            </BaseLayout>
+            """,
+            [
+                (
+                    1,
+                    "gettext",
+                    "item {item}",
+                    empty_comment,
+                ),
+            ],
+            id="nested for",
+        ),
     ],
 )
 def test_extract_from_markup(markup: XNode, expected: list[ExtractionInfo]):

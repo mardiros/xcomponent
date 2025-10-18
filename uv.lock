@@ -1423,6 +1423,7 @@ docs = [
 dev = [
     { name = "babel" },
     { name = "bs4" },
+    { name = "fastlifeweb" },
     { name = "mypy" },
     { name = "pytest" },
 ]
@@ -1432,9 +1433,6 @@ docs = [
     { name = "myst-parser" },
     { name = "sphinx" },
     { name = "sphinx-autodoc2" },
-]
-functest = [
-    { name = "fastlifeweb" },
 ]
 
 [package.metadata]
@@ -1451,6 +1449,7 @@ provides-extras = ["docs"]
 dev = [
     { name = "babel", specifier = ">=2.17.0,<3.0.0" },
     { name = "bs4", specifier = ">=0.0.2" },
+    { name = "fastlifeweb", specifier = ">=0.28,<1" },
     { name = "mypy", specifier = ">=1.16.0,<2" },
     { name = "pytest", specifier = ">=8.3.5,<9" },
 ]
@@ -1461,4 +1460,3 @@ docs = [
     { name = "sphinx", specifier = ">=8.0.0,<9" },
     { name = "sphinx-autodoc2", specifier = ">=0.5.0,<1" },
 ]
-functest = [{ name = "fastlifeweb", specifier = ">=0.28,<1" }]

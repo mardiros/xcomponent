@@ -10,7 +10,7 @@ install:
     uv sync --group dev --frozen
 
 update:
-    uv sync --group dev --group docs --group functest
+    uv sync --group dev --group docs
 
 upgrade:
     uv sync --group dev --group docs --upgrade

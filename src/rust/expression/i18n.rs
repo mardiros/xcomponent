@@ -6,6 +6,7 @@ use crate::{
         ast::{model::AST, parse::parse},
         parser::tokenize,
     },
+    markup::tokens::XNode,
 };
 
 #[pyclass]
@@ -93,7 +94,7 @@ impl ExtractedMessage {
     }
 }
 
-fn extract_from_ast(ast: AST) -> Vec<ExtractedMessage> {
+fn extract_from_ast(ast: AST) -> PyResult<Vec<ExtractedMessage>> {
     let mut res = Vec::new();
     match ast {
         AST::CallAccess {
@@ -266,11 +267,53 @@ fn extract_from_ast(ast: AST) -> Vec<ExtractedMessage> {
             },
             _ => {}
         },
+        AST::IfStatement {
+            condition: _,
+            then_branch,
+            else_branch,
+        } => {
+            res.extend(extract_from_ast(*then_branch.clone())?);
+            if else_branch.is_some() {
+                res.extend(extract_from_ast(*else_branch.unwrap().clone())?);
+            }
+        }
+        AST::ForStatement {
+            ident: _,
+            iterable: _,
+            body,
+        } => {
+            res.extend(extract_from_ast(*body.clone())?);
+        }
+        AST::LetStatement { ident: _, expr } => {
+            res.extend(extract_from_ast(*expr.clone())?);
+        }
+        AST::Literal(Literal::XNode(XNode::Element(node))) => {
+            for child in node.attrs().values() {
+                if let XNode::Expression(expr) = child {
+                    res.extend(extract_expr_i18n_messages(expr.expression())?);
+                }
+            }
+            for child in node.children() {
+                if let XNode::Expression(expr) = child {
+                    res.extend(extract_expr_i18n_messages(expr.expression())?);
+                }
+            }
+        }
+        AST::Literal(Literal::XNode(XNode::Fragment(node))) => {
+            for child in node.children() {
+                if let XNode::Expression(expr) = child {
+                    res.extend(extract_expr_i18n_messages(expr.expression())?);
+                }
+            }
+        }
+        AST::Literal(Literal::XNode(XNode::Expression(expr))) => {
+            res.extend(extract_expr_i18n_messages(expr.expression())?);
+        }
         _ => {
             warn!("Ignoring {:?} while extracting messages", ast);
         }
     }
-    res
+    Ok(res)
 }
 
 #[pyfunction]
@@ -278,5 +321,5 @@ pub(crate) fn extract_expr_i18n_messages(raw: &str) -> PyResult<Vec<ExtractedMes
     let token = tokenize(raw)?;
     let ast = parse(&[token], 0)?;
 
-    Ok(extract_from_ast(ast))
+    extract_from_ast(ast)
 }

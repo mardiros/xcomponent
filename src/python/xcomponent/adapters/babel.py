@@ -120,7 +120,7 @@ def extract_from_markup(node: XNode, offset: int) -> Iterator[ExtractionInfo]:
             pass
 
 
-def extract_xtemplate(
+def extract_xcomponent(
     fileobj: BinaryIO,
     keywords: list[str],
     comment_tags: list[str],

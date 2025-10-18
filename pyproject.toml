@@ -55,7 +55,7 @@ docs = [
 ]
 
 [project.entry-points."babel.extractors"]
-xcomponent = "xcomponent.:extract_xcomponent"
+xcomponent = "xcomponent.adapters.babel:extract_xcomponent"
 
 [tool.pyright]
 autoSearchPaths = false

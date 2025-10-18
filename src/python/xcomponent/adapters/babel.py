@@ -33,7 +33,11 @@ def extract_from_markup(node: XNode, offset: int) -> Iterator[ExtractionInfo]:
                 for nfo in extract_from_markup(child, offset):
                     yield nfo
         case XExpression(expr):
-            msgs = extract_expr_i18n_messages(expr)
+            try:
+                msgs = extract_expr_i18n_messages(expr)
+            except SyntaxError:
+                # should log something here
+                return
             for msg in msgs:
                 match msg.funcname:
                     case "gettext":
@@ -149,6 +153,10 @@ def extract_xcomponent(
 
     for tok, value, (lineno, _), _, _ in tokens:
         if tok == STRING:
-            markup = parse_markup(f"<>{value}</>")
+            try:
+                markup = parse_markup(f"<>{value}</>")
+            except ValueError:
+                # should log something here
+                continue
             for messageinfo in extract_from_markup(markup, lineno):
                 yield messageinfo

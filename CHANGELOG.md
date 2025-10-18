@@ -1,3 +1,7 @@
+## 0.8.2  -  2025-10-18
+
+* Be tolerant in case of markup or expression error while extracting locales. 
+
 ## 0.8.1  -  2025-10-18
 
 * Fix babel entrypoint to find xcomponent messages extraction method.

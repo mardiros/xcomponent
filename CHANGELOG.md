@@ -1,3 +1,7 @@
+## 0.8.3  -  2025-10-18
+
+* Improve more messages extraction from nested expressions. 
+
 ## 0.8.2  -  2025-10-18
 
 * Be tolerant in case of markup or expression error while extracting locales. 

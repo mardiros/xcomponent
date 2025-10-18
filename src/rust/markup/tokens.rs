@@ -43,7 +43,7 @@ impl XFragment {
     }
 
     #[getter]
-    fn children(&self) -> Vec<XNode> {
+    pub fn children(&self) -> Vec<XNode> {
         self.children.clone()
     }
 
@@ -152,7 +152,7 @@ impl XElement {
     }
 
     #[getter]
-    fn attrs(&self) -> HashMap<String, XNode> {
+    pub fn attrs(&self) -> HashMap<String, XNode> {
         self.attrs.clone()
     }
 

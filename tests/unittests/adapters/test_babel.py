@@ -258,9 +258,9 @@ empty_comment: list[str] = []
                   </A>
                 }
                 else {
-                <A href={globals.request.route_path('sign_in')} hx-disable>
-                  {globals.pgettext("Sign in header link", "Sign in")}
-                </A>
+                    <A aria-label={globals.gettext("Sign in link")} href={globals.request.route_path('sign_in')} hx-disable>
+                        {globals.pgettext("Sign in header link", "Sign in")}
+                    </A>
                 }
             }
             </BaseLayout>
@@ -273,6 +273,12 @@ empty_comment: list[str] = []
                         "Sign out header link",
                         "Sign Out",
                     ),
+                    empty_comment,
+                ),
+                (
+                    1,
+                    "gettext",
+                    "Sign in link",
                     empty_comment,
                 ),
                 (
@@ -306,6 +312,26 @@ empty_comment: list[str] = []
                 ),
             ],
             id="nested for",
+        ),
+        pytest.param(
+            """
+            <BaseLayout>
+            {
+                for item in menu {
+                    <>{globals.gettext("item {item}",item=item)}</>
+                }
+            }
+            </BaseLayout>
+            """,
+            [
+                (
+                    1,
+                    "gettext",
+                    "item {item}",
+                    empty_comment,
+                ),
+            ],
+            id="nested diamon",
         ),
     ],
 )

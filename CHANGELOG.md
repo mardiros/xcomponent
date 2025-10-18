@@ -1,3 +1,7 @@
+## 0.8.1  -  2025-10-18
+
+* Fix babel entrypoint to find xcomponent messages extraction method.
+
 ## 0.8.0  -  2025-10-18
 
 * Implement extractor for babel in order to get easy i18n support. 

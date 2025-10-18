@@ -88,6 +88,13 @@ def parse_markup(raw: str) -> XNode:
     with an invalid markup hint message.
     """
 
+def extract_expr_i18n_messages(
+    raw: str,
+) -> list[Any]:
+    """
+    Used for i18n extraction message purpose.
+    """
+
 class XTemplate:
     node: XNode
     params: Mapping[str, type | Any]

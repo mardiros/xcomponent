@@ -40,7 +40,9 @@ docs = [
 
 [dependency-groups]
 dev = [
+    "babel (>=2.17.0,<3.0.0)",
     "bs4>=0.0.2",
+    "fastlifeweb >=0.28,<1",
     "mypy >=1.16.0,<2",
     "pytest >=8.3.5,<9",
 ]
@@ -51,6 +53,9 @@ docs = [
     "sphinx >=8.0.0,<9",
     "sphinx-autodoc2 >=0.5.0,<1",
 ]
+
+[project.entry-points."babel.extractors"]
+xcomponent = "xcomponent.:extract_xcomponent"
 
 [tool.pyright]
 autoSearchPaths = false

@@ -15,6 +15,7 @@ mod markup;
 
 use crate::catalog::XCatalog;
 use crate::context::RenderContext;
+use crate::expression::i18n::extract_expr_i18n_messages;
 use crate::markup::parser::parse_markup;
 use crate::markup::tokens::{NodeType, XComment, XElement, XExpression, XFragment, XNode, XText};
 
@@ -35,5 +36,7 @@ fn xcore(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RenderContext>()?;
 
     m.add_function(wrap_pyfunction!(parse_markup, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_expr_i18n_messages, m)?)?;
+
     Ok(())
 }

@@ -1,3 +1,7 @@
+## 0.8.4  -  2025-10-19
+
+* Improve more messages extraction from nested fragment. 
+
 ## 0.8.3  -  2025-10-18
 
 * Improve more messages extraction from nested expressions. 

@@ -331,7 +331,36 @@ empty_comment: list[str] = []
                     empty_comment,
                 ),
             ],
-            id="nested diamon",
+            id="nested diamond",
+        ),
+        pytest.param(
+            """
+            <BaseLayout>
+            {
+                if authenticated {
+                    <>
+                        {globals.username}
+                        -
+                        <A href={globals.request.route_path('sign_out')} hx-disable>
+                            {globals.pgettext("Sign out header link", "Sign Out")}
+                        </A>
+                    </>
+                }
+            }
+            </BaseLayout>
+            """,
+            [
+                (
+                    1,
+                    "pgettext",
+                    (
+                        "Sign out header link",
+                        "Sign Out",
+                    ),
+                    empty_comment,
+                ),
+            ],
+            id="if nested diamond",
         ),
         pytest.param(
             """

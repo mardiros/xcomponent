@@ -301,8 +301,25 @@ fn extract_from_ast(ast: AST) -> PyResult<Vec<ExtractedMessage>> {
         }
         AST::Literal(Literal::XNode(XNode::Fragment(node))) => {
             for child in node.children() {
-                if let XNode::Expression(expr) = child {
-                    res.extend(extract_expr_i18n_messages(expr.expression())?);
+                match child {
+                    XNode::Expression(expr) => {
+                        res.extend(extract_expr_i18n_messages(expr.expression())?);
+                    }
+                    XNode::Element(node) => {
+                        for child in node.attrs().values() {
+                            if let XNode::Expression(expr) = child {
+                                res.extend(extract_expr_i18n_messages(expr.expression())?);
+                            }
+                        }
+                        for child in node.children() {
+                            if let XNode::Expression(expr) = child {
+                                res.extend(extract_expr_i18n_messages(expr.expression())?);
+                            }
+                        }
+                    }
+                    _ => {
+                        warn!("Ignoring {:?} while extracting messages", child);
+                    }
                 }
             }
         }

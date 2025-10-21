@@ -32,6 +32,20 @@ def Section(catalog: Catalog):
 
 
 @pytest.fixture(autouse=True)
+def Paragraph(catalog: Catalog):
+    @catalog.component
+    def Paragraph() -> str:
+        return """
+            <>
+                <p>The lazy <strong>dog</strong> jump over...</p>
+                <p>the lazy dog jumped over the <em>quick brown fox</em>.</p>
+            </>
+        """
+
+    return Paragraph
+
+
+@pytest.fixture(autouse=True)
 def HtmlHead(catalog: Catalog):
     @catalog.component
     def HtmlHead(title: str) -> str:
@@ -97,6 +111,13 @@ def test_render_h2(catalog: Catalog):
 def test_render_children(catalog: Catalog):
     assert (
         catalog.render("<Section />") == "<div><h1>hello</h1><h2>I - world</h2></div>"
+    )
+
+
+def test_render_whitespace(catalog: Catalog):
+    assert catalog.render("<Paragraph />") == (
+        "<p>The lazy <strong>dog</strong> jump over...</p>"
+        "<p>the lazy dog jumped over the <em>quick brown fox</em>.</p>"
     )
 
 

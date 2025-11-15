@@ -151,7 +151,12 @@ impl Literal {
                 .unbind()
                 .into_bound_py_any(py)
                 .unwrap(),
-            Literal::Uuid(v) => v.clone().into_pyobject(py).unwrap().into_any(),
+            Literal::Uuid(v) => {
+                let uuidmod = PyModule::import(py, "uuid").unwrap();
+                let uuid_class = uuidmod.getattr("UUID").unwrap();
+                let args = (PyString::new(py, v.as_str()),);
+                uuid_class.call1(args).unwrap()
+            }
             Literal::Int(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::Str(v) => v.clone().into_pyobject(py).unwrap().into_any(),
             Literal::XNode(v) => v.clone().into_pyobject(py).unwrap().into_any(),
@@ -220,7 +225,14 @@ impl ToHtml for Literal {
             Literal::Int(i) => Ok(format!("{}", i)),
             Literal::Str(s) => Ok(format!("{}", s)),
             Literal::Callable(s) => Ok(format!("{}()", s)),
-            Literal::Uuid(uuid) => Ok(format!("{}", uuid)),
+            Literal::Uuid(uuid) => Ok(format!(
+                "{}-{}-{}-{}-{}",
+                &uuid[0..8],
+                &uuid[8..12],
+                &uuid[12..16],
+                &uuid[16..20],
+                &uuid[20..32]
+            )),
             Literal::List(l) => {
                 let mut out = String::new();
                 for item in l {

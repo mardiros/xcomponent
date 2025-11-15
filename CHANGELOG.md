@@ -1,3 +1,10 @@
+## 0.9.0  -  2025-11-16
+
+* Improve UUID support.
+  * Implement equality comparison
+  * Render uuid with hyphen
+  * Downcast uuid to python while running into_py
+
 ## 0.8.4  -  2025-10-19
 
 * Improve more messages extraction from nested fragment. 

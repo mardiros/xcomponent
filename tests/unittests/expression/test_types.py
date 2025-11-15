@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import TypedDict
 from uuid import UUID
 from xcomponent import Catalog
@@ -41,6 +42,23 @@ def DynamicKeyDictComplexType(
     products: dict[UUID | int, Product], product_id: UUID | int
 ) -> str:
     return """<>{products[product_id].owner.username}</>"""
+
+
+@dataclass
+class UserModel:
+    username: str
+
+
+@dataclass
+class ProductModel:
+    user_id: UUID
+
+
+@catalog.component
+def DynamicKeyDictComplexType2(
+    users: dict[UUID, UserModel], product: ProductModel
+) -> str:
+    return """<>{users[product.user_id].username}</>"""
 
 
 @catalog.component
@@ -113,6 +131,18 @@ def DynamicKeyListComplexType(users: list[User], user_id: int) -> str:
             ),
             "bernard",
             id="key-dict-int",
+        ),
+        pytest.param(
+            DynamicKeyDictComplexType2(
+                users={
+                    UUID(int=1): User(username="alice"),
+                    UUID(int=2): User(username="bob"),
+                    UUID(int=3): User(username="bernard"),
+                },
+                product=ProductModel(user_id=UUID(int=3)),
+            ),
+            "bernard",
+            id="nested-attribute-with-dataclass",
         ),
     ],
 )

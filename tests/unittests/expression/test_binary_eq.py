@@ -1,4 +1,5 @@
 import pytest
+from uuid import UUID
 
 from xcomponent import Catalog
 
@@ -6,7 +7,7 @@ catalog = Catalog()
 
 
 @catalog.component
-def Eq(a: int | bool | str, b: int | bool | str) -> str:
+def Eq(a: int | bool | str, b: int | bool | str | UUID) -> str:
     return """<>{a == b}</>"""
 
 
@@ -50,6 +51,8 @@ def Lte(a: int | bool | str, b: int | bool | str) -> str:
         pytest.param(Eq(True, True), "true", id="add true-true"),
         pytest.param(Eq("1", "2"), "false", id="str-false"),
         pytest.param(Eq("1", "1"), "true", id="str-true"),
+        pytest.param(Eq(UUID(int=1), UUID(int=1)), "true", id="uuid-true"),
+        pytest.param(Eq(UUID(int=1), UUID(int=2)), "false", id="uuid-false"),
         pytest.param(Eq("", None), "false", id="str-None"),
         pytest.param(Eq(None, None), "true", id="None-None"),
     ],

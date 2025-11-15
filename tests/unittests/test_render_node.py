@@ -1,7 +1,8 @@
-from xcomponent import Catalog, Component, XNode
+from uuid import UUID
 
 import pytest
 from bs4 import PageElement  # type: ignore
+from xcomponent import Catalog, Component, XNode
 
 
 @pytest.fixture(autouse=True)
@@ -94,6 +95,17 @@ def Layout(catalog: Catalog):
     return Layout
 
 
+@pytest.fixture(autouse=True)
+def RenderUuid(catalog: Catalog):
+    @catalog.component
+    def RenderUuid(uuid: UUID) -> str:
+        return """
+        <input value={uuid}/>
+        """
+
+    return RenderUuid
+
+
 def test_render_h1(catalog: Catalog):
     assert catalog.render('<H1 title="Hello, world!" />') == "<h1>Hello, world!</h1>"
 
@@ -105,6 +117,13 @@ def test_render_h1_function(H1: Component):
 def test_render_h2(catalog: Catalog):
     assert (
         catalog.render('<H2 title="Hello, world!" />') == "<h2>I - Hello, world!</h2>"
+    )
+
+
+def test_render_uuid(catalog: Catalog):
+    assert (
+        catalog.render("<RenderUuid uuid={val} />", val=UUID(int=1))
+        == '<input value="00000000-0000-0000-0000-000000000001"/>'
     )
 
 

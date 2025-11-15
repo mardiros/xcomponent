@@ -71,7 +71,7 @@ def DynamicKeyListComplexType(users: list[User], user_id: int) -> str:
     [
         pytest.param(
             Types(False, True, 2, "3", UUID(int=4), DummyNode(a="5")),
-            "false-true-2-3-00000000000000000000000000000004-<p>5</p>",
+            "false-true-2-3-00000000-0000-0000-0000-000000000004-<p>5</p>",
             id="simpletypes",
         ),
         pytest.param(

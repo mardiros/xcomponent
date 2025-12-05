@@ -94,6 +94,16 @@ def Layout(catalog: Catalog):
 
     return Layout
 
+@pytest.fixture(autouse=True)
+def RenderNone(catalog: Catalog):
+    @catalog.component
+    def RenderNone(value: str | None) -> str:
+        return """
+        <input value={value}/>
+        """
+
+    return RenderNone
+
 
 @pytest.fixture(autouse=True)
 def RenderUuid(catalog: Catalog):
@@ -117,6 +127,13 @@ def test_render_h1_function(H1: Component):
 def test_render_h2(catalog: Catalog):
     assert (
         catalog.render('<H2 title="Hello, world!" />') == "<h2>I - Hello, world!</h2>"
+    )
+
+
+def test_render_none(catalog: Catalog):
+    assert (
+        catalog.render("<RenderNone value={val} />", val=None)
+        == '<input/>'
     )
 
 

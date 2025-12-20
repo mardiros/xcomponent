@@ -58,9 +58,9 @@ markup_node    = _{ markup_element | markup_fragment | markup_comment | markup_t
 markup_element = _{ markup_self_closing_element | markup_normal_element }
 
 markup_normal_element       =  { markup_open_tag ~ markup_node* ~ markup_close_tag }
-markup_self_closing_element = _{ "<" ~ markup_ident ~ (whitespace* ~ markup_attribute)* ~ whitespace* ~ "/>" }
-markup_open_tag             = _{ "<" ~ markup_ident ~ (whitespace* ~ markup_attribute)* ~ whitespace* ~ ">" }
-markup_close_tag            = @{ "</" ~ markup_ident ~ ">" }
+markup_self_closing_element = _{ "<" ~ markup_tag_name ~ (whitespace* ~ markup_attribute)* ~ whitespace* ~ "/>" }
+markup_open_tag             = _{ "<" ~ markup_tag_name ~ (whitespace* ~ markup_attribute)* ~ whitespace* ~ ">" }
+markup_close_tag            = @{ "</" ~ markup_tag_name ~ ">" }
 
 markup_fragment       = _{ markup_open_fragment ~ markup_node* ~ markup_close_fragment }
 markup_open_fragment  = _{ "<>" }
@@ -71,6 +71,9 @@ markup_comment    = _{ "<!--" ~ (!"-->" ~ ANY)* ~ "-->" }
 markup_expression = _{ "{" ~ whitespace* ~ expression ~ whitespace* ~ "}" }
 
 markup_ident                      = @{ ASCII_ALPHANUMERIC ~ (ASCII_ALPHANUMERIC | "_")* }
+markup_namespaced_tag = { markup_ident ~ ("." ~ markup_ident)+ }
+markup_tag_name = { markup_namespaced_tag | markup_ident }
+
 markup_attr_name                  = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" | "-" | ":" | ".")* }
 markup_attr_value                 = @{ markup_string_literal_quote | markup_string_literal_doublequote | markup_expression }
 markup_string_literal_doublequote = _{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }

@@ -24,6 +24,7 @@ pub enum NodeType {
     Fragment,
     ScriptElement,
     Element,
+    NSElement,
     Expression,
     Text,
     Comment,
@@ -127,6 +128,23 @@ impl ToHtml for XScriptElement {
     }
 }
 
+#[inline]
+fn render_attr<'py>(
+    py: Python<'py>,
+    catalog: &XCatalog,
+    node: &XNode,
+    name: &str,
+    context: &mut RenderContext,
+) -> PyResult<String> {
+    let value = catalog.render_node(py, &node, context)?;
+    let attr = if value.contains('"') {
+        format!(" {}='{}'", name, value.replace('\'', "\\'"))
+    } else {
+        format!(" {}=\"{}\"", name, value)
+    };
+    Ok(attr)
+}
+
 #[pyclass(eq)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct XElement {
@@ -165,23 +183,6 @@ impl XElement {
     fn __match_args__() -> (&'static str, &'static str, &'static str) {
         ("name", "attrs", "children")
     }
-}
-
-#[inline]
-fn render_attr<'py>(
-    py: Python<'py>,
-    catalog: &XCatalog,
-    node: &XNode,
-    name: &str,
-    context: &mut RenderContext,
-) -> PyResult<String> {
-    let value = catalog.render_node(py, &node, context)?;
-    let attr = if value.contains('"') {
-        format!(" {}='{}'", name, value.replace('\'', "\\'"))
-    } else {
-        format!(" {}=\"{}\"", name, value)
-    };
-    Ok(attr)
 }
 
 impl ToHtml for XElement {
@@ -270,6 +271,71 @@ impl ToHtml for XElement {
                 }
             }
         }
+        Ok(result)
+    }
+}
+
+#[pyclass(eq)]
+#[derive(Debug, Clone, PartialEq)]
+pub struct XNSElement {
+    namespace: String,
+    name: String,
+    attrs: HashMap<String, XNode>,
+    children: Vec<XNode>,
+}
+
+#[pymethods]
+impl XNSElement {
+    #[new]
+    pub fn new(
+        namespace: String,
+        name: String,
+        attrs: HashMap<String, XNode>,
+        children: Vec<XNode>,
+    ) -> Self {
+        XNSElement {
+            namespace,
+            name,
+            attrs,
+            children,
+        }
+    }
+
+    #[getter]
+    fn namespace(&self) -> &str {
+        self.namespace.as_str()
+    }
+
+    #[getter]
+    fn name(&self) -> &str {
+        self.name.as_str()
+    }
+
+    #[getter]
+    pub fn attrs(&self) -> HashMap<String, XNode> {
+        self.attrs.clone()
+    }
+
+    #[getter]
+    pub fn children(&self) -> Vec<XNode> {
+        self.children.clone()
+    }
+
+    #[classattr]
+    fn __match_args__() -> (&'static str, &'static str, &'static str, &'static str) {
+        ("namespace", "name", "attrs", "children")
+    }
+}
+
+impl ToHtml for XNSElement {
+    fn to_html<'py>(
+        &self,
+        py: Python<'py>,
+        catalog: &XCatalog,
+        context: &mut RenderContext,
+    ) -> PyResult<String> {
+        let mut result = String::new();
+        result.push_str("FIXME");
         Ok(result)
     }
 }
@@ -435,6 +501,7 @@ pub enum XNode {
     Fragment(XFragment),
     ScriptElement(XScriptElement),
     Element(XElement),
+    NSElement(XNSElement),
     DocType(XDocType),
     Text(XText),
     Comment(XComment),
@@ -462,6 +529,28 @@ impl std::fmt::Display for XNode {
                         write!(f, "{}", child)?;
                     }
                     write!(f, "</{}>", name)
+                }
+            }
+
+            XNode::NSElement(XNSElement {
+                namespace,
+                name,
+                attrs,
+                children,
+            }) => {
+                let joined_attrs = attrs
+                    .iter()
+                    .map(|(k, v)| format!(" {}=\"{}\"", k, v.__repr__()))
+                    .collect::<String>();
+
+                if children.is_empty() {
+                    write!(f, "<{}.{}{}/>", namespace, name, joined_attrs)
+                } else {
+                    write!(f, "<{}.{}{}>", namespace, name, joined_attrs)?;
+                    for child in children {
+                        write!(f, "{}", child)?;
+                    }
+                    write!(f, "</{}.{}>", namespace, name)
                 }
             }
             XNode::ScriptElement(XScriptElement { name, attrs, body }) => {
@@ -498,6 +587,7 @@ impl XNode {
             XNode::Fragment(_) => NodeType::Fragment,
             XNode::ScriptElement(_) => NodeType::ScriptElement,
             XNode::Element(_) => NodeType::Element,
+            XNode::NSElement(_) => NodeType::NSElement,
             XNode::DocType(_) => NodeType::DocType,
             XNode::Text(_) => NodeType::Text,
             XNode::Comment(_) => NodeType::Comment,
@@ -528,6 +618,12 @@ impl XNode {
                 .into_any()
                 .unbind(),
             XNode::Element(element) => element
+                .clone()
+                .into_pyobject(py)
+                .unwrap()
+                .into_any()
+                .unbind(),
+            XNode::NSElement(element) => element
                 .clone()
                 .into_pyobject(py)
                 .unwrap()
@@ -579,6 +675,7 @@ impl ToHtml for XNode {
         match self {
             XNode::Fragment(f) => f.to_html(py, catalog, context),
             XNode::Element(e) => e.to_html(py, catalog, context),
+            XNode::NSElement(e) => e.to_html(py, catalog, context),
             XNode::ScriptElement(e) => e.to_html(py, catalog, context),
             XNode::DocType(d) => d.to_html(py, catalog, context),
             XNode::Text(t) => t.to_html(py, catalog, context),

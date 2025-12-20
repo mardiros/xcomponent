@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use pyo3::{prelude::*, types::PyDict};
+use pyo3::{exceptions::PyValueError, prelude::*, types::PyDict, IntoPyObjectExt};
 
 use crate::{
     catalog::XCatalog,
@@ -197,6 +197,12 @@ impl ToHtml for XElement {
         match catalog.get(py, self.name()) {
             Some(py_template) => {
                 debug!("Rendering template {}", py_template);
+                let namespaces = py_template
+                    .getattr("namespaces")?
+                    .downcast::<PyDict>()?
+                    .copy()?;
+                // error!("{:?}", namespaces);
+                context.push(py, namespaces.clone())?;
 
                 let node = py_template.getattr("node")?.extract::<XNode>()?;
                 let node_attrs = py_template
@@ -232,6 +238,7 @@ impl ToHtml for XElement {
 
                 let gblk = LiteralKey::Str("globals".to_string());
                 let mut shadow_context = RenderContext::new();
+                shadow_context.push(py, namespaces)?;
                 if let Some(glb) = context.get(&gblk) {
                     shadow_context.insert(gblk, glb.clone());
                 }
@@ -241,6 +248,7 @@ impl ToHtml for XElement {
                         .render_node(py, &node, &mut shadow_context)?
                         .as_str(),
                 );
+                context.pop();
             }
             None => {
                 debug!("Rendering final element <{}/>", self.name);
@@ -327,6 +335,18 @@ impl XNSElement {
     }
 }
 
+impl XNSElement {
+    fn get_catalog(&self, context: &RenderContext) -> PyResult<Literal> {
+        let rnscatalog = context.get(&LiteralKey::Str(self.namespace.clone()));
+        if rnscatalog.is_none() {
+            return Err(PyValueError::new_err(format!(
+                "Reference to unknown catalog {}",
+                self.namespace
+            )));
+        }
+        Ok(rnscatalog.unwrap().clone())
+    }
+}
 impl ToHtml for XNSElement {
     fn to_html<'py>(
         &self,
@@ -335,7 +355,66 @@ impl ToHtml for XNSElement {
         context: &mut RenderContext,
     ) -> PyResult<String> {
         let mut result = String::new();
-        result.push_str("FIXME");
+        let nscatalog = self.get_catalog(&context)?;
+        match &nscatalog {
+            Literal::Object(o) => {
+                // result.push_str(format!("{:?}", nscatalog).as_str());
+                let template = o.obj().call_method1(py, "get", (self.name(),))?;
+                let xnode = template.getattr(py, "node")?;
+
+                let namespaces = template.getattr(py, "namespaces")?;
+                let pynamespaces: &Bound<'_, PyDict> = namespaces.bind(py).downcast().unwrap();
+
+                let defaults = template.getattr(py, "defaults")?;
+                let node_attrs: &Bound<'_, PyDict> = defaults.bind(py).downcast().unwrap();
+
+                for (name, attrnode) in self.attrs() {
+                    let name = match name.as_str() {
+                        "class" => "class_".to_string(),
+                        "for" => "for_".to_string(),
+                        _ => name.replace('-', "_"),
+                    };
+                    if let XNode::Expression(ref expression) = attrnode {
+                        let node_attr_v =
+                            eval_expression(py, expression.expression(), &catalog, context)?;
+                        node_attrs.set_item(name, node_attr_v.into_py(py))?;
+                    } else {
+                        node_attrs.set_item(
+                            name,
+                            Literal::Str(catalog.render_node(py, &attrnode, context)?),
+                        )?;
+                    }
+                }
+                if self.children().len() > 0 {
+                    let mut childchildren = String::new();
+                    for child in self.children() {
+                        childchildren.push_str(child.to_html(py, catalog, context)?.as_str())
+                    }
+                    node_attrs.set_item("children", childchildren)?;
+                }
+
+                let mut shadow_context = RenderContext::new();
+                let gblk = LiteralKey::Str("globals".to_string());
+                shadow_context.push(py, pynamespaces.clone())?;
+                if let Some(glb) = context.get(&gblk) {
+                    shadow_context.insert(gblk, glb.clone());
+                }
+                // error!("{:?}", node_attrs);
+                shadow_context.push(py, node_attrs.clone())?;
+
+                let pycontext = shadow_context.into_py_any(py)?;
+                let res = o
+                    .obj()
+                    .call_method1(py, "render_node", (xnode, pycontext))?;
+                result.push_str(format!("{}", res).as_str());
+            }
+            _ => {
+                return Err(PyValueError::new_err(format!(
+                    "Reference to catalog {} does not map to catalog: {:?}",
+                    self.namespace, nscatalog
+                )));
+            }
+        }
         Ok(result)
     }
 }

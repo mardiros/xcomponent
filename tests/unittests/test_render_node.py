@@ -94,6 +94,7 @@ def Layout(catalog: Catalog):
 
     return Layout
 
+
 @pytest.fixture(autouse=True)
 def RenderNone(catalog: Catalog):
     @catalog.component
@@ -131,10 +132,7 @@ def test_render_h2(catalog: Catalog):
 
 
 def test_render_none(catalog: Catalog):
-    assert (
-        catalog.render("<RenderNone value={val} />", val=None)
-        == '<input/>'
-    )
+    assert catalog.render("<RenderNone value={val} />", val=None) == "<input/>"
 
 
 def test_render_uuid(catalog: Catalog):

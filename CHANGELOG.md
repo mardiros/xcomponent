@@ -1,3 +1,8 @@
+## 0.10.1  -  2025-12-20
+
+* Fix namespace components for expressions.
+  Refactor to track all namespaces in a dedicated stack.
+
 ## 0.10.0  -  2025-12-20
 
 * Introducing namespace components.

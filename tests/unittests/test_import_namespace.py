@@ -45,7 +45,7 @@ def layout_catalog(base_catalog: Catalog):
     def Layout(children: XNode, title: str, side_bar: XNode) -> str:
         return """
             <Html title={title}>
-                <aside>{site_bar}</aside>
+                <aside>{side_bar}</aside>
                 <div>{children}</div>
             </Html>
         """
@@ -90,7 +90,7 @@ def page_catalog(
         return """
             <layout.Layout
                 title={title}
-                sidebar={<app.Sidebar/>}
+                side_bar={<app.Sidebar/>}
                 >
                 {children}
             </layout.Layout>
@@ -120,7 +120,10 @@ def page_catalog(
         ),
         pytest.param(
             "<Page4 title='yolo'>You only</Page4>",
-            "",
+            "<html><head><title>yolo</title></head>"
+            '<body><h1 class="xl">yolo</h1><div><aside><menu>'
+            '<li><a href="#">Parameters</a></li></menu></aside>'
+            "<div>You only</div></div></body></html>",
             id="nested-expression",
         ),
     ],

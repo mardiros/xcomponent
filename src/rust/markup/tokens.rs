@@ -201,8 +201,7 @@ impl ToHtml for XElement {
                     .getattr("namespaces")?
                     .downcast::<PyDict>()?
                     .copy()?;
-                // error!("{:?}", namespaces);
-                context.push(py, namespaces.clone())?;
+                context.push_ns(py, namespaces.clone())?;
 
                 let node = py_template.getattr("node")?.extract::<XNode>()?;
                 let node_attrs = py_template
@@ -236,19 +235,14 @@ impl ToHtml for XElement {
                     node_attrs.set_item("children", childchildren)?;
                 }
 
-                let gblk = LiteralKey::Str("globals".to_string());
-                let mut shadow_context = RenderContext::new();
-                shadow_context.push(py, namespaces)?;
-                if let Some(glb) = context.get(&gblk) {
-                    shadow_context.insert(gblk, glb.clone());
-                }
+                let mut shadow_context = context.shadow();
                 shadow_context.push(py, node_attrs)?;
                 result.push_str(
                     catalog
                         .render_node(py, &node, &mut shadow_context)?
                         .as_str(),
                 );
-                context.pop();
+                context.pop_ns();
             }
             None => {
                 debug!("Rendering final element <{}/>", self.name);
@@ -339,6 +333,7 @@ impl XNSElement {
     fn get_catalog(&self, context: &RenderContext) -> PyResult<Literal> {
         let rnscatalog = context.get(&LiteralKey::Str(self.namespace.clone()));
         if rnscatalog.is_none() {
+            error!("{:?}", context);
             return Err(PyValueError::new_err(format!(
                 "Reference to unknown catalog {}",
                 self.namespace
@@ -368,6 +363,7 @@ impl ToHtml for XNSElement {
                 let defaults = template.getattr(py, "defaults")?;
                 let node_attrs: &Bound<'_, PyDict> = defaults.bind(py).downcast().unwrap();
 
+                context.push_ns(py, pynamespaces.clone())?;
                 for (name, attrnode) in self.attrs() {
                     let name = match name.as_str() {
                         "class" => "class_".to_string(),
@@ -385,6 +381,7 @@ impl ToHtml for XNSElement {
                         )?;
                     }
                 }
+
                 if self.children().len() > 0 {
                     let mut childchildren = String::new();
                     for child in self.children() {
@@ -393,19 +390,15 @@ impl ToHtml for XNSElement {
                     node_attrs.set_item("children", childchildren)?;
                 }
 
-                let mut shadow_context = RenderContext::new();
-                let gblk = LiteralKey::Str("globals".to_string());
-                shadow_context.push(py, pynamespaces.clone())?;
-                if let Some(glb) = context.get(&gblk) {
-                    shadow_context.insert(gblk, glb.clone());
-                }
-                // error!("{:?}", node_attrs);
+                let mut shadow_context = context.shadow();
                 shadow_context.push(py, node_attrs.clone())?;
 
                 let pycontext = shadow_context.into_py_any(py)?;
                 let res = o
                     .obj()
                     .call_method1(py, "render_node", (xnode, pycontext))?;
+
+                context.pop_ns();
                 result.push_str(format!("{}", res).as_str());
             }
             _ => {
@@ -567,8 +560,7 @@ impl ToHtml for XExpression {
         catalog: &XCatalog,
         context: &mut RenderContext,
     ) -> PyResult<String> {
-        info!("Evaluating expression {}", self.expression());
-        debug!("{:?}", context);
+        info!("Evaluating xexpression {}", self.expression());
         let res = self.to_literal(py, catalog, context)?;
         res.to_html(py, catalog, context)
     }
@@ -751,6 +743,7 @@ impl ToHtml for XNode {
         catalog: &XCatalog,
         context: &mut RenderContext,
     ) -> PyResult<String> {
+        debug!("Rendering {:?} with {:?}", self, context);
         match self {
             XNode::Fragment(f) => f.to_html(py, catalog, context),
             XNode::Element(e) => e.to_html(py, catalog, context),

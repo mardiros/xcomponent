@@ -277,19 +277,37 @@ impl ToHtml for Literal {
 #[derive(Debug)]
 pub struct RenderContext {
     stack: Vec<HashMap<LiteralKey, Literal>>,
+    ns_stack: Vec<HashMap<LiteralKey, Literal>>,
 }
 
 #[pymethods]
 impl RenderContext {
     #[new]
     pub fn new() -> Self {
-        Self { stack: vec![] }
+        Self {
+            stack: vec![],
+            ns_stack: vec![],
+        }
     }
 
-    pub fn push<'py>(&mut self, py: Python<'py>, params: Bound<'py, PyDict>) -> PyResult<()> {
+    pub fn shadow(&self) -> RenderContext {
+        let mut shadow_context = Self {
+            stack: self.ns_stack.clone(),
+            ns_stack: self.ns_stack.clone(),
+        };
+        let gblk = LiteralKey::Str("globals".to_string());
+        if let Some(glb) = self.get(&gblk) {
+            shadow_context.insert(gblk, glb.clone());
+        }
+        shadow_context
+    }
+
+    pub fn push_ns<'py>(&mut self, py: Python<'py>, params: Bound<'py, PyDict>) -> PyResult<()> {
         let anyparams: Bound<'py, PyAny> = params.extract()?;
         if let Literal::Dict(d) = Literal::downcast(py, anyparams)? {
-            self.stack.push(d);
+            self.ns_stack.push(d);
+            self.push(py, params)?;
+            debug!("ns stack updated {:?}", self);
             Ok(())
         } else {
             // we comme from a Pydict, so this is dead code, right?
@@ -297,8 +315,27 @@ impl RenderContext {
         }
     }
 
+    pub fn push<'py>(&mut self, py: Python<'py>, params: Bound<'py, PyDict>) -> PyResult<()> {
+        let anyparams: Bound<'py, PyAny> = params.extract()?;
+        if let Literal::Dict(d) = Literal::downcast(py, anyparams)? {
+            self.stack.push(d);
+            debug!("stack updated {:?}", self.stack);
+            Ok(())
+        } else {
+            // we comme from a Pydict, so this is dead code, right?
+            Err(PyTypeError::new_err(format!("Invalid rendering type")))
+        }
+    }
+
+    pub fn pop_ns(&mut self) {
+        self.ns_stack.pop();
+        self.stack.pop();
+        debug!("ns stack popped {:?}", self);
+    }
+
     pub fn pop(&mut self) {
         self.stack.pop();
+        debug!("stack popped {:?}", self.stack);
     }
 }
 

@@ -127,7 +127,7 @@ Even if the expression is not Python, it raises a Python exception.
 }
 <Layout head={<HtmlHead title={title} />}>
   <h1>Hello, world!</h1>
-</Layout>;
+</Layout>
 ```
 
 ```jsx
@@ -136,7 +136,7 @@ Even if the expression is not Python, it raises a Python exception.
 }
 <Layout head={<HtmlHead title={title} />} title={title}>
   <h1>Hello, world!</h1>
-</Layout>;
+</Layout>
 ```
 
 In the React world, this is called "props drilling." Components are autonomous;

@@ -1,3 +1,15 @@
+## 0.10.0  -  2025-12-20
+
+* Introducing namespace components.
+  Now the catalog can include components from another catalog
+  in order to render itself from a cross catalog reference.
+  the "use" parameter while registering a component is used to
+  declare the reference to another catalog.
+  the use parameter is a dict where the key is the namespace name
+  to use in the template, and, the value is the catalog containing
+  the components. to render a component Section from an ui catalog,
+  the `<ui.Section />` component is available using `use={"ui": ui_ctaalog}`.
+
 ## 0.9.0  -  2025-11-16
 
 * Improve UUID support.

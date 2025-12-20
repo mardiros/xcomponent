@@ -41,11 +41,33 @@ def layout_catalog(base_catalog: Catalog):
             </html>
             """
 
+    @layout.component(use={"base": base_catalog})
+    def Layout(children: XNode, title: str, side_bar: XNode) -> str:
+        return """
+            <Html title={title}>
+                <aside>{site_bar}</aside>
+                <div>{children}</div>
+            </Html>
+        """
+
     return layout
 
 
 @pytest.fixture
-def page_catalog(base_catalog: Catalog, layout_catalog: Catalog) -> Catalog:
+def app_catalog() -> Catalog:
+    catalog = Catalog()
+
+    @catalog.component
+    def Sidebar() -> str:
+        return """<menu><li><a href="#">Parameters</a></li></menu>"""
+
+    return catalog
+
+
+@pytest.fixture
+def page_catalog(
+    base_catalog: Catalog, layout_catalog: Catalog, app_catalog: Catalog
+) -> Catalog:
     page = Catalog()
 
     @page.component(use={"base": base_catalog})
@@ -62,6 +84,17 @@ def page_catalog(base_catalog: Catalog, layout_catalog: Catalog) -> Catalog:
     @page.component(use={"layout": layout_catalog})
     def Page3(children: XNode, title: str) -> str:
         return "<layout.Html title={title}>{children}</layout.Html>"
+
+    @page.component(use={"layout": layout_catalog, "app": app_catalog})
+    def Page4(children: XNode, title: str) -> str:
+        return """
+            <layout.Layout
+                title={title}
+                sidebar={<app.Sidebar/>}
+                >
+                {children}
+            </layout.Layout>
+        """
 
     return page
 
@@ -84,6 +117,11 @@ def page_catalog(base_catalog: Catalog, layout_catalog: Catalog) -> Catalog:
             "<html><head><title>yolo</title></head>"
             '<body><h1 class="xl">yolo</h1><div>You only</div></body></html>',
             id="nested",
+        ),
+        pytest.param(
+            "<Page4 title='yolo'>You only</Page4>",
+            "",
+            id="nested-expression",
         ),
     ],
 )

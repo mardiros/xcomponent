@@ -1,9 +1,10 @@
 """Registry of XComponents."""
 
-from functools import wraps
 import inspect
+from collections.abc import Mapping
+from functools import wraps
 from types import ModuleType
-from typing import Callable, Any, overload
+from typing import Any, Callable, overload
 
 from xcomponent.xcore import (
     RenderContext,
@@ -57,6 +58,7 @@ class Catalog:
         self,
         component_name: str,
         component: Component,
+        component_use: Mapping[str, XCatalog],
     ) -> None:
         """
         Register a template.
@@ -80,27 +82,35 @@ class Catalog:
                 parameters[name] = Any
 
         template = component(**kwargs)
-        self._catalog.add_component(component_name, template, parameters, defaults)
+        self._catalog.add_component(
+            component_name, template, parameters, defaults, component_use
+        )
 
     @overload
     def component(self, name: Component) -> Component: ...
 
     @overload
-    def component(self, name: str) -> Callable[[Component], Component]: ...
+    def component(
+        self, name: str = "", use: "dict[str, Catalog] | None" = None
+    ) -> Callable[[Component], Component]: ...
 
     def component(
-        self, name: str | Component = ""
+        self, name: str | Component = "", use: "dict[str, Catalog] | None" = None
     ) -> Callable[[Component], Component] | Component:
         """
         Decorator to register a template with its schema parameters.
 
         :param name: optional name for the component, by default,
                      it is the function name.
+        :param use: optional catalogs to include to render the template.
         :return: A function that render the component without global variable supports.
         """
         component_name: str = (
             name.__name__ if isinstance(name, Callable) else name  # type: ignore
         )
+        component_use: dict[str, XCatalog] = {
+            name: val._catalog for name, val in (use or {}).items()
+        }
 
         def decorator(fn: Component):
             @wraps(fn)
@@ -121,7 +131,7 @@ class Catalog:
                 context.push(kwargs)
                 return self._catalog.render_node(template.node, context)
 
-            self.register_component(component_name or fn.__name__, fn)
+            self.register_component(component_name or fn.__name__, fn, component_use)
             return render
 
         if callable(name):

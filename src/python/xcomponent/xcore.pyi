@@ -1,8 +1,8 @@
 """Typing for the rust code."""
 
+from collections.abc import Callable, Mapping
 from enum import Enum
 from typing import Any
-from collections.abc import Mapping, Callable
 
 class NodeType(Enum):
     Element = "Element"
@@ -110,6 +110,7 @@ class XCatalog:
         template: str,
         params: Mapping[str, type | Any],
         defaults: Mapping[str, Any],
+        namespaces: "Mapping[str, XCatalog]",
     ) -> None: ...
     def add_function(self, name: str, fn: Callable[..., Any]) -> None: ...
     def get(self, name: str) -> XTemplate: ...

@@ -8,7 +8,7 @@ use pest::Parser;
 use pest_derive::Parser;
 
 use crate::markup::tokens::{
-    XComment, XDocType, XElement, XExpression, XFragment, XNode, XScriptElement, XText,
+    XComment, XDocType, XElement, XExpression, XFragment, XNSElement, XNode, XScriptElement, XText,
 };
 
 #[derive(Parser)]
@@ -32,18 +32,32 @@ fn parse_node(pair: Pair<Rule>) -> Option<XNode> {
             debug!("Pushing normal_element");
             let mut inner = pair.into_inner();
             let open_tag = inner.next().unwrap();
-            let (name, attrs) = parse_open_tag(open_tag);
+            match parse_open_tag(open_tag) {
+                OpenTag::Element(name, attrs) => {
+                    match name.as_str() {
+                        "script" | "style" => {
+                            let body = inner.as_str();
+                            Some(XNode::ScriptElement(XScriptElement::new(
+                                name,
+                                attrs,
+                                body.to_string(),
+                            )))
+                        }
+                        _ => {
+                            let mut children = parse_nodes(inner);
+                            // we make the distinctions between self closing element
+                            // and normal element from the user input, we must ensure that
+                            // the normal element are still rendered as normal element since
+                            // it is a user choice.
+                            if children.len() == 0 {
+                                children.push(XNode::Text(XText::new("".to_string())));
+                            }
 
-            match name.as_str() {
-                "script" | "style" => {
-                    let body = inner.as_str();
-                    Some(XNode::ScriptElement(XScriptElement::new(
-                        name,
-                        attrs,
-                        body.to_string(),
-                    )))
+                            Some(XNode::Element(XElement::new(name, attrs, children)))
+                        }
+                    }
                 }
-                _ => {
+                OpenTag::NSElement(ns, name, attrs) => {
                     let mut children = parse_nodes(inner);
                     // we make the distinctions between self closing element
                     // and normal element from the user input, we must ensure that
@@ -52,8 +66,7 @@ fn parse_node(pair: Pair<Rule>) -> Option<XNode> {
                     if children.len() == 0 {
                         children.push(XNode::Text(XText::new("".to_string())));
                     }
-
-                    Some(XNode::Element(XElement::new(name, attrs, children)))
+                    Some(XNode::NSElement(XNSElement::new(ns, name, attrs, children)))
                 }
             }
         }
@@ -65,9 +78,17 @@ fn parse_node(pair: Pair<Rule>) -> Option<XNode> {
         }
         Rule::self_closing_element => {
             debug!("Pushing self_closing_element");
-            let (name, attrs) = parse_open_tag(pair);
-
-            Some(XNode::Element(XElement::new(name, attrs, Vec::new())))
+            match parse_open_tag(pair) {
+                OpenTag::Element(name, attrs) => {
+                    Some(XNode::Element(XElement::new(name, attrs, Vec::new())))
+                }
+                OpenTag::NSElement(ns, name, attrs) => Some(XNode::NSElement(XNSElement::new(
+                    ns,
+                    name,
+                    attrs,
+                    Vec::new(),
+                ))),
+            }
         }
         Rule::doctype => {
             debug!("Pushing doctype");
@@ -103,7 +124,11 @@ fn parse_node(pair: Pair<Rule>) -> Option<XNode> {
     }
 }
 
-fn parse_open_tag(pair: Pair<Rule>) -> (String, HashMap<String, XNode>) {
+enum OpenTag {
+    Element(String, HashMap<String, XNode>),
+    NSElement(String, String, HashMap<String, XNode>),
+}
+fn parse_open_tag(pair: Pair<Rule>) -> OpenTag {
     let mut inner = pair.into_inner();
     let name = inner.next().unwrap().as_str().to_string();
 
@@ -131,7 +156,12 @@ fn parse_open_tag(pair: Pair<Rule>) -> (String, HashMap<String, XNode>) {
         }
     }
 
-    (name, attrs)
+    if name.contains('.') {
+        let parts: Vec<&str> = name.split('.').collect();
+        OpenTag::NSElement(parts[0].to_string(), parts[1].to_string(), attrs)
+    } else {
+        OpenTag::Element(name, attrs)
+    }
 }
 
 #[pyfunction]

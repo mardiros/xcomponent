@@ -11,9 +11,9 @@ normal_element = {
 }
 
 
-self_closing_element = { "<" ~ ident ~ (whitespace* ~ attribute)* ~ whitespace* ~ "/>" }
-open_tag             = { "<" ~ ident ~ (whitespace* ~ attribute)* ~ whitespace* ~ ">" }
-close_tag = @{ "</" ~ ident ~ ">" }
+self_closing_element = { "<" ~ tag_name ~ (whitespace* ~ attribute)* ~ whitespace* ~ "/>" }
+open_tag             = { "<" ~ tag_name ~ (whitespace* ~ attribute)* ~ whitespace* ~ ">" }
+close_tag = @{ "</" ~ tag_name ~ ">" }
 
 fragment = { open_fragment ~ node* ~ close_fragment }
 open_fragment = { "<>" }
@@ -25,6 +25,9 @@ comment   = { "<!--" ~ (!"-->" ~ ANY)* ~ "-->" }
 expression = { "{" ~ (expression | (!"}" ~ ANY))* ~ "}" }
 
 ident = @{ ASCII_ALPHANUMERIC ~ (ASCII_ALPHANUMERIC | "_" )* }
+namespaced_tag = { ident ~ ("." ~ ident)+ }
+tag_name = { namespaced_tag | ident }
+
 attr_name = @{ (ASCII_ALPHA | "_" ) ~ (ASCII_ALPHANUMERIC | "_" | "-" | ":" | "." )* }
 attr_value = @{ string_literal_quote | string_literal_doublequote | expression }
 

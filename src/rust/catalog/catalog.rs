@@ -101,6 +101,7 @@ impl XCatalog {
         template: &str,
         params: Py<PyDict>,
         defaults: Py<PyDict>,
+        namespaces: Py<PyDict>,
     ) -> PyResult<()> {
         let node = parse_markup(template).map_err(|e| {
             pyo3::exceptions::PyValueError::new_err(format!(

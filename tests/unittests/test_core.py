@@ -11,7 +11,7 @@ def Modulo(x: int, y: int) -> str:
 
 def test_component():
     catalog = XCatalog()
-    catalog.add_component("H1", H1(""), {"text": str}, {})
+    catalog.add_component("H1", H1(""), {"text": str}, {}, {})
     template = catalog.get("H1")
     assert template.node.unwrap() == XElement(
         name="h1",
@@ -32,5 +32,5 @@ def test_function():
         return x % y
 
     catalog.add_function("mod", modulo)
-    catalog.add_component("Modulo", Modulo(1, 1), {"x": int, "y": int}, {})
+    catalog.add_component("Modulo", Modulo(1, 1), {"x": int, "y": int}, {}, {})
     assert catalog.render("<Modulo x={7} y={3} />") == "1"

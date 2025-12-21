@@ -361,7 +361,7 @@ impl ToHtml for XNSElement {
                 let pynamespaces: &Bound<'_, PyDict> = namespaces.bind(py).downcast().unwrap();
 
                 let defaults = template.getattr(py, "defaults")?;
-                let node_attrs: &Bound<'_, PyDict> = defaults.bind(py).downcast().unwrap();
+                let node_attrs = defaults.bind(py).downcast().unwrap().copy().unwrap();
 
                 context.push_ns(py, pynamespaces.clone())?;
                 for (name, attrnode) in self.attrs() {

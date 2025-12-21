@@ -1,3 +1,7 @@
+## 0.10.3  -  2025-12-21
+
+* Do not alter default templates parameter values. 
+
 ## 0.10.2  -  2025-12-21
 
 * Fix i18n extraction for namescape components. 

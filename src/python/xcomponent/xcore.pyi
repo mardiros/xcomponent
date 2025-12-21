@@ -29,6 +29,18 @@ class XElement:
         self, name: str, attrs: dict[str, XNode], children: list[XNode]
     ) -> None: ...
 
+class XNSElement:
+    namespace: str
+    name: str
+    attrs: dict[str, XNode]
+    children: list[XNode]
+
+    __match_args__ = ("namespace", "name", "attrs", "children")
+
+    def __init__(
+        self, namespace: str, name: str, attrs: dict[str, XNode], children: list[XNode]
+    ) -> None: ...
+
 class XScriptElement:
     name: str
     attrs: dict[str, XNode]
@@ -78,7 +90,9 @@ class XNode:
     def kind(self) -> NodeType: ...
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
-    def unwrap(self) -> XFragment | XElement | XComment | XText | XExpression: ...
+    def unwrap(
+        self,
+    ) -> XFragment | XElement | XNSElement | XComment | XText | XExpression: ...
 
 def parse_markup(raw: str) -> XNode:
     """

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-10-17 23:29+0200\n"
+"POT-Creation-Date: 2025-12-21 16:00+0100\n"
 "PO-Revision-Date: 2025-10-17 23:18+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -18,22 +18,27 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: tests/functionals/i18n/test_l10n.py:19
-#: tests/functionals/i18n/test_l10n.py:24
-#: tests/functionals/i18n/test_l10n.py:29
-#: tests/functionals/i18n/test_l10n.py:34
+#: tests/functionals/i18n/test_l10n.py:20
+#: tests/functionals/i18n/test_l10n.py:25
+#: tests/functionals/i18n/test_l10n.py:30
+#: tests/functionals/i18n/test_l10n.py:35
 msgid "The lazy dog"
 msgid_plural "The lazy dogs"
 msgstr[0] "Le chien fénéant"
 msgstr[1] "Les chiens fénéants"
 
-#: tests/functionals/i18n/test_l10n.py:41
-#: tests/functionals/i18n/test_l10n.py:46
-#: tests/functionals/i18n/test_l10n.py:51
-#: tests/functionals/i18n/test_l10n.py:56
+#: tests/functionals/i18n/test_l10n.py:42
+#: tests/functionals/i18n/test_l10n.py:47
+#: tests/functionals/i18n/test_l10n.py:52
+#: tests/functionals/i18n/test_l10n.py:57
 msgctxt "animal"
 msgid "The lazy dog"
 msgid_plural "The lazy dogs"
 msgstr[0] "Le chien fénéant"
 msgstr[1] "Les chiens fénéants"
+
+#: tests/functionals/i18n/test_l10n.py:82
+msgctxt "aria-label"
+msgid "The lazy dog"
+msgstr "Le chien fénéant"
 

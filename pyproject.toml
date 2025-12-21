@@ -42,7 +42,7 @@ docs = [
 dev = [
     "babel (>=2.17.0,<3.0.0)",
     "bs4>=0.0.2",
-    "fastlifeweb >=0.28,<1",
+    "fastlifeweb >=0.37,<1",
     "mypy >=1.16.0,<2",
     "pytest >=8.3.5,<9",
 ]

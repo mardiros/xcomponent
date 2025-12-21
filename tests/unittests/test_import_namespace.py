@@ -119,6 +119,25 @@ def page_catalog(
             </layout.Layout>
         """
 
+    @page.component
+    def P(children: XNode) -> str:
+        return "<p>{children}</p>"
+
+    @page.component(use={"layout": layout_catalog, "app": app_catalog})
+    def Page6(children: XNode, title: str, apps: list[App]) -> str:
+        return """
+            <layout.Layout
+                title={title}
+                side_bar={<app.Sidebar/>}
+                >
+                {
+                    for app in globals.apps {
+                        <P>{app.name}</P>
+                    }
+                }
+            </layout.Layout>
+        """
+
     return page
 
 
@@ -166,6 +185,14 @@ def test_namespace(page_catalog: Catalog, doc: str, expected: str):
             '<div><aside><menu><li><a href="#">Parameters</a></li></menu></aside>'
             "<div><p>foo</p><p>bar</p></div></div></body></html>",
             id="override-local-name",
+        ),
+        pytest.param(
+            "<Page6 title='yolo'/>",
+            {"globals": {"apps": [App(name="foo"), App(name="bar")]}},
+            '<html><head><title>yolo</title></head><body><h1 class="xl">yolo</h1>'
+            '<div><aside><menu><li><a href="#">Parameters</a></li></menu></aside>'
+            "<div><p>foo</p><p>bar</p></div></div></body></html>",
+            id="override-local-name-with-component",
         ),
     ],
 )

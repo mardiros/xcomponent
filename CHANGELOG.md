@@ -1,3 +1,7 @@
+## 0.10.2  -  2025-12-21
+
+* Fix i18n extraction for namescape components. 
+
 ## 0.10.1  -  2025-12-20
 
 * Fix namespace components for expressions.

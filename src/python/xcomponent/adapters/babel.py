@@ -7,10 +7,10 @@ from xcomponent.xcore import (
     XElement,
     XExpression,
     XFragment,
+    XNSElement,
     extract_expr_i18n_messages,
     parse_markup,
 )
-
 
 lineno = int
 funcname = str
@@ -26,6 +26,13 @@ def extract_from_markup(node: XNode, offset: int) -> Iterator[ExtractionInfo]:
                 for nfo in extract_from_markup(child, offset):
                     yield nfo
         case XElement(_, attrs, children):
+            for child in attrs.values():
+                for nfo in extract_from_markup(child, offset):
+                    yield nfo
+            for child in children:
+                for nfo in extract_from_markup(child, offset):
+                    yield nfo
+        case XNSElement(_, _, attrs, children):
             for child in attrs.values():
                 for nfo in extract_from_markup(child, offset):
                     yield nfo

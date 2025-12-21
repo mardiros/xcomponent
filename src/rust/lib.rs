@@ -17,7 +17,9 @@ use crate::catalog::XCatalog;
 use crate::context::RenderContext;
 use crate::expression::i18n::extract_expr_i18n_messages;
 use crate::markup::parser::parse_markup;
-use crate::markup::tokens::{NodeType, XComment, XElement, XExpression, XFragment, XNode, XText};
+use crate::markup::tokens::{
+    NodeType, XComment, XElement, XExpression, XFragment, XNSElement, XNode, XText,
+};
 
 #[pymodule]
 fn xcore(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -28,6 +30,7 @@ fn xcore(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<NodeType>()?;
     m.add_class::<XNode>()?;
     m.add_class::<XFragment>()?;
+    m.add_class::<XNSElement>()?;
     m.add_class::<XElement>()?;
     m.add_class::<XComment>()?;
     m.add_class::<XText>()?;

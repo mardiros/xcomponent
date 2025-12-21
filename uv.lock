@@ -12,6 +12,15 @@ wheels = [
 ]
 
 [[package]]
+name = "annotated-doc"
+version = "0.0.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/57/ba/046ceea27344560984e26a590f90bc7f4a75b06701f653222458922b558c/annotated_doc-0.0.4.tar.gz", hash = "sha256:fbcda96e87e9c92ad167c2e53839e57503ecfda18804ea28102353485033faa4", size = 7288, upload-time = "2025-11-10T22:07:42.062Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1e/d3/26bf1008eb3d2daa8ef4cacc7f3bfdc11818d111f7e2d0201bc6e3b49d45/annotated_doc-0.0.4-py3-none-any.whl", hash = "sha256:571ac1dc6991c450b25a9c2d84a3705e2ae7a53467b5d111c24fa8baabbed320", size = 5303, upload-time = "2025-11-10T22:07:40.673Z" },
+]
+
+[[package]]
 name = "annotated-types"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -188,16 +197,17 @@ wheels = [
 
 [[package]]
 name = "fastapi"
-version = "0.115.14"
+version = "0.122.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "annotated-doc" },
     { name = "pydantic" },
     { name = "starlette" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ca/53/8c38a874844a8b0fa10dd8adf3836ac154082cf88d3f22b544e9ceea0a15/fastapi-0.115.14.tar.gz", hash = "sha256:b1de15cdc1c499a4da47914db35d0e4ef8f1ce62b624e94e0e5824421df99739", size = 296263, upload-time = "2025-06-26T15:29:08.21Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/66/1c/0ad8fef92080ab7c34ffc88ba842ed89393423d17f2e06990330454ae67f/fastapi-0.122.1.tar.gz", hash = "sha256:0fd815e8bd9a56afdd16b2f82b3e765116cd50714080f98caf732babf06d71a4", size = 346643, upload-time = "2025-11-30T12:02:16.193Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/53/50/b1222562c6d270fea83e9c9075b8e8600b8479150a18e4516a6138b980d1/fastapi-0.115.14-py3-none-any.whl", hash = "sha256:6c0c8bf9420bd58f565e585036d971872472b4f7d3f6c73b698e10cffdefb3ca", size = 95514, upload-time = "2025-06-26T15:29:06.49Z" },
+    { url = "https://files.pythonhosted.org/packages/d5/dc/6bc1b530749a0fab8616ca59062eb291de86ea6a163881cffc1f1eac7267/fastapi-0.122.1-py3-none-any.whl", hash = "sha256:35cac3f1f14e38171f28d8e4ba2e7fa42a204b12249a9f13cfdf417bd8e86b52", size = 110678, upload-time = "2025-11-30T12:02:14.089Z" },
 ]
 
 [package.optional-dependencies]
@@ -250,7 +260,7 @@ wheels = [
 
 [[package]]
 name = "fastlifeweb"
-version = "0.28.5"
+version = "0.37.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
@@ -261,10 +271,11 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "python-multipart" },
     { name = "venusian" },
+    { name = "xcomponent" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fe/e5/e911f0a6d75028a15e9878211cc84babcace7880ab2ec42a04917660fc91/fastlifeweb-0.28.5.tar.gz", hash = "sha256:7c9fc7a06c98b018ed4de1c6ac4fed36b4d6a25163e9793b8bdd74a7e17d985d", size = 292057, upload-time = "2025-10-06T06:01:21.551Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/61/e7/f8d47fc15d1c0eefe738dcc0a3a3fca07f454f62d7119269acda87cbe34f/fastlifeweb-0.37.0.tar.gz", hash = "sha256:a1fe89209adc6bf9ba62461b9a16d10a33d9cea91fd7a6197131dff608b05770", size = 282300, upload-time = "2025-12-21T14:11:38.52Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/74/98/1ee50f61bdb4ef47d401dd9a65a7be5cacc9ab8a051fe2549420bafdb1dc/fastlifeweb-0.28.5-py3-none-any.whl", hash = "sha256:83e7675a8307f198cc8c3a9e3a0cab43f0dd429591cef3ac98dee563f121ed00", size = 1161534, upload-time = "2025-10-06T06:01:20.031Z" },
+    { url = "https://files.pythonhosted.org/packages/11/f2/c2f442631f7b39b2e07ac34f7ff2688497e4213ccd1203814e062f3530a8/fastlifeweb-0.37.0-py3-none-any.whl", hash = "sha256:01630175b0cebf45d51b535e91777d87194654cd26b14cb3e281a57ee1bc4587", size = 1141787, upload-time = "2025-12-21T14:11:36.953Z" },
 ]
 
 [[package]]
@@ -1449,7 +1460,7 @@ provides-extras = ["docs"]
 dev = [
     { name = "babel", specifier = ">=2.17.0,<3.0.0" },
     { name = "bs4", specifier = ">=0.0.2" },
-    { name = "fastlifeweb", specifier = ">=0.28,<1" },
+    { name = "fastlifeweb", specifier = ">=0.37,<1" },
     { name = "mypy", specifier = ">=1.16.0,<2" },
     { name = "pytest", specifier = ">=8.3.5,<9" },
 ]

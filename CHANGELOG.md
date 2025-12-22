@@ -1,3 +1,9 @@
+## 0.10.4  -  2025-12-22
+
+* Fix lazy evuation of binary operator (and and or).
+  before this version, right arm branch was also evaluated leading to bugs,
+  and requires to add nested if statement to avoid them.
+
 ## 0.10.3  -  2025-12-21
 
 * Do not alter default templates parameter values. 

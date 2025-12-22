@@ -217,6 +217,11 @@ pub fn eval_ast<'py>(
                         return Ok(l);
                     }
                 }
+                Operator::Or => {
+                    if l.is_truthy() {
+                        return Ok(l);
+                    }
+                }
                 _ => (),
             }
             let r = eval_ast(py, right, catalog, context)?;

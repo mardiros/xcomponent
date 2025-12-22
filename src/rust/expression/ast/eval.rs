@@ -211,6 +211,14 @@ pub fn eval_ast<'py>(
 
         AST::Binary { left, op, right } => {
             let l = eval_ast(py, left, catalog, context)?;
+            match op {
+                Operator::And => {
+                    if !l.is_truthy() {
+                        return Ok(l);
+                    }
+                }
+                _ => (),
+            }
             let r = eval_ast(py, right, catalog, context)?;
 
             match op {

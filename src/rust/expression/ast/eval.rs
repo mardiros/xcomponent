@@ -371,7 +371,7 @@ pub fn eval_ast<'py>(
                     let res = catalog.call(py, ident.as_str(), &py_args, &py_kwargs)?;
                     Literal::downcast(py, res)
                 }
-                Literal::Object(o) => Python::with_gil(|py| {
+                Literal::Object(o) => Python::attach(|py| {
                     let res = o.obj().call(py, py_args, Some(&py_kwargs))?;
                     Literal::downcast(py, res.into_bound(py))
                 }),

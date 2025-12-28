@@ -674,7 +674,7 @@ impl XNode {
     }
 
     #[pyo3(signature = ())]
-    pub fn unwrap(&self, py: Python<'_>) -> PyObject {
+    pub fn unwrap(&self, py: Python<'_>) -> Py<PyAny> {
         match self {
             XNode::Fragment(children) => children
                 .clone()

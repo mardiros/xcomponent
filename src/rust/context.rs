@@ -88,7 +88,7 @@ impl PyObj {
 
 impl Clone for PyObj {
     fn clone(&self) -> Self {
-        Python::with_gil(|py| PyObj {
+        Python::attach(|py| PyObj {
             obj: self.obj.clone_ref(py),
         })
     }
@@ -198,7 +198,7 @@ impl Truthy for Literal {
             Literal::Uuid(_) => true,
             Literal::XNode(_) => true,
             Literal::Callable(_) => true,
-            Literal::Object(o) => Python::with_gil(|py| {
+            Literal::Object(o) => Python::attach(|py| {
                 let builtins = PyModule::import(py, "builtins").unwrap();
                 let boolcls = builtins.getattr("bool").unwrap();
                 let v = o.obj().into_pyobject(py).unwrap();
@@ -256,7 +256,7 @@ impl ToHtml for Literal {
             }
             Literal::Object(o) => Ok(format!(
                 "{}",
-                Python::with_gil(|py| {
+                Python::attach(|py| {
                     match o
                         .obj()
                         .into_pyobject(py)

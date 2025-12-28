@@ -1,3 +1,8 @@
+## 0.11.0  -  2025-12-28
+
+* Upgrade pyo3
+  * Drop python 3.9 support, add python 3.14 support. 
+
 ## 0.10.4  -  2025-12-22
 
 * Fix lazy evuation of binary operator (and and or).

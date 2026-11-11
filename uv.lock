@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11"
 
 [[package]]
@@ -1418,7 +1418,7 @@ wheels = [
 
 [[package]]
 name = "xcomponent"
-version = "0.11.0"
+version = "0.12.0"
 source = { editable = "." }
 
 [package.optional-dependencies]

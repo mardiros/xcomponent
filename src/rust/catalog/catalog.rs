@@ -13,7 +13,7 @@ use crate::{
     },
 };
 
-#[pyclass]
+#[pyclass(skip_from_py_object)]
 pub struct PyCallable {
     callable: Py<PyAny>,
 }
@@ -35,7 +35,7 @@ impl PyCallable {
     }
 }
 
-#[pyclass]
+#[pyclass(skip_from_py_object)]
 #[derive(Debug)]
 pub struct XTemplate {
     node: Py<XNode>,
@@ -90,7 +90,7 @@ impl XTemplate {
     }
 }
 
-#[pyclass]
+#[pyclass(skip_from_py_object)]
 pub struct XCatalog {
     components: HashMap<String, Py<XTemplate>>,
     functions: HashMap<String, Py<PyCallable>>,

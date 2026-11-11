@@ -13,7 +13,7 @@ pub trait Truthy {
     fn is_truthy(&self) -> bool;
 }
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum LiteralKey {
     Int(isize),
@@ -33,13 +33,13 @@ impl fmt::Display for LiteralKey {
 
 impl LiteralKey {
     pub fn downcast<'py>(py: Python<'py>, value: Bound<'py, PyAny>) -> Result<Self, PyErr> {
-        if let Ok(v) = value.downcast::<LiteralKey>() {
+        if let Ok(v) = value.cast::<LiteralKey>() {
             return Ok(v.as_unbound().extract(py).unwrap());
-        } else if let Ok(v) = value.downcast::<PyInt>() {
+        } else if let Ok(v) = value.cast::<PyInt>() {
             return Ok(LiteralKey::Int(v.extract::<isize>()?));
-        } else if let Ok(v) = value.downcast::<PyString>() {
+        } else if let Ok(v) = value.cast::<PyString>() {
             return Ok(LiteralKey::Str(v.to_string()));
-        } else if value.downcast::<PyAny>()?.get_type().name()? == "UUID" {
+        } else if value.cast::<PyAny>()?.get_type().name()? == "UUID" {
             let uuid_str = value.getattr("hex")?;
             Ok(LiteralKey::Uuid(uuid_str.to_string()))
         } else {
@@ -110,23 +110,23 @@ pub enum Literal {
 
 impl Literal {
     pub fn downcast<'py>(py: Python<'py>, value: Bound<'py, PyAny>) -> Result<Self, PyErr> {
-        if let Ok(v) = value.downcast::<PyString>() {
+        if let Ok(v) = value.cast::<PyString>() {
             return Ok(Literal::Str(v.to_string()));
-        } else if let Ok(v) = value.downcast::<PyBool>() {
+        } else if let Ok(v) = value.cast::<PyBool>() {
             return Ok(Literal::Bool(v.extract::<bool>()?));
-        } else if let Ok(v) = value.downcast::<PyInt>() {
+        } else if let Ok(v) = value.cast::<PyInt>() {
             return Ok(Literal::Int(v.extract::<isize>()?));
-        } else if let Ok(_) = value.downcast::<PyNone>() {
+        } else if let Ok(_) = value.cast::<PyNone>() {
             return Ok(Literal::None(()));
         } else if let Ok(v) = value.extract::<XNode>() {
             return Ok(Literal::XNode(v));
-        } else if let Ok(seq) = value.downcast::<PyList>() {
+        } else if let Ok(seq) = value.cast::<PyList>() {
             let mut items = Vec::with_capacity(seq.len());
             for item in seq.iter() {
                 items.push(Literal::downcast(py, item)?);
             }
             Ok(Literal::List(items))
-        } else if let Ok(dict) = value.downcast::<PyDict>() {
+        } else if let Ok(dict) = value.cast::<PyDict>() {
             let mut map = HashMap::new();
             for (k, v) in dict {
                 let key: LiteralKey = LiteralKey::downcast(py, k)?;
@@ -134,7 +134,7 @@ impl Literal {
                 map.insert(key, val);
             }
             Ok(Literal::Dict(map))
-        } else if value.downcast::<PyAny>()?.get_type().name()? == "UUID" {
+        } else if value.cast::<PyAny>()?.get_type().name()? == "UUID" {
             let uuid_str = value.getattr("hex")?;
             Ok(Literal::Uuid(uuid_str.to_string()))
         } else {
@@ -273,7 +273,7 @@ impl ToHtml for Literal {
     }
 }
 
-#[pyclass]
+#[pyclass(skip_from_py_object)]
 #[derive(Debug)]
 pub struct RenderContext {
     stack: Vec<HashMap<LiteralKey, Literal>>,

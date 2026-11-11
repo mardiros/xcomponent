@@ -17,7 +17,7 @@ pub trait ToHtml {
     ) -> PyResult<String>;
 }
 
-#[pyclass(eq, eq_int)]
+#[pyclass(from_py_object, eq, eq_int)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum NodeType {
     DocType,
@@ -30,7 +30,7 @@ pub enum NodeType {
     Comment,
 }
 
-#[pyclass(eq)]
+#[pyclass(from_py_object, eq)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct XFragment {
     children: Vec<XNode>,
@@ -69,7 +69,7 @@ impl ToHtml for XFragment {
     }
 }
 
-#[pyclass(eq)]
+#[pyclass(from_py_object, eq)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct XScriptElement {
     name: String,
@@ -145,7 +145,7 @@ fn render_attr<'py>(
     Ok(attr)
 }
 
-#[pyclass(eq)]
+#[pyclass(from_py_object, eq)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct XElement {
     name: String,
@@ -199,15 +199,12 @@ impl ToHtml for XElement {
                 debug!("Rendering template {}", py_template);
                 let namespaces = py_template
                     .getattr("namespaces")?
-                    .downcast::<PyDict>()?
+                    .cast::<PyDict>()?
                     .copy()?;
                 context.push_ns(py, namespaces.clone())?;
 
                 let node = py_template.getattr("node")?.extract::<XNode>()?;
-                let node_attrs = py_template
-                    .getattr("defaults")?
-                    .downcast::<PyDict>()?
-                    .copy()?;
+                let node_attrs = py_template.getattr("defaults")?.cast::<PyDict>()?.copy()?;
 
                 for (name, attrnode) in self.attrs() {
                     let name = match name.as_str() {
@@ -277,7 +274,7 @@ impl ToHtml for XElement {
     }
 }
 
-#[pyclass(eq)]
+#[pyclass(from_py_object, eq)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct XNSElement {
     namespace: String,
@@ -358,10 +355,10 @@ impl ToHtml for XNSElement {
                 let xnode = template.getattr(py, "node")?;
 
                 let namespaces = template.getattr(py, "namespaces")?;
-                let pynamespaces: &Bound<'_, PyDict> = namespaces.bind(py).downcast().unwrap();
+                let pynamespaces: &Bound<'_, PyDict> = namespaces.bind(py).cast().unwrap();
 
                 let defaults = template.getattr(py, "defaults")?;
-                let node_attrs = defaults.bind(py).downcast().unwrap().copy().unwrap();
+                let node_attrs = defaults.bind(py).cast().unwrap().copy().unwrap();
 
                 context.push_ns(py, pynamespaces.clone())?;
                 for (name, attrnode) in self.attrs() {
@@ -412,7 +409,7 @@ impl ToHtml for XNSElement {
     }
 }
 
-#[pyclass(eq)]
+#[pyclass(from_py_object, eq)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct XDocType {
     doctype: String,
@@ -447,7 +444,7 @@ impl ToHtml for XDocType {
     }
 }
 
-#[pyclass(eq)]
+#[pyclass(from_py_object, eq)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct XComment {
     comment: String,
@@ -485,7 +482,7 @@ impl ToHtml for XComment {
     }
 }
 
-#[pyclass(eq)]
+#[pyclass(from_py_object, eq)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct XText {
     text: String,
@@ -520,7 +517,7 @@ impl ToHtml for XText {
     }
 }
 
-#[pyclass(eq)]
+#[pyclass(from_py_object, eq)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct XExpression {
     expression: String,
@@ -566,7 +563,7 @@ impl ToHtml for XExpression {
     }
 }
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum XNode {
     Fragment(XFragment),

@@ -165,5 +165,4 @@ def extract_xcomponent(
             except ValueError:
                 # should log something here
                 continue
-            for messageinfo in extract_from_markup(markup, lineno):
-                yield messageinfo
+            yield from extract_from_markup(markup, lineno)

@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
 import datetime
+
 import xcomponent
 
 __version__ = xcomponent.__version__

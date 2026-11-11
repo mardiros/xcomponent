@@ -1,7 +1,8 @@
 from typing import Any
 from urllib.parse import urlencode
-from xcomponent import Catalog
+
 import pytest
+from xcomponent import Catalog
 
 
 class Request:

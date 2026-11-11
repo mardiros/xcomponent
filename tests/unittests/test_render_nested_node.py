@@ -1,6 +1,5 @@
-from xcomponent import Catalog, Component, XNode
-
 import pytest
+from xcomponent import Catalog, Component, XNode
 
 
 @pytest.fixture(autouse=True)

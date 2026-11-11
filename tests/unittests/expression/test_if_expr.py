@@ -1,6 +1,6 @@
-from typing_extensions import Any
-import pytest
+from typing import Any
 
+import pytest
 from xcomponent import Catalog
 
 catalog = Catalog()

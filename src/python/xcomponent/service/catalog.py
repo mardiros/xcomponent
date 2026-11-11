@@ -1,10 +1,10 @@
 """Registry of XComponents."""
 
 import inspect
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from functools import wraps
 from types import ModuleType
-from typing import Any, Callable, overload
+from typing import Any, overload
 
 from xcomponent.xcore import (
     RenderContext,
@@ -12,7 +12,7 @@ from xcomponent.xcore import (
     XNode,
 )
 
-__all__ = ["Component", "Function", "Catalog"]
+__all__ = ["Catalog", "Component", "Function"]
 
 
 Component = Callable[..., str]

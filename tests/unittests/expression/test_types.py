@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from typing import TypedDict
 from uuid import UUID
-from xcomponent import Catalog
-from xcomponent.xcore import XNode
 
 import pytest
+from xcomponent import Catalog
+from xcomponent.xcore import XNode
 
 catalog = Catalog()
 

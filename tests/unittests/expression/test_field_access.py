@@ -1,4 +1,5 @@
 from typing import Any
+
 from xcomponent import Catalog, XNode
 
 catalog = Catalog()

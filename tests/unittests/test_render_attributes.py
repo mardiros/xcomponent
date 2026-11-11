@@ -1,9 +1,8 @@
 from typing import Literal
 
+import pytest
 from bs4.element import PageElement
 from xcomponent import Catalog, XNode
-
-import pytest
 
 
 @pytest.fixture(autouse=True)

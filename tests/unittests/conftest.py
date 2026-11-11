@@ -3,7 +3,6 @@ from collections.abc import Iterator, Mapping
 
 import pytest
 from bs4 import BeautifulSoup, PageElement  # type: ignore
-
 from xcomponent import Catalog
 
 

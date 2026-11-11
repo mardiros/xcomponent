@@ -1,7 +1,7 @@
-from xcomponent import Catalog
+import textwrap
 
 import pytest
-import textwrap
+from xcomponent import Catalog
 
 
 @pytest.fixture(autouse=True)

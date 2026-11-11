@@ -1,5 +1,4 @@
 import pytest
-
 from xcomponent import XNode
 from xcomponent.adapters.babel import ExtractionInfo, extract_from_markup
 from xcomponent.xcore import parse_markup

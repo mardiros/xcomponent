@@ -1,5 +1,4 @@
 import pytest
-
 from xcomponent import Catalog
 
 

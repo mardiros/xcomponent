@@ -1,6 +1,7 @@
 from typing import Any
-from xcomponent import Catalog, Component, XNode
+
 import pytest
+from xcomponent import Catalog, Component, XNode
 
 
 @pytest.fixture()

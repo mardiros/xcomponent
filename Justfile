@@ -52,7 +52,7 @@ lf: develop
 fmt:
     cargo fmt
     uv run ruff check --fix .
-    uv run ruff format src tests
+    uv run ruff format src/python tests
 
 release major_minor_patch: && changelog
     #!/bin/bash

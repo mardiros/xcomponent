@@ -2,11 +2,11 @@ from collections.abc import Iterator
 from tokenize import STRING, generate_tokens
 from typing import Any, BinaryIO
 
-from xcomponent import XNode
 from xcomponent.xcore import (
     XElement,
     XExpression,
     XFragment,
+    XNode,
     XNSElement,
     extract_expr_i18n_messages,
     parse_markup,
@@ -165,5 +165,4 @@ def extract_xcomponent(
             except ValueError:
                 # should log something here
                 continue
-            for messageinfo in extract_from_markup(markup, lineno):
-                yield messageinfo
+            yield from extract_from_markup(markup, lineno)

@@ -1,8 +1,9 @@
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
-from typing import Mapping
-from xcomponent import Catalog, Component
+
 import pytest
+from xcomponent import Catalog, Component
 
 
 @dataclass

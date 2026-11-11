@@ -1,6 +1,6 @@
-import pytest
 from uuid import UUID
 
+import pytest
 from xcomponent import Catalog
 
 catalog = Catalog()

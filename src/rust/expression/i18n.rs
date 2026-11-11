@@ -9,7 +9,7 @@ use crate::{
     markup::tokens::XNode,
 };
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Debug, Clone)]
 pub enum MessageKind {
     Gettext {
@@ -50,7 +50,7 @@ pub enum MessageKind {
     },
 }
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Debug, Clone)]
 pub struct ExtractedMessage {
     lineno: usize,

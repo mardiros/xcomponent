@@ -1,5 +1,4 @@
 import pytest
-
 from xcomponent import Catalog
 
 catalog = Catalog()
@@ -37,7 +36,6 @@ def NestedParenthesisOp(a: bool, b: bool, c: bool, d: bool) -> str:
         pytest.param(AndOp(3, -3), "-3", id="and int"),
         pytest.param(AndOp(True, False), "false", id="bool"),
         pytest.param(AndOp(False, True), "false", id="bool"),
-        pytest.param(AndOp(True, False), "false", id="bool"),
         pytest.param(AndOp(False, False), "false", id="bool"),
     ],
 )
@@ -57,7 +55,6 @@ def test_and(component: str, expected: str):
         pytest.param(OrOp(3, -3), "3", id="and int"),
         pytest.param(OrOp(True, False), "true", id="bool"),
         pytest.param(OrOp(False, True), "true", id="bool"),
-        pytest.param(OrOp(True, False), "true", id="bool"),
         pytest.param(OrOp(False, False), "false", id="bool"),
     ],
 )

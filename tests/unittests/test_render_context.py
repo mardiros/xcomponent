@@ -1,6 +1,6 @@
 from typing import Any
-import pytest
 
+import pytest
 from xcomponent import Catalog
 
 

@@ -3,7 +3,6 @@ from collections.abc import Iterator, Mapping
 
 import pytest
 from bs4 import BeautifulSoup, PageElement  # type: ignore
-
 from xcomponent import Catalog
 
 
@@ -29,7 +28,7 @@ def soup_rendered(
     soup = BeautifulSoup(rendered, "html.parser")
     try:
         yield next(soup.children)  # type: ignore
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         # Display the error in the assertion is a compromise
         yield exc  # type: ignore
 

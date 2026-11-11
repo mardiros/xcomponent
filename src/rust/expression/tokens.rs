@@ -3,7 +3,7 @@ use std::{collections::HashMap, fmt, str::FromStr};
 use crate::markup::tokens::XNode;
 use pyo3::prelude::*;
 
-#[pyclass(eq, eq_int)]
+#[pyclass(from_py_object, eq, eq_int)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExpType {
     Expression,

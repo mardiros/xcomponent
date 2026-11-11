@@ -2,7 +2,7 @@
 name = "xcore"
 version = "0.12.0"
 authors = ["Guillaume Gauvrit <guillaume@gauvr.it>"]
-edition = "2021"
+edition = "2024"
 description = "JSX-like for python using maturin/pyo3 and pest."
 license-file = "LICENSE"
 readme = "README.md"
